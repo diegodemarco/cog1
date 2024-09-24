@@ -1,0 +1,15 @@
+To enable the PCF-8523 external rtc, run "sun50i-h616-pcf-8523-install.sh".
+This will change the mapping of the internal SOC rtc to "rtc1" instead of rtc0, and enable the rtc-8523 to become "rtc0", which will then be used by the kernel for all rtc-related operations, such as hwclock, chrony, etc.
+
+You can confirm that this works fine by running "dmesg | grep rtc", which should display something similar to this:
+[    0.028298] platform 3001000.clock: Fixed dependency cycle(s) with /soc/rtc@7000000
+[    0.033834] platform 7010000.clock: Fixed dependency cycle(s) with /soc/rtc@7000000
+[    1.311994] sun6i-rtc 7000000.rtc: registered as rtc1
+[    1.312088] sun6i-rtc 7000000.rtc: RTC enabled
+[    2.108615] rtc-pcf8523 3-0068: registered as rtc0
+[    2.109634] rtc-pcf8523 3-0068: setting system clock to 2024-09-07T16:04:15 UTC (1725725055)
+
+You can see on line 3 that the SOC rtc (/soc/rtc@7000000) is now mapped as "rtc1", and then, on line 5, that the pcf-8523 is mapped as "rtc0". Line 6 shows that the kernel has read the date/time from the pcf-8523 and used to set the system clock.
+
+As a side-effect, you will note that the SOC rtc will necer be synchronized, and will reset to Jan 1, 1970 on every boot. You can see this by running "hwclock -f /dev/rtc1", which will show something like this:
+1970-01-02 02:37:08.641138+01:00

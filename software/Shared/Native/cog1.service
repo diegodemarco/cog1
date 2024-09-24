@@ -1,0 +1,14 @@
+[Unit]
+Description=COG1 application
+After=network.target
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=60
+WorkingDirectory=/cog1
+ExecStart=/cog1/cog1app
+
+[Install]
+WantedBy=multi-user.target

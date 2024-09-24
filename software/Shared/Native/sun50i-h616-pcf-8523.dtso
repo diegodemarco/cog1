@@ -1,0 +1,39 @@
+/dts-v1/;
+/plugin/;
+
+/ {
+        /* 
+         * Aliases can be used to set the external RTC as rtc0
+         * Needs supplying the correct path to the I2C controller RTC is connected to,
+         * this example is for I2C0 on H2+ (TWI0 on PA11 + PA12)
+         * NOTE: setting time at boot by the kernel
+         * may not work in some cases if the external RTC module is loaded too late
+         */
+        fragment@0 {
+                target-path = "/aliases";
+                __overlay__ {
+                        rtc0 = "/soc/i2c@5002c00/pcf8523@68";
+                };
+        };
+
+        fragment@1 {
+                target = <&i2c3>;
+                __overlay__ {
+                        #address-cells = <1>;
+                        #size-cells = <0>;
+                        pcf8523@68 {
+                                compatible = "nxp,pcf8523";
+                                reg = <0x68>;
+                                status = "okay";
+                        };
+                };
+        };
+
+        fragment@2 {
+                target-path = "/aliases";
+                __overlay__ {
+                        rtc1 = "/soc/rtc@7000000";
+                };
+        };
+
+};

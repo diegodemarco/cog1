@@ -1,0 +1,2 @@
+systemctl stop cog1
+

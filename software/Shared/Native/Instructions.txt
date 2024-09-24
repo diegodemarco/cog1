@@ -1,0 +1,49 @@
+Basic configuration (requres keyboard and monitor)
+--------------------------------------------------
+- Connect a monitor and a keyboard
+- Boot and wait for the login prompt.
+- At the prompt, run "sudo orangepi-config". Press any key to ignore the fact that there's no active network connection.
+- In the menu, select "Network", press [Enter], then select "WiFi", and press [Enter] again.
+- Select the WiFi network you want to connect to, and press [Enter].
+- Type the password and [Enter]. Wait until the connection completes.
+- Exit by typing escape multiple times until you're back at the command prompt.
+- Type "sudo ifconfig" and verify that you're connected to the network. You should see an IP address assigned to the WiFi adapter. This is the IP you'll use to connect through ssh.
+- Before powering off, use connect to the Orange pi via ssh from another computer, just to be sure.
+- At the command prompt, type "sudo shutdown now". You can do this from the Orange pi's keyboard or from the ssh session on the other computer.
+- The Orange pi will power off.
+- Remove keyboard and monitor. You don't need them anymore.
+
+Additional configuration via ssh
+--------------------------------
+- Connect to the Orange pi via ssh. User is "root", password is "orangepi".
+- Change the password:
+  - type "passwd", then your new password (for instance "cog1pass"), and then type it again to verify.
+- Disable user "orangepi"
+  - type "usermod -L -e 1 orangepi"
+- Apply the latest updates to the OS:
+  - type "apt-get update". This will look for updates for all installed software packages. Wait for the process to finish. 
+  - type "apt-get upgrade" to apply whatever updates were found.
+- Install cog1 dependencies:
+  - type "apt-get install libgpiod-dev"
+  - type "apt-get install eject"
+- Mount the cog1 folder
+  - type "mkdir ~/cog1-dev".
+  - type "sudo mount -t cifs //[machine or ip]/[Shared folder] ~/cog1-dev -o username=[username],password=[password]
+- Install the cog1 software
+  - type "cd ~/cog1-dev/native" to make sure you're in your home folder
+  - type "./install-all"
+- Enable all necessary hardware overlays
+  - type "orangepi-config"
+  - Choose "System"
+  - Choose "Hardware"
+  - Use the space bar to select "pcf-8523", "ph-i2c3", and "ph-uart5". This will enable the i2c-3 controller, use the pcf-8523 as the rtc, and enable the serial uart 5.
+  - Choose "Save"
+  - When asked to reboot, choose "Reboot" so that the changes are applied.
+- Wait for the reboot, and reconnect via ssh.
+- Mount the cog1-dev folder again.
+  - type "cd ~/cog1-dev" 
+  - type "./run.sh" to run the cog1 application manually and to check everything is fine.
+  - Stop by pressing ctrl+c
+  - Type "./up.sh". This will install cog1 locally and start it as a service.
+- At this point, you can reboot by typing "reboot now". On the OLED display, you should see the cog1 logo, and then the screensaver with the current time.
+- That's it, you're good to go.

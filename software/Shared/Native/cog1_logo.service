@@ -1,0 +1,11 @@
+[Unit]
+Description=COG1 OLED logo application
+DefaultDependencies=no
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/cog1/cog1_logo
+
+[Install]
+WantedBy=sysinit.target
