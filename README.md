@@ -1,4 +1,5 @@
 # cog1
+![cog1 front and back as built](docs/images/picture_1.jpg)
 
 ## What is cog1?
 cog1 is an open-source industrial IoT gateway (hardware and software) built as a motherboard hosting an [Orange Pi Zero 3](http://www.orangepi.org/html/hardWare/computerAndMicrocontrollers/details/Orange-Pi-Zero-3.html) linux SBC (Wiki [here](http://www.orangepi.org/orangepiwiki/index.php/Orange_Pi_Zero_3)). The motherboard was designed using [KiCad](https://www.kicad.org/). Its software uses the [.net core framework](https://dotnet.microsoft.com/) (currently at version 8) to provide the services running in the hardware, as well as the back-end web services for the user interface (not started yet), which will be developed in [Angular](https://angular.dev/).
@@ -33,6 +34,8 @@ The plan is to continue developing the software so that it can:
 
 ### Hardware
 #### PCB
+![cog1 PCB as rendered by KiCad](docs/images/picture_2.jpg)
+
 The PCB has been designed using KiCad. It contains everything needed, including a 3D render. All components can be hand-soldered, but a few (essentially the AOZ regulator, the ADC, and the digital input isolators) require a bit of skills, as they are SSOP components. 
 
 All capacitors, resistors, etc. are 0805 or bigger, so they can be hand-soldered with little effort. The PCB contains all necessary headers to allow the Orange Pi Zero 3 to be plugged in, inverted.
@@ -41,7 +44,7 @@ All components can be found in the usual marketplaces (DigiKey, Mouser, etc.). I
 
 #### Enclosure
 The enclosure for the cog1 is a rather standard extruded-aluminum case, which can be found online for a few bucks. However, as a 3D printing enthusiast, I ended up designing and printing everything necessary to complete the enclosure:
-- Front cover.
+- Front cover
 - Back cover
 - Knob
 All designs are included in this project. I have printed everything with an Elegoo Mars 3 Pro (resin), and expect that all parts would print well on any resin 3D printer. I have not tried to print this on a filament printer, as I believe the quality would not be good enough. When printed in resin, all parts really look production-grade if the proper resin is used.
