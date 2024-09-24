@@ -34,6 +34,13 @@ The current software is extremely basic, but includes everything needed to fully
 The PCB has been designed using KiCad. It contains everything needed, including a 3D render. All components can be hand-soldered, but a few (essentially the AOZ regulator, the ADC, and the digital input isolators) require a bit of skills, as they are SSOP components. All capacitors, resistors, etc. are 0805 or bigger, so they can be hand-soldered with little effort. The PCB contains all necessary headers to allow the Orange Pi Zero 3 to be plugged in, inverted.
 All components can be found in the usual marketplaces (DigiKey, Mouser, etc.). I strongly advice not using cheap / uncertified sources for the components, especially the chips, as there is a large market of fake chips that either don't work, or even worse, work erratically.
 
+#### Enclosure
+The enclosure for the cog1 is a rather standard extruded-aluminum case, which can be found online for a few bucks. However, as a 3D printing enthusiast, I ended up designing and printing everything necessary to complete the enclosure:
+- Front cover.
+- Back cover
+- Knob
+All designs are included in this project. I have printed everything with an Elegoo Mars 3 Pro (resin), and expect that all parts would print well on any resin 3D printer. I have not tried to print this on a filament printer, as I believe the quality would not be good enough. When printed in resin, all parts really look production-grade if the proper resin is used.
+
 ### Software
 #### Main code
 The main code of the cog1 platform is a .net core application that contains all the necessary components (web services and general logic) to keep the cog1 working. The current version is relatively basic, and only contains those features needed to test the hardware. A web service is in place to provide basic status of the cog1, which is currently used to test the overall reliability of the hardware. All hardware functions have been tested with this software.
