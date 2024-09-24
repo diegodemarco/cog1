@@ -1,7 +1,7 @@
 # cog1
 
 ## What is cog1?
-cog1 is an open-source industrial IoT gateway (hardware and software) built as a motherboard hosting an [Orange Pi Zero 3](http://www.orangepi.org/html/hardWare/computerAndMicrocontrollers/details/Orange-Pi-Zero-3.html) linux SBC (Wiki [here](http://www.orangepi.org/orangepiwiki/index.php/Orange_Pi_Zero_3). Its software uses the .net core framework (currently at version 8) to provide the services running in the hardware, as well as the back-end web services for the user interface (not started yet), which will be developed in Angular.
+cog1 is an open-source industrial IoT gateway (hardware and software) built as a motherboard hosting an [Orange Pi Zero 3](http://www.orangepi.org/html/hardWare/computerAndMicrocontrollers/details/Orange-Pi-Zero-3.html) linux SBC (Wiki [here](http://www.orangepi.org/orangepiwiki/index.php/Orange_Pi_Zero_3). The motherboard was designed using [KiCad](https://www.kicad.org/). Its software uses the [.net core framework](https://dotnet.microsoft.com/) (currently at version 8) to provide the services running in the hardware, as well as the back-end web services for the user interface (not started yet), which will be developed in [Angular](https://angular.dev/).
 
 ### Features
 
