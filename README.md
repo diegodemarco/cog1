@@ -22,7 +22,9 @@ The cog1 platform currently supports:
   - A front USB port (USB 2.0)
 
 #### Software
-The current software is extremely basic, but includes everything needed to fully test the hardware. Additionally, the software already has the correct "architecture", i.e. it is designed as a linux service file that can be started, stopped, etc., and communicates with the hardware through a low-level i/o library created with native code (plain old C). The plan is to continue developing the software so that it can:
+The current software is extremely basic, but includes everything needed to fully test the hardware. Additionally, the software already has the correct "architecture", i.e. it is designed as a linux service file that can be started, stopped, etc., and communicates with the hardware through a low-level i/o library created with native code (plain old C).
+
+The plan is to continue developing the software so that it can:
 - Communicate with a user interface (to be developed in Angular) to allow configuration and monitoring.
 - Enable the definition of "variables" based on the various inputs and outputs as well as on Modbus RTU (through the built-in RS-485 port). This could easily be extended to use Modbus TCP as well, or any other LAN protocol that could be relevant.
 - Provide data-extraction web services.
@@ -31,7 +33,10 @@ The current software is extremely basic, but includes everything needed to fully
 
 ### Hardware
 #### PCB
-The PCB has been designed using KiCad. It contains everything needed, including a 3D render. All components can be hand-soldered, but a few (essentially the AOZ regulator, the ADC, and the digital input isolators) require a bit of skills, as they are SSOP components. All capacitors, resistors, etc. are 0805 or bigger, so they can be hand-soldered with little effort. The PCB contains all necessary headers to allow the Orange Pi Zero 3 to be plugged in, inverted.
+The PCB has been designed using KiCad. It contains everything needed, including a 3D render. All components can be hand-soldered, but a few (essentially the AOZ regulator, the ADC, and the digital input isolators) require a bit of skills, as they are SSOP components. 
+
+All capacitors, resistors, etc. are 0805 or bigger, so they can be hand-soldered with little effort. The PCB contains all necessary headers to allow the Orange Pi Zero 3 to be plugged in, inverted.
+
 All components can be found in the usual marketplaces (DigiKey, Mouser, etc.). I strongly advice not using cheap / uncertified sources for the components, especially the chips, as there is a large market of fake chips that either don't work, or even worse, work erratically.
 
 #### Enclosure
@@ -44,12 +49,14 @@ All designs are included in this project. I have printed everything with an Eleg
 ### Software
 #### Main code
 The main code of the cog1 platform is a .net core application that contains all the necessary components (web services and general logic) to keep the cog1 working. The current version is relatively basic, and only contains those features needed to test the hardware. A web service is in place to provide basic status of the cog1, which is currently used to test the overall reliability of the hardware. All hardware functions have been tested with this software.
+
 This is by far the area that needs the most effort, so that the cog1 can be turned into a fully-functional gateway.
 
 #### Native code
 There are a few small portions of the software written in plan old C, and compiled directly in the SBC:
 - A low-level i/o library that deals with digital and analog i/o, display, etc.
 - A small "logo" application (configured as a service that starts early in the Linux boot process) to display the cog1 logo while the cog1 is booting.
+
 Everything else is c#, so there's no low-level really in the c# code. 
 
 ## Getting started
