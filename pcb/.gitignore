@@ -1,5 +1,6 @@
 cog1-backups
 cog1.kicad_pcb.zip
+*.lck
 *.kicad_prl
 fp-info-cache
 fp-lib-table
