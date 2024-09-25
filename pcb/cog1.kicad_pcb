@@ -258,7 +258,7 @@
 		(descr "Resistor SMD 0805 (2012 Metric), square (rectangular) end terminal, IPC_7351 nominal, (Body size source: IPC-SM-782 page 72, https://www.pcb-3d.com/wordpress/wp-content/uploads/ipc-sm-782a_amendment_1_and_2.pdf), generated with kicad-footprint-generator")
 		(tags "resistor")
 		(property "Reference" "R49"
-			(at 0 -1.65 360)
+			(at 0 -1.65 0)
 			(layer "F.SilkS")
 			(hide yes)
 			(uuid "e8992b47-d72a-45bf-89af-e3ed573d08ab")
@@ -270,7 +270,7 @@
 			)
 		)
 		(property "Value" "560R"
-			(at 3.9 -0.1 360)
+			(at 3.9 -0.1 0)
 			(layer "F.Fab")
 			(uuid "38b2340f-f751-4d00-bb7c-25f10d67c8ce")
 			(effects
@@ -1080,7 +1080,7 @@
 				)
 			)
 		)
-		(property "Value" "Relay_SPST-NO"
+		(property "Value" "PR5-5V-200-1A"
 			(at 7 -3 180)
 			(unlocked yes)
 			(layer "F.Fab")
@@ -1556,7 +1556,7 @@
 		)
 		(fp_arc
 			(start 31.75 -51.3)
-			(mid 31.552368 -50.885262)
+			(mid 31.552362 -50.885301)
 			(end 31.12 -50.73)
 			(stroke
 				(width 0.1524)
@@ -7522,7 +7522,7 @@
 				)
 			)
 		)
-		(property "Value" "Relay_SPST-NO"
+		(property "Value" "PR5-5V-200-1A"
 			(at 7 -3 180)
 			(unlocked yes)
 			(layer "F.Fab")
@@ -12310,7 +12310,7 @@
 		(descr "Resistor SMD 0805 (2012 Metric), square (rectangular) end terminal, IPC_7351 nominal, (Body size source: IPC-SM-782 page 72, https://www.pcb-3d.com/wordpress/wp-content/uploads/ipc-sm-782a_amendment_1_and_2.pdf), generated with kicad-footprint-generator")
 		(tags "resistor")
 		(property "Reference" "R5"
-			(at 0 -1.65 360)
+			(at 0 -1.65 0)
 			(layer "F.SilkS")
 			(hide yes)
 			(uuid "8ad7d3eb-a6cb-4295-9025-18d33c4f6f74")
@@ -12322,7 +12322,7 @@
 			)
 		)
 		(property "Value" "560R"
-			(at 4.05 0 360)
+			(at 4.05 0 0)
 			(layer "F.Fab")
 			(uuid "88a00de2-0c92-435b-aae4-d69b780596c6")
 			(effects
@@ -18759,7 +18759,7 @@
 				)
 			)
 		)
-		(property "Value" "1K"
+		(property "Value" "10K"
 			(at 0.0375 -1.65 0)
 			(layer "F.Fab")
 			(uuid "746e7cf9-9ced-4513-9954-89c9d8f74af8")
@@ -19658,7 +19658,7 @@
 				)
 			)
 		)
-		(property "Value" "1K"
+		(property "Value" "10K"
 			(at 0.025 1.65 0)
 			(layer "F.Fab")
 			(uuid "33a25fcd-f6bf-47b7-92ce-4782e537967d")
@@ -20480,7 +20480,7 @@
 				)
 			)
 		)
-		(property "Value" "Relay_SPST-NO"
+		(property "Value" "PR5-5V-200-1A"
 			(at 7 -3 0)
 			(unlocked yes)
 			(layer "F.Fab")
@@ -24858,7 +24858,7 @@
 		(descr "Resistor SMD 0805 (2012 Metric), square (rectangular) end terminal, IPC_7351 nominal, (Body size source: IPC-SM-782 page 72, https://www.pcb-3d.com/wordpress/wp-content/uploads/ipc-sm-782a_amendment_1_and_2.pdf), generated with kicad-footprint-generator")
 		(tags "resistor")
 		(property "Reference" "R6"
-			(at 0 -1.65 360)
+			(at 0 -1.65 0)
 			(layer "F.SilkS")
 			(hide yes)
 			(uuid "9850e717-3c41-44fd-b62d-9a29aa5b7b78")
@@ -24870,7 +24870,7 @@
 			)
 		)
 		(property "Value" "560R"
-			(at 3.95 -0.05 360)
+			(at 3.95 -0.05 0)
 			(layer "F.Fab")
 			(uuid "0491a309-9d10-41b2-8991-f6b391779b0c")
 			(effects
@@ -26876,7 +26876,7 @@
 				)
 			)
 		)
-		(property "Value" "1K"
+		(property "Value" "10K"
 			(at -0.1375 1.65 0)
 			(layer "F.Fab")
 			(uuid "b1785e55-909b-4902-9b90-8d5a8a04dde4")
@@ -28004,7 +28004,7 @@
 				)
 			)
 		)
-		(property "Value" "Relay_SPST-NO"
+		(property "Value" "PR5-5V-200-1A"
 			(at 7 -3 0)
 			(unlocked yes)
 			(layer "F.Fab")
@@ -28787,7 +28787,7 @@
 				)
 			)
 		)
-		(property "Value" "1K"
+		(property "Value" "10K"
 			(at -0.1125 -1.65 0)
 			(layer "F.Fab")
 			(uuid "a9c5eee8-8c93-4795-b484-fe36b068531f")
