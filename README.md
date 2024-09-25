@@ -40,7 +40,7 @@ The PCB has been designed using KiCad. It contains everything needed, including 
 
 All capacitors, resistors, etc. are 0805 or bigger, so they can be hand-soldered with little effort. The PCB contains all necessary headers to allow the Orange Pi Zero 3 to be plugged in, inverted.
 
-All components can be found in the usual marketplaces (DigiKey, Mouser, etc.). I strongly advice not using cheap / uncertified sources for the components, especially the chips, as there is a large market of fake chips that either don't work, or even worse, work erratically.
+All components can be found in the usual marketplaces (DigiKey, Mouser, etc.). I strongly advice not using unreliable (i.e. unrealistically cheap) sources for the components, especially the chips, as there is a large market of fake chips that either don't work, or even worse, work erratically.
 
 #### Enclosure
 The enclosure for the cog1 is a rather standard extruded-aluminum case, which can be found online for a few bucks. However, as a 3D printing enthusiast, I ended up designing and printing everything necessary to complete the enclosure:
