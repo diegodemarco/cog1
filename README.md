@@ -47,7 +47,8 @@ The enclosure for the cog1 is a rather standard extruded-aluminum case, which ca
 - Front cover
 - Back cover
 - Knob
-All designs are included in this project. I have printed everything with an Elegoo Mars 3 Pro (resin), and expect that all parts would print well on any resin 3D printer. I have not tried to print this on a filament printer, as I believe the quality would not be good enough. When printed in resin, all parts really look production-grade if the proper resin is used.
+
+All designs, done in SolidWorks, are included in this project. I have printed everything with an Elegoo Mars 3 Pro (resin), and expect that all parts would print well on any resin 3D printer. I have not tried to print this on a filament printer, as I believe the quality would not be good enough. When printed in resin, all parts really look production-grade if the proper resin is used.
 
 ### Software
 #### Main code
