@@ -2276,7 +2276,7 @@
 	)
 	(wire
 		(pts
-			(xy 111.76 109.22) (xy 120.65 109.22)
+			(xy 111.76 109.22) (xy 121.92 109.22)
 		)
 		(stroke
 			(width 0)
@@ -2476,7 +2476,7 @@
 	)
 	(wire
 		(pts
-			(xy 120.65 109.22) (xy 120.65 102.87)
+			(xy 121.92 109.22) (xy 121.92 102.87)
 		)
 		(stroke
 			(width 0)
@@ -2786,7 +2786,7 @@
 	)
 	(wire
 		(pts
-			(xy 120.65 102.87) (xy 146.05 102.87)
+			(xy 121.92 102.87) (xy 146.05 102.87)
 		)
 		(stroke
 			(width 0)
@@ -3663,7 +3663,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "10K"
+		(property "Value" "10K 1%"
 			(at 113.538 105.41 0)
 			(effects
 				(font
@@ -3741,7 +3741,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Resistor_SMD:R_0815_2038Metric_Pad1.20x4.05mm_HandSolder"
+		(property "Footprint" "Resistor_SMD:R_1206_3216Metric_Pad1.30x1.75mm_HandSolder"
 			(at 195.58 74.168 90)
 			(effects
 				(font
