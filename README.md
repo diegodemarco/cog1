@@ -65,7 +65,11 @@ Everything else is c#, so there's no low-level really in the c# code.
 
 ## Getting started
 ### Building the hardware
+The KiCad project included in the pcb folder contains everything needed to manufacture the pcb. For all prototypes, the pcb was ordered to PCBWay, and then all components were soldered manually. When soldering, I strongly advise mounting the switching power supply first, veryfying the 5V are steady and noiseless, and then mount everything else. This is to prevent blowing up anything if the switching power supply was not mounted correctly.
+
 ### Installing the software
+I'll write a tutorial for this ASAP, but it's pretty straightforward.
+
 ## Current status
 ### What's done
 ### What's missing
