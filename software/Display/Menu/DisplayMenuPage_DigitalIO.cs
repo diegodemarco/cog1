@@ -1,6 +1,7 @@
 ﻿using System;
+using cog1.Hardware;
 
-namespace cog1app
+namespace cog1.Display.Menu
 {
     public class DisplayMenuPage_DigitalIO : DisplayMenuPage
     {

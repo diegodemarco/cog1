@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace cog1app
+namespace cog1
 {
     public class TemperatureReport
     {

@@ -10,7 +10,8 @@ cd ../..
 
 cp Native/cog1_logo/cog1_logo /cog1/
 cp Native/cog1_io/cog1_io.so /cog1/
-cp ./cog1app /cog1/
+cp ./libe_sqlite3.so /cog1/
+cp ./cog1 /cog1/
 
 rm -r /cog1/admin
 mkdir /cog1/admin

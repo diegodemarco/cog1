@@ -1,10 +1,9 @@
 ﻿using System;
 
-namespace cog1app
+namespace cog1.Display.Menu
 {
     public class DisplayMenuPage_ScreenSaver : DisplayMenuPage
     {
-        private bool hasCPU = false;
         private Random rnd = new Random();
 
         public override void Update()

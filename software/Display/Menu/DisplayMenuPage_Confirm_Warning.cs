@@ -1,17 +1,16 @@
 ﻿using System;
 
-namespace cog1app
+namespace cog1.Display.Menu
 {
     public class DisplayMenuPage_Confirm_Warning : DisplayMenuPage
     {
-        private bool hasCPU = false;
-        private int selected = 1;
+        private int selected;
         private readonly string title;
         private readonly string option1;
         private readonly Action action;
 
-        public DisplayMenuPage_Confirm_Warning(string title, string option1, Action action) : base() 
-        { 
+        public DisplayMenuPage_Confirm_Warning(string title, string option1, Action action) : base()
+        {
             this.title = title;
             this.option1 = option1;
             this.action = action;

@@ -8,7 +8,7 @@ Type=simple
 Restart=always
 RestartSec=60
 WorkingDirectory=/cog1
-ExecStart=/cog1/cog1app
+ExecStart=/cog1/cog1
 
 [Install]
 WantedBy=multi-user.target

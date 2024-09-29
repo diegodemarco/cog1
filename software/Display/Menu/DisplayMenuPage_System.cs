@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace cog1app
+namespace cog1.Display.Menu
 {
     public class DisplayMenuPage_System : DisplayMenuPage
     {

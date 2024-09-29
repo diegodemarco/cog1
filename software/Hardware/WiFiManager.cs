@@ -1,8 +1,12 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
-namespace cog1app
+namespace cog1.Hardware
 {
     public static class WiFiManager
     {
@@ -59,7 +63,7 @@ namespace cog1app
             }
             //Console.WriteLine($"General.State={generalState}");
             //Console.WriteLine($"General.State.Int={result.connectionState}");
-            result.isConnected = (result.connectionState == 100);   // 100 means "connected"
+            result.isConnected = result.connectionState == 100;   // 100 means "connected"
 
             // If connected, add IP and signal information
             if (result.isConnected)
@@ -91,22 +95,9 @@ namespace cog1app
             return result;
         }
 
-        public static string GetWifiDetails()
-        {
-            // First from iwconfig
-            string output = OSUtils.RunWithOutput("iwconfig", "wlan0");
+        #region Private
 
-            // Add nmcli information
-            output += OSUtils.RunWithOutput("nmcli", "device", "show", "wlan0");
-
-            // Add route information
-            output += Environment.NewLine + OSUtils.RunWithOutput("route");
-
-            // Add ip information
-            output += Environment.NewLine + OSUtils.RunWithOutput("ip", "-4", "-o", "addr", "show", "wlan0");
-
-            return output;
-        }
+        private static bool initialized = false;
 
         private static List<string> GetConnections()
         {
@@ -148,6 +139,81 @@ namespace cog1app
                     }
                 }
             }
+        }
+
+        private static void CheckWiFi()
+        {
+            if (!Directory.Exists("./wifi_log"))
+                Directory.CreateDirectory("./wifi_log");
+            for (; ; )
+            {
+                var wiFiStatus = WiFiManager.GetWiFiStatus();
+                var wiFiText =
+                    DateTime.UtcNow.ToString("s") + Environment.NewLine +
+                    Environment.NewLine +
+                    WiFiManager.GetWifiDetails() + Environment.NewLine +
+                    Environment.NewLine +
+                    JsonConvert.SerializeObject(wiFiStatus);
+
+                //File.WriteAllText($"./wifi_log/{DateTime.UtcNow.ToString("yyyyMMdd.HHmmss")}.txt", wiFiText);
+
+                if (!wiFiStatus.isConnected)
+                {
+                    ResetWiFi();
+                    File.WriteAllText($"./wifi_log/{DateTime.UtcNow.ToString("yyyyMMdd.HHmmss")}.reset.txt", wiFiText);
+                }
+
+                Thread.Sleep(60000);
+            }
+        }
+
+        private static bool ResetWiFi()
+        {
+            try
+            {
+                OSUtils.Run("nmcli", "radio", "wifi", "off");
+                OSUtils.Run("systemctl", "stop", "NetworkManager");
+                Thread.Sleep(5000);
+                OSUtils.Run("systemctl", "start", "NetworkManager");
+                OSUtils.Run("nmcli", "radio", "wifi", "on");
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        #endregion
+
+        public static void Init()
+        {
+            if (initialized) 
+                return;
+            Task.Run(() => CheckWiFi());
+            initialized = true;
+        }
+
+        public static void Deinit()
+        {
+            initialized = false;
+        }
+
+        public static string GetWifiDetails()
+        {
+            // First from iwconfig
+            string output = OSUtils.RunWithOutput("iwconfig", "wlan0");
+
+            // Add nmcli information
+            output += OSUtils.RunWithOutput("nmcli", "device", "show", "wlan0");
+
+            // Add route information
+            output += Environment.NewLine + OSUtils.RunWithOutput("route");
+
+            // Add ip information
+            output += Environment.NewLine + OSUtils.RunWithOutput("ip", "-4", "-o", "addr", "show", "wlan0");
+
+            return output;
         }
 
     }

@@ -1,6 +1,6 @@
 ﻿using Microsoft.VisualBasic;
 
-namespace cog1app
+namespace cog1.Display.Menu
 {
     public abstract class DisplayMenuPage
     {

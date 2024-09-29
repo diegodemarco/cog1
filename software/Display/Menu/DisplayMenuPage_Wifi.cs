@@ -1,9 +1,9 @@
-﻿namespace cog1app
+﻿using cog1.Hardware;
+
+namespace cog1.Display.Menu
 {
     public class DisplayMenuPage_WiFi : DisplayMenuPage
     {
-        private bool hasCPU = false;
-
         public override void Update()
         {
             _Update(true);

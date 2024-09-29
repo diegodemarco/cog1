@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using cog1.Hardware;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -7,31 +8,31 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace cog1app
+namespace cog1
 {
     public static class SystemStats
     {
         private class SensorsDataEntry
         {
-            public string Adapter;
-            public SensorsTemp1 temp1;
+            public string Adapter = null;
+            public SensorsTemp1 temp1 = null;
         }
 
         private class SensorsTemp1
         {
-            public double temp1_input;
-            public double? temp1_crit;
+            public double temp1_input = 0;
+            public double? temp1_crit = null;
         }
 
         private class LsCPUData
         {
-            public List<LsCPUEntry> lscpu;
+            public List<LsCPUEntry> lscpu = null;
         }
 
         private class LsCPUEntry
         {
-            public string field;
-            public string data;
+            public string field = null;
+            public string data = null;
         }
 
         private class CpuMeasurement
@@ -41,12 +42,21 @@ namespace cog1app
             public long ioWaitTime;
         }
 
+        private static bool initialized = false;
         private static object _lock = new();
         private static List<CpuMeasurement> cpu1SecMeasurements = new();
 
         public static void Init()
         {
+            if (initialized) 
+                return;
             Task.Run(Background);
+            initialized = true;
+        }
+
+        public static void Deinit()
+        {
+            initialized = false;
         }
 
         public static TemperatureReport GetTemps()

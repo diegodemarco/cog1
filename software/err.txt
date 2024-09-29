@@ -1,0 +1,7 @@
+System.ComponentModel.Win32Exception (2): An error occurred trying to start process 'timedatectl' with working directory 'D:\Repos\cog1\software'. The system cannot find the file specified.
+   at System.Diagnostics.Process.StartWithCreateProcess(ProcessStartInfo startInfo)
+   at System.Diagnostics.Process.Start(ProcessStartInfo startInfo)
+   at cog1.OSUtils.RunWithOutput(String fileName, String[] parameters) in D:\Repos\cog1\software\OSUtils.cs:line 29
+   at cog1.SystemStats.GetDateTime() in D:\Repos\cog1\software\DTO\SystemStats.cs:line 236
+   at cog1.SystemStats.GetReport() in D:\Repos\cog1\software\DTO\SystemStats.cs:line 264
+   at cog1.Controllers.Cog1APIController.GetSystemStats() in D:\Repos\cog1\software\Controllers\API.cs:line 38

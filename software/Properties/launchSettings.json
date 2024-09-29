@@ -17,7 +17,7 @@
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
     },
-    "WebApplication1": {
+    "cog1 console": {
       "commandName": "Project",
       "launchBrowser": true,
       "launchUrl": "weatherforecast",

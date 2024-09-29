@@ -1,4 +1,6 @@
-﻿namespace cog1app
+﻿using cog1.Hardware;
+
+namespace cog1.Display.Menu
 {
     public class DisplayMenuPage_DO_Control : DisplayMenuPage
     {
@@ -23,7 +25,7 @@
             canvas.DrawSwitch(70, 52, outputs[3]);
 
             // Reverse as needed
-            if (selected == 1) 
+            if (selected == 1)
                 canvas.Reverse(0, 16, 127, 16 + 11);
             if (selected == 2)
                 canvas.Reverse(0, 28, 127, 28 + 11);
@@ -49,7 +51,7 @@
                 Update();
                 return DisplayMenuAction.None;
             }
-                
+
         }
 
         public override DisplayMenuAction EncoderRight(out DisplayMenuPage newPage)

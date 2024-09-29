@@ -1,6 +1,6 @@
 ﻿using System.Threading;
 
-namespace cog1app
+namespace cog1.Display.Menu
 {
     public class DisplayMenuPage_System_Control : DisplayMenuPage
     {
@@ -20,7 +20,7 @@ namespace cog1app
             canvas.DrawText(3, 24, font, "Shut down");
 
             // Reverse as needed
-            if (selected == 1) 
+            if (selected == 1)
                 canvas.Reverse(0, 16, 127, 16 + 7);
             if (selected == 2)
                 canvas.Reverse(0, 24, 127, 24 + 7);

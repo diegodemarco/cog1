@@ -2,8 +2,9 @@
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
+using cog1.Display.Menu;
 
-namespace cog1app
+namespace cog1.Hardware
 {
     public enum BootReason
     {
@@ -31,38 +32,45 @@ namespace cog1app
             if (active)
                 return true;
 
-            int ret;
-            lock (_lock)
+            if (Global.IsDevelopment)
             {
-                // IO ISR
-                var del = new IOISRDelegate(EncoderISR);
-                p_fnISISR = Marshal.GetFunctionPointerForDelegate<IOISRDelegate>(del);
-                gchIOISR = GCHandle.Alloc(del);
+                Console.WriteLine("Development mode: skipping io library initialization");
+            }
+            else
+            {
+                int ret;
+                lock (_lock)
+                {
+                    // IO ISR
+                    var del = new IOISRDelegate(EncoderISR);
+                    p_fnISISR = Marshal.GetFunctionPointerForDelegate(del);
+                    gchIOISR = GCHandle.Alloc(del);
 
-                // Initialize the IO library
-                ret = ioLib.io_init(p_fnISISR);
-                if (ret == 0)
-                {
-                    Console.WriteLine("iolib.so init successful. Boot reason: power loss");
-                    bootReason = BootReason.PowerLoss;
-                    active = true;
-                }
-                else if (ret == 1)
-                {
-                    Console.WriteLine("iolib.so init successful. Boot reason: reboot");
-                    bootReason = BootReason.Reboot;
-                    active = true;
-                }
-                else if (ret > 0)
-                {
-                    Console.WriteLine($"iolib.so init successful. Boot reason: unknown ({ret})");
-                    bootReason = BootReason.Reboot;
-                    active = true;
-                }
-                else
-                {
-                    Console.WriteLine($"iolib.so init error ({ret})");
-                    return false;
+                    // Initialize the IO library
+                    ret = ioLib.io_init(p_fnISISR);
+                    if (ret == 0)
+                    {
+                        Console.WriteLine("iolib.so init successful. Boot reason: power loss");
+                        bootReason = BootReason.PowerLoss;
+                        active = true;
+                    }
+                    else if (ret == 1)
+                    {
+                        Console.WriteLine("iolib.so init successful. Boot reason: reboot");
+                        bootReason = BootReason.Reboot;
+                        active = true;
+                    }
+                    else if (ret > 0)
+                    {
+                        Console.WriteLine($"iolib.so init successful. Boot reason: unknown ({ret})");
+                        bootReason = BootReason.Reboot;
+                        active = true;
+                    }
+                    else
+                    {
+                        Console.WriteLine($"iolib.so init error ({ret})");
+                        return false;
+                    }
                 }
             }
 
@@ -130,13 +138,13 @@ namespace cog1app
         private const int IO_EVENT_DI4_ACTIVE = 1024;
         private const int IO_EVENT_DI4_INACTIVE = 2048;
 
-        private const int IO_EVENT_ENCODER = 
+        private const int IO_EVENT_ENCODER =
             IO_EVENT_ENCODER_CW | IO_EVENT_ENCODER_CCW | IO_EVENT_ENCODER_SW_ACTIVE | IO_EVENT_ENCODER_SW_INACTIVE;
-        private const int IO_EVENT_DI = 
+        private const int IO_EVENT_DI =
             IO_EVENT_DI1_ACTIVE | IO_EVENT_DI1_INACTIVE | IO_EVENT_DI2_ACTIVE | IO_EVENT_DI2_INACTIVE |
             IO_EVENT_DI3_ACTIVE | IO_EVENT_DI3_INACTIVE | IO_EVENT_DI4_ACTIVE | IO_EVENT_DI4_INACTIVE;
 
-        private static IntPtr p_fnISISR;
+        private static nint p_fnISISR;
         private static GCHandle gchIOISR;
         private delegate void IOISRDelegate(int eventBitmap);
 
@@ -261,20 +269,19 @@ namespace cog1app
 
         private static int _ana1_shadow = 0, _ana2_shadow = 0, _ana3_shadow = 0, _ana4_shadow = 0;
         private static int _anv1_shadow = 0, _anv2_shadow = 0, _anv3_shadow = 0, _anv4_shadow = 0;
-        private static int anv1 = 0, anv2 = 0, anv3 = 0, anv4 = 0;
 
         public static void Read020mA(out double ana1, out double ana2, out double ana3, out double ana4)
         {
             // adc is 12 bits
             const double adc_full_range = 4095;         // 12-bit adc
             const double adc_voltage_reference = 2.56;  // 2.56V
-            
+
             // Resistor values used at the input of the adc
             const double shunt_resistor = 255;
             const double series_resistor = 10000;
             const double ground_resistor = 9530;
             const double resistor_divider_factor = ground_resistor / (series_resistor + ground_resistor);
-            const double final_shunt_resistor = 1 / ((1 / shunt_resistor) + (1 / (series_resistor + ground_resistor)));
+            const double final_shunt_resistor = 1 / (1 / shunt_resistor + 1 / (series_resistor + ground_resistor));
 
             // Voltage at the input when the reads its maximum value
             const double adc_full_scale_voltage = adc_voltage_reference / resistor_divider_factor;
@@ -289,10 +296,10 @@ namespace cog1app
             }
 
             // 
-            ana1 = 1000 * ((double)a1) * adc_full_scale_voltage / adc_full_range / final_shunt_resistor;
-            ana2 = 1000 * ((double)a2) * adc_full_scale_voltage / adc_full_range / final_shunt_resistor;
-            ana3 = 1000 * ((double)a3) * adc_full_scale_voltage / adc_full_range / final_shunt_resistor;
-            ana4 = 1000 * ((double)a4) * adc_full_scale_voltage / adc_full_range / final_shunt_resistor;
+            ana1 = 1000 * (double)a1 * adc_full_scale_voltage / adc_full_range / final_shunt_resistor;
+            ana2 = 1000 * (double)a2 * adc_full_scale_voltage / adc_full_range / final_shunt_resistor;
+            ana3 = 1000 * (double)a3 * adc_full_scale_voltage / adc_full_range / final_shunt_resistor;
+            ana4 = 1000 * (double)a4 * adc_full_scale_voltage / adc_full_range / final_shunt_resistor;
         }
 
         public static void Read010V(out double anv1, out double anv2, out double anv3, out double anv4)
@@ -319,14 +326,17 @@ namespace cog1app
             }
 
             // 
-            anv1 = ((double)a1) * adc_full_scale_voltage / adc_full_range;
-            anv2 = ((double)a2) * adc_full_scale_voltage / adc_full_range;
-            anv3 = ((double)a3) * adc_full_scale_voltage / adc_full_range;
-            anv4 = ((double)a4) * adc_full_scale_voltage / adc_full_range;
+            anv1 = (double)a1 * adc_full_scale_voltage / adc_full_range;
+            anv2 = (double)a2 * adc_full_scale_voltage / adc_full_range;
+            anv3 = (double)a3 * adc_full_scale_voltage / adc_full_range;
+            anv4 = (double)a4 * adc_full_scale_voltage / adc_full_range;
         }
 
         private static void AnalogRead()
         {
+            if (Global.IsDevelopment)
+                return;
+
             int c0 = 0, c1 = 0, c2 = 0, c3 = 0, c4 = 0, c5 = 0, c6 = 0, c7 = 0;
 
             lock (_lock)
@@ -356,7 +366,7 @@ namespace cog1app
         {
             for (; ; )
             {
-                Thread.Sleep(500);
+                Thread.Sleep(1000);
                 AnalogRead();
             }
         }
@@ -372,27 +382,34 @@ namespace cog1app
 
             for (; ; )
             {
-                var cpu = SystemStats.GetCpuUsage(1);
-                if (cpu == null)
+                if (Global.IsDevelopment)
                 {
-                    short_sleep = short_sleep_max;
+                    Thread.Sleep(100);
                 }
                 else
                 {
-                    short_sleep = (int)(short_sleep_min + (short_sleep_max - short_sleep_min) * cpu.idlePercentage / 100);
+                    var cpu = SystemStats.GetCpuUsage(1);
+                    if (cpu == null)
+                    {
+                        short_sleep = short_sleep_max;
+                    }
+                    else
+                    {
+                        short_sleep = (int)(short_sleep_min + (short_sleep_max - short_sleep_min) * cpu.idlePercentage / 100);
+                    }
+
+                    long_sleep = 2 * short_sleep;
+                    inter_sleep = 7 * short_sleep;
+
+                    ioLib.heartbeat(1);
+                    Thread.Sleep(short_sleep);
+                    ioLib.heartbeat(0);
+                    Thread.Sleep(long_sleep);
+                    ioLib.heartbeat(1);
+                    Thread.Sleep(short_sleep);
+                    ioLib.heartbeat(0);
+                    Thread.Sleep(inter_sleep);
                 }
-
-                long_sleep = 2 * short_sleep;
-                inter_sleep = 7 * short_sleep;
-
-                ioLib.heartbeat(1);
-                Thread.Sleep(short_sleep);
-                ioLib.heartbeat(0);
-                Thread.Sleep(long_sleep);
-                ioLib.heartbeat(1);
-                Thread.Sleep(short_sleep);
-                ioLib.heartbeat(0);
-                Thread.Sleep(inter_sleep);
             }
         }
 

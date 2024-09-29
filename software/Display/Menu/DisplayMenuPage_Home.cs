@@ -1,6 +1,7 @@
 ﻿using System;
+using cog1.Hardware;
 
-namespace cog1app
+namespace cog1.Display.Menu
 {
     public class DisplayMenuPage_Home : DisplayMenuPage
     {
@@ -38,7 +39,7 @@ namespace cog1app
             canvas.DrawText(0, 16, font, $"Date {DateTime.Now.ToString("yyyy-MM-dd HH:mm")}");
             canvas.DrawText(0, 24, font, $"WiFi" + wifiState.PadLeft(21 - 4));
             canvas.DrawText(0, 32, font, $"Eth                  ");
-            canvas.DrawText(0, 40, font, "Temp" + ($"{(int?)temps.maxTemperatureC}ºC/{(int?)Utils.CelsiusToFahrenheit(temps.maxTemperatureC)}ºF").PadLeft(21 - 4));
+            canvas.DrawText(0, 40, font, "Temp" + $"{(int?)temps.maxTemperatureC}ºC/{(int?)Utils.CelsiusToFahrenheit(temps.maxTemperatureC)}ºF".PadLeft(21 - 4));
             canvas.DrawText(0, 48, font, $"CPU (1 min)    {usedCPU}");
             canvas.DrawText(0, 56, font, $"Firmware" + Global.Version.PadLeft(21 - 8));
 

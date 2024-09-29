@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using cog1.Hardware;
 
-namespace cog1app
+namespace cog1.Display.Menu
 {
     public enum DisplayMenuAction
     {
@@ -17,6 +18,7 @@ namespace cog1app
 
     public static class DisplayMenu
     {
+        private static bool initialized = false;
         private static object _lock = new();
         private static int pageIndex = 0;
         private static Stack<DisplayStackItem> pageStack = new();
@@ -50,7 +52,15 @@ namespace cog1app
 
         public static void Init()
         {
+            if (initialized)
+                return;
             Task.Run(() => MenuLoop());
+            initialized = true;
+        }
+
+        public static void Deinit()
+        {
+            initialized = false;
         }
 
         public static void EncoderEvent(EncoderEventType eventType)

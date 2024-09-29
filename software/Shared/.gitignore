@@ -3,4 +3,6 @@ wifi_log
 *.so
 appsettings*
 cog1app
+cog1
 cog1_logo
+data/

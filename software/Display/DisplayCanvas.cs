@@ -8,8 +8,9 @@
 
 using System;
 using System.Text;
+using cog1.Hardware;
 
-namespace cog1app
+namespace cog1
 {
     public class DisplayCanvas
     {

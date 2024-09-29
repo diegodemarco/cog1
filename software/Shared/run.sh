@@ -13,6 +13,4 @@ cd ../..
 cp Native/cog1_logo/cog1_logo .
 cp Native/cog1_io/cog1_io.so .
 
-mkdir -p ./admin
-
-./cog1app
+./cog1

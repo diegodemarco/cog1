@@ -4,7 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 
-namespace cog1app
+namespace cog1
 {
     public static class OSUtils
     {

@@ -1,4 +1,4 @@
-namespace cog1app
+namespace cog1
 {
     public class MemoryReport
     {
