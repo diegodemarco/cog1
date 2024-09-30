@@ -2,6 +2,6 @@ System.ComponentModel.Win32Exception (2): An error occurred trying to start proc
    at System.Diagnostics.Process.StartWithCreateProcess(ProcessStartInfo startInfo)
    at System.Diagnostics.Process.Start(ProcessStartInfo startInfo)
    at cog1.OSUtils.RunWithOutput(String fileName, String[] parameters) in D:\Repos\cog1\software\OSUtils.cs:line 29
-   at cog1.SystemStats.GetDateTime() in D:\Repos\cog1\software\DTO\SystemStats.cs:line 236
-   at cog1.SystemStats.GetReport() in D:\Repos\cog1\software\DTO\SystemStats.cs:line 264
-   at cog1.Controllers.Cog1APIController.GetSystemStats() in D:\Repos\cog1\software\Controllers\API.cs:line 38
+   at cog1.SystemStats.GetDateTime() in D:\Repos\cog1\software\DTO\SystemStats.cs:line 246
+   at cog1.SystemStats.GetReport() in D:\Repos\cog1\software\DTO\SystemStats.cs:line 274
+   at cog1.Controllers.SystemStatsController.<>c.<GetSystemStats>b__3_0() in D:\Repos\cog1\software\Controllers\SystemStatsController.cs:line 30

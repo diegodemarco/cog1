@@ -3,7 +3,6 @@ using cog1.DTO;
 using cog1.Exceptions;
 using Cog1.DB;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.DependencyInjection;
 using System;
 
 namespace cog1.Business
@@ -13,6 +12,7 @@ namespace cog1.Business
         private string localeCode = null;
         private ErrorCodes errorCodes = null;
         private Cog1DbContext databaseContext = null;
+        private IHttpContextAccessor httpContextAccessor = null;
 
         public bool Committed { get; private set; } = false;
 
@@ -20,7 +20,8 @@ namespace cog1.Business
 
         public string LocaleCode => GetLocaleCode();
 
-        public HttpContext HttpContext { get; }
+        private Lazy<HttpContext> httpContext;
+        public HttpContext HttpContext => httpContext.Value;
 
         // Database
         public Cog1DbContext Db => GetDbContext();
@@ -42,9 +43,11 @@ namespace cog1.Business
         public UserDTO User => GetUser();
 
 
-        public Cog1Context(IServiceProvider serviceProvider)
+        public Cog1Context(IHttpContextAccessor httpContextAccessor)
         {
-            HttpContext = serviceProvider.GetService<IHttpContextAccessor>().HttpContext;
+            // Http context
+            this.httpContextAccessor = httpContextAccessor;
+            httpContext = new Lazy<HttpContext>(() => httpContextAccessor?.HttpContext);
 
             // Dao
             userDao = new Lazy<UserDao>(() => new UserDao(this));
@@ -74,15 +77,22 @@ namespace cog1.Business
         {
             if (localeCode == null)
             {
-                try
+                if (!string.IsNullOrWhiteSpace(User.localeCode))
                 {
-                    localeCode = MasterEntityBusiness.GetLocaleFromBrowser();
-                    if (string.IsNullOrEmpty(localeCode))
-                        localeCode = Literals.Locales.English.LocaleCode;
+                    localeCode = User.localeCode;
                 }
-                catch
+                else
                 {
-                    localeCode = Literals.Locales.English.LocaleCode;
+                    try
+                    {
+                        localeCode = MasterEntityBusiness.GetLocaleFromBrowser();
+                        if (string.IsNullOrEmpty(localeCode))
+                            localeCode = Literals.Locales.English.LocaleCode;
+                    }
+                    catch
+                    {
+                        localeCode = Literals.Locales.English.LocaleCode;
+                    }
                 }
             }
             return localeCode;

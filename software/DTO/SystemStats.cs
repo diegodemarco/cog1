@@ -1,4 +1,6 @@
 ﻿using cog1.Hardware;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -42,22 +44,8 @@ namespace cog1
             public long ioWaitTime;
         }
 
-        private static bool initialized = false;
         private static object _lock = new();
         private static List<CpuMeasurement> cpu1SecMeasurements = new();
-
-        public static void Init()
-        {
-            if (initialized) 
-                return;
-            Task.Run(Background);
-            initialized = true;
-        }
-
-        public static void Deinit()
-        {
-            initialized = false;
-        }
 
         public static TemperatureReport GetTemps()
         {
@@ -255,20 +243,6 @@ namespace cog1
             };
         }
 
-        private static void Background()
-        {
-            var sw = Stopwatch.StartNew();
-            var nextSec = 1000;
-            for (; ; )
-            {
-                Thread.Sleep(900);
-                while (sw.ElapsedMilliseconds < nextSec)
-                    Thread.Sleep(10);
-                nextSec += 1000;
-                Collect1SecondData();
-            }
-        }
-
         public static SystemStatsReport GetReport()
         {
             return new SystemStatsReport()
@@ -281,6 +255,51 @@ namespace cog1
                 wiFi = WiFiManager.GetWiFiStatus(),
             };
         }
+
+        #region Background service: heartbeat
+
+        public class BackgroundTelemetry(ILogger<BackgroundTelemetry> logger) : BackgroundService
+        {
+            protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+            {
+                logger.LogInformation("Background telemetry service started");
+
+                var sw = Stopwatch.StartNew();
+                var nextSec = 1000;
+
+                // Signal that the background task has started
+                await Task.Delay(1000);
+
+                while (!stoppingToken.IsCancellationRequested)
+                {
+                    try
+                    {
+                        if (Global.IsDevelopment)
+                        {
+                            await Task.Delay(1000);
+                        }
+                        else
+                        {
+                            await Task.Delay(800);
+                            while (sw.ElapsedMilliseconds < nextSec)
+                                Thread.Sleep(10);
+                            nextSec += 1000;
+                            SystemStats.Collect1SecondData();
+                        }
+                    } 
+                    catch (Exception ex)
+                    {
+                        logger.LogError($"Background telemetry error: {ex}");
+                        await Task.Delay(1000);
+                    }
+                }
+
+                logger.LogInformation("Background telemetry service stopped");
+            }
+        }
+
+        #endregion
+
 
     }
 }

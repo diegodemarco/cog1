@@ -21,10 +21,8 @@ namespace cog1
                 var life = host.Services.GetRequiredService<IHostApplicationLifetime>();
                 life.ApplicationStopped.Register(() =>
                 {
+                    // Deinitialize hardware i/o
                     IOManager.Deinit();
-                    WiFiManager.Deinit();
-                    SystemStats.Deinit();
-                    DisplayMenu.Deinit();
                 });
                 host.Run();
                 return 0;

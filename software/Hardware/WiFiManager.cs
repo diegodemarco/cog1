@@ -1,4 +1,6 @@
-﻿using Newtonsoft.Json;
+﻿using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -97,7 +99,6 @@ namespace cog1.Hardware
 
         #region Private
 
-        private static bool initialized = false;
 
         private static List<string> GetConnections()
         {
@@ -141,32 +142,6 @@ namespace cog1.Hardware
             }
         }
 
-        private static void CheckWiFi()
-        {
-            if (!Directory.Exists("./wifi_log"))
-                Directory.CreateDirectory("./wifi_log");
-            for (; ; )
-            {
-                var wiFiStatus = WiFiManager.GetWiFiStatus();
-                var wiFiText =
-                    DateTime.UtcNow.ToString("s") + Environment.NewLine +
-                    Environment.NewLine +
-                    WiFiManager.GetWifiDetails() + Environment.NewLine +
-                    Environment.NewLine +
-                    JsonConvert.SerializeObject(wiFiStatus);
-
-                //File.WriteAllText($"./wifi_log/{DateTime.UtcNow.ToString("yyyyMMdd.HHmmss")}.txt", wiFiText);
-
-                if (!wiFiStatus.isConnected)
-                {
-                    ResetWiFi();
-                    File.WriteAllText($"./wifi_log/{DateTime.UtcNow.ToString("yyyyMMdd.HHmmss")}.reset.txt", wiFiText);
-                }
-
-                Thread.Sleep(60000);
-            }
-        }
-
         private static bool ResetWiFi()
         {
             try
@@ -186,19 +161,6 @@ namespace cog1.Hardware
 
         #endregion
 
-        public static void Init()
-        {
-            if (initialized) 
-                return;
-            Task.Run(() => CheckWiFi());
-            initialized = true;
-        }
-
-        public static void Deinit()
-        {
-            initialized = false;
-        }
-
         public static string GetWifiDetails()
         {
             // First from iwconfig
@@ -215,6 +177,59 @@ namespace cog1.Hardware
 
             return output;
         }
+
+        #region Background service: WiFi monitor
+
+        public class WiFiMonitor(ILogger<WiFiMonitor> logger) : BackgroundService
+        {
+            protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+            {
+                logger.LogInformation("WiFi monitor service started");
+
+                if (!Directory.Exists("./wifi_log"))
+                    Directory.CreateDirectory("./wifi_log");
+
+                // Signal that the background task has started
+                await Task.Delay(1000);
+                
+                while (!stoppingToken.IsCancellationRequested)
+                {
+                    try
+                    {
+                        if (!Global.IsDevelopment)
+                        {
+                            var wiFiStatus = WiFiManager.GetWiFiStatus();
+                            var wiFiText =
+                                DateTime.UtcNow.ToString("s") + Environment.NewLine +
+                                Environment.NewLine +
+                                WiFiManager.GetWifiDetails() + Environment.NewLine +
+                                Environment.NewLine +
+                                JsonConvert.SerializeObject(wiFiStatus);
+
+                            //File.WriteAllText($"./wifi_log/{DateTime.UtcNow.ToString("yyyyMMdd.HHmmss")}.txt", wiFiText);
+
+                            if (!wiFiStatus.isConnected)
+                            {
+                                ResetWiFi();
+                                File.WriteAllText($"./wifi_log/{DateTime.UtcNow.ToString("yyyyMMdd.HHmmss")}.reset.txt", wiFiText);
+                            }
+                        }
+
+                        for (var i = 0; i < 60 && !stoppingToken.IsCancellationRequested; i++)
+                            await Task.Delay(1000);
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.LogInformation($"Error in WiFi monitor service: {ex}");
+                        await Task.Delay(1000);
+                    }
+                }
+
+                logger.LogInformation("WiFi monitor service stopped");
+            }
+        }
+
+        #endregion
 
     }
 }

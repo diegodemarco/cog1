@@ -11,6 +11,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Hosting;
 using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.IO;
 
@@ -58,6 +59,13 @@ namespace cog1
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            // Initialize database
+            Cog1DbContext.InitializeDatabase();
+
+            // Initialize hardware i/o
+            if (!IOManager.Init())
+                throw new System.Exception("Failed startup: could not initialize hardware");
+
             // HttpContext is used by the cog1 context
             services.AddHttpContextAccessor();
 
@@ -68,29 +76,20 @@ namespace cog1
             services.AddAuthentication("cog1")
                 .AddScheme<Cog1AuthenticationOptions, Cog1AuthenticationHandler>("cog1", null);
 
+            // Register background services
+            services.AddHostedService<IOManager.Heartbeat>();
+            services.AddHostedService<IOManager.AnalogInputPoller>();
+            services.AddHostedService<SystemStats.BackgroundTelemetry>();
+            services.AddHostedService<WiFiManager.WiFiMonitor>();
+            services.AddHostedService<DisplayMenu.MenuLoop>();
+
             // Add API controllers
             services.AddControllers();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IServiceProvider serviceProvider)
         {
-            Global.IsDevelopment = env.IsDevelopment();
-
-            // Initialize database
-            Cog1DbContext.InitializeDatabase();
-
-            if (IOManager.Init())
-            {
-                SystemStats.Init();
-                WiFiManager.Init();
-                DisplayMenu.Init();
-            }
-            else
-            {
-                throw new System.Exception("Failed startup: could not initialize hardware");
-            }
-
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();

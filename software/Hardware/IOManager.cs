@@ -3,6 +3,8 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using cog1.Display.Menu;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 
 namespace cog1.Hardware
 {
@@ -77,35 +79,34 @@ namespace cog1.Hardware
             // Initial hardware reads
             AnalogRead();
 
-            // Run background libtest.so tasks
-            Task.Run(() => AnalogIOPoll());
-            Task.Run(() => Heartbeat());
-
             // We're good
             return true;
         }
 
         public static void Deinit()
         {
-            lock (_lock)
+            if (!Global.IsDevelopment)
             {
-                if (OSUtils.Rebooting)
+                lock (_lock)
                 {
-                    var canvas = new DisplayCanvas();
-                    canvas.DrawText(0, 18, DisplayCanvas.Font_8x12, "   Rebooting");
-                    canvas.DrawText(0, 37, DisplayCanvas.Font_6x8, "   Please wait...");
-                    canvas.ToDisplay();
-                }
-                else
-                {
-                    ioLib.display_clear();
-                }
+                    if (OSUtils.Rebooting)
+                    {
+                        var canvas = new DisplayCanvas();
+                        canvas.DrawText(0, 18, DisplayCanvas.Font_8x12, "   Rebooting");
+                        canvas.DrawText(0, 37, DisplayCanvas.Font_6x8, "   Please wait...");
+                        canvas.ToDisplay();
+                    }
+                    else
+                    {
+                        ioLib.display_clear();
+                    }
 
-                if (active)
-                {
-                    active = false;
-                    ioLib.io_deinit();
-                    Console.WriteLine("iolib.so deinit successful");
+                    if (active)
+                    {
+                        active = false;
+                        ioLib.io_deinit();
+                        Console.WriteLine("iolib.so deinit successful");
+                    }
                 }
             }
         }
@@ -332,6 +333,8 @@ namespace cog1.Hardware
             anv4 = (double)a4 * adc_full_scale_voltage / adc_full_range;
         }
 
+        // Analog input polling
+
         private static void AnalogRead()
         {
             if (Global.IsDevelopment)
@@ -341,6 +344,7 @@ namespace cog1.Hardware
 
             lock (_lock)
             {
+                // Console.WriteLine("Polling analog inputs");
                 if (ioLib.adc_read(ref c0, ref c1, ref c2, ref c3, ref c4, ref c5, ref c6, ref c7) != 0)
                 {
                     _ana1_shadow = c3;
@@ -371,45 +375,96 @@ namespace cog1.Hardware
             }
         }
 
-        private static void Heartbeat()
+        #endregion
+
+        #region Background service: analog input polling
+
+        public class AnalogInputPoller(ILogger<AnalogInputPoller> logger) : BackgroundService
         {
-            const int short_sleep_min = 40;
-            const int short_sleep_max = 100;
-
-            int short_sleep;
-            int long_sleep;
-            int inter_sleep;
-
-            for (; ; )
+            protected async override Task ExecuteAsync(CancellationToken stoppingToken)
             {
-                if (Global.IsDevelopment)
-                {
-                    Thread.Sleep(100);
-                }
-                else
-                {
-                    var cpu = SystemStats.GetCpuUsage(1);
-                    if (cpu == null)
-                    {
-                        short_sleep = short_sleep_max;
-                    }
-                    else
-                    {
-                        short_sleep = (int)(short_sleep_min + (short_sleep_max - short_sleep_min) * cpu.idlePercentage / 100);
-                    }
+                logger.LogInformation("Analog polling service started");
 
-                    long_sleep = 2 * short_sleep;
-                    inter_sleep = 7 * short_sleep;
-
-                    ioLib.heartbeat(1);
-                    Thread.Sleep(short_sleep);
-                    ioLib.heartbeat(0);
-                    Thread.Sleep(long_sleep);
-                    ioLib.heartbeat(1);
-                    Thread.Sleep(short_sleep);
-                    ioLib.heartbeat(0);
-                    Thread.Sleep(inter_sleep);
+                while (!stoppingToken.IsCancellationRequested)
+                {
+                    try
+                    {
+                        IOManager.AnalogRead();
+                        await Task.Delay(1000);
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.LogError($"Error in analog polling service: {ex}");
+                        await Task.Delay(1000);
+                    }
                 }
+
+                logger.LogInformation("Analog polling service stopped");
+            }
+
+        }
+
+        #endregion
+
+        #region Background service: heartbeat
+
+        public class Heartbeat(ILogger<Heartbeat> logger) : BackgroundService
+        {
+            protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+            {
+                const int short_sleep_min = 40;
+                const int short_sleep_max = 100;
+
+                int short_sleep;
+                int long_sleep;
+                int inter_sleep;
+
+                logger.LogInformation("Heartbeat service started");
+
+                // Signal that the background task has started
+                await Task.Delay(1000);
+
+                while (!stoppingToken.IsCancellationRequested)
+                {
+                    try
+                    {
+                        if (Global.IsDevelopment)
+                        {
+                            await Task.Delay(100);
+                        }
+                        else
+                        {
+                            var cpu = SystemStats.GetCpuUsage(1);
+                            if (cpu == null)
+                            {
+                                short_sleep = short_sleep_max;
+                            }
+                            else
+                            {
+                                short_sleep = (int)(short_sleep_min + (short_sleep_max - short_sleep_min) * cpu.idlePercentage / 100);
+                            }
+
+                            long_sleep = 2 * short_sleep;
+                            inter_sleep = 7 * short_sleep;
+
+                            ioLib.heartbeat(1);
+                            Thread.Sleep(short_sleep);
+                            ioLib.heartbeat(0);
+                            Thread.Sleep(long_sleep);
+                            ioLib.heartbeat(1);
+                            Thread.Sleep(short_sleep);
+                            ioLib.heartbeat(0);
+                            await Task.Delay(inter_sleep);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.LogError($"Error in heartbeat service: {ex}");
+                        await Task.Delay(1000);
+                    }
+                }
+
+                logger.LogInformation("Heartbeat service stopped");
             }
         }
 

@@ -1,4 +1,5 @@
 ﻿using cog1;
+using cog1.Literals;
 using Microsoft.Data.Sqlite;
 using System;
 using System.Collections.Generic;
@@ -227,6 +228,7 @@ namespace Cog1.DB
                         user_id integer not null primary key,
                         user_name text not null,
                         password text not null,
+                        locale_code text not null,
                         is_admin int not null
                     );
                     ");
@@ -236,13 +238,14 @@ namespace Cog1.DB
                     ctx.Execute(
                         @"insert into 
                     users 
-                        (user_id, user_name, password, is_admin) 
+                        (user_id, user_name, password, locale_code, is_admin) 
                     values 
-                        ('1', 'admin', @password, 1)
+                        ('1', 'admin', @password, @locale_code, 1)
                     ",
                         new()
                         {
-                        { "@password", Utils.HashPassword(1, "cog1pass") }
+                        { "@password", Utils.HashPassword(1, "cog1pass") },
+                        { "@locale_code", Locales.English.LocaleCode },
                         });
                     Console.WriteLine("Done");
                 }
