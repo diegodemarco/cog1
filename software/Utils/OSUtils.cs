@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
 
 namespace cog1
@@ -77,7 +76,7 @@ namespace cog1
             var result = new Dictionary<string, string>();
             foreach (var line in GetLines(lines))
             {
-                var parts = line.Split('=', 1, System.StringSplitOptions.TrimEntries);
+                var parts = line.Split('=', 1, StringSplitOptions.TrimEntries);
                 if (parts.Length > 0)
                 {
                     if (parts.Length == 2)
@@ -104,13 +103,20 @@ namespace cog1
             return string.Empty;
         }
 
-        public static List<string> GetLines(string s)
+        public static List<string> GetLines(string s, bool removeEmpty = false, bool trim = false)
         {
             if (string.IsNullOrWhiteSpace(s))
                 return new List<string>();
+
+            StringSplitOptions options = StringSplitOptions.None;
+            if (removeEmpty)
+                options |= StringSplitOptions.RemoveEmptyEntries;
+            if (trim)
+                options |= StringSplitOptions.TrimEntries;
+
             return s
                 .Replace("\r", "")
-                .Split('\n')
+                .Split('\n', options)
                 .ToList();
         }
 
@@ -141,13 +147,12 @@ namespace cog1
         public static void Reboot()
         {
             rebooting = true;
-            var canvas = new DisplayCanvas();
-            OSUtils.Run("reboot", "now");
+            Run("reboot", "now");
         }
 
         public static void Shutdown()
         {
-            OSUtils.Run("shutdown", "now");
+            Run("shutdown", "now");
         }
 
     }

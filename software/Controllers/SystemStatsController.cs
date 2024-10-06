@@ -1,4 +1,5 @@
 ﻿using cog1.Business;
+using cog1.Telemetry;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -23,7 +24,7 @@ namespace cog1.Controllers
         [HttpGet]
         public SystemStatsReport GetSystemStats()
         {
-            return MethodPattern<SystemStatsReport>(() =>
+            return MethodPattern(() =>
             {
                 try
                 {

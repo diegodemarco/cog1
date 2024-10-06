@@ -1,101 +1,12 @@
-﻿using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace cog1.Hardware
 {
-    public static class WiFiManager
+    public static partial class WiFiManager
     {
-
-        public static WiFiReport GetWiFiStatus()
-        {
-            const string GENERAL_CONNECTION = "GENERAL.CONNECTION:";
-            const string GENERAL_STATE = "GENERAL.STATE:";
-            const string IP_V4 = "IP4.ADDRESS[1]:";
-
-            /*
-            GENERAL.DEVICE:                         wlan0
-            GENERAL.TYPE:                           wifi
-            GENERAL.HWADDR:                         10:34:37:AC:3B:2B
-            GENERAL.MTU:                            1500
-            GENERAL.STATE:                          50 (connecting (configuring))
-            GENERAL.CONNECTION:                     Los De Marco
-            GENERAL.CON-PATH:                       /org/freedesktop/NetworkManager/ActiveConnection/19
-            IP4.GATEWAY:                            --
-            IP6.GATEWAY:                            --
-            */
-
-            var result = new WiFiReport()
-            {
-                ssid = null,
-                connectionState = 0,
-                isConnected = false,
-                savedConnections = GetConnections()
-            };
-
-            var output = OSUtils.RunWithOutput("nmcli", "device", "show", "wlan0");
-            if (output == null)
-                return result;
-
-            var lines = output.Split(new char[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-
-            // GENERAL_CONNECTION
-            result.ssid = lines.FirstOrDefault(line => line.ToUpper().StartsWith(GENERAL_CONNECTION));
-            if (!string.IsNullOrWhiteSpace(result.ssid))
-            {
-                result.ssid = result.ssid.Substring(GENERAL_CONNECTION.Length).Trim();
-                if (string.Equals(result.ssid, "--", StringComparison.OrdinalIgnoreCase))
-                    result.ssid = null;
-            }
-
-            // GENERAL_CONNECTION
-            var generalState = lines.FirstOrDefault(line => line.ToUpper().StartsWith(GENERAL_STATE));
-            if (!string.IsNullOrWhiteSpace(generalState))
-            {
-                generalState = generalState.Substring(GENERAL_STATE.Length).Trim();
-                var parts = generalState.Split(' ', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
-                if (parts.Length > 0 && int.TryParse(parts[0], out var n))
-                    result.connectionState = n;
-            }
-            //Console.WriteLine($"General.State={generalState}");
-            //Console.WriteLine($"General.State.Int={result.connectionState}");
-            result.isConnected = result.connectionState == 100;   // 100 means "connected"
-
-            // If connected, add IP and signal information
-            if (result.isConnected)
-            {
-                // IP4.ADDRESS[1]
-                var ip4 = lines.FirstOrDefault(line => line.ToUpper().StartsWith(IP_V4));
-                if (!string.IsNullOrWhiteSpace(ip4))
-                {
-                    ip4 = ip4.Substring(IP_V4.Length).Trim();
-                    var parts = ip4.Split('/', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
-                    if (parts.Length >= 2 && int.TryParse(parts[1], out var mask))
-                    {
-                        result.ipv4 = parts[0];
-                        result.maskBits = mask;
-                    }
-                    else if (parts.Length > 0)
-                    {
-                        result.ipv4 = parts[0];
-                    }
-                }
-
-                // Signal
-                GetSignal(out var rssi, out var noise, out var frequency);
-                result.rssi = rssi;
-                result.noise = noise;
-                result.frequency = frequency;
-            }
-
-            return result;
-        }
 
         #region Private
 
@@ -161,6 +72,94 @@ namespace cog1.Hardware
 
         #endregion
 
+        #region WiFi status & information
+
+        public static WiFiReport GetWiFiStatus()
+        {
+            /*
+            This is an example of what the output of "nmcli device show wlan0" looks like:
+
+            GENERAL.DEVICE:                         wlan0
+            GENERAL.TYPE:                           wifi
+            GENERAL.HWADDR:                         10:34:37:AC:3B:2B
+            GENERAL.MTU:                            1500
+            GENERAL.STATE:                          50 (connecting (configuring))
+            GENERAL.CONNECTION:                     Los De Marco
+            GENERAL.CON-PATH:                       /org/freedesktop/NetworkManager/ActiveConnection/19
+            IP4.GATEWAY:                            --
+            IP6.GATEWAY:                            --
+            */
+
+            const string GENERAL_CONNECTION = "GENERAL.CONNECTION:";
+            const string GENERAL_STATE = "GENERAL.STATE:";
+            const string IP_V4 = "IP4.ADDRESS[1]:";
+
+            var result = new WiFiReport()
+            {
+                ssid = null,
+                connectionState = 0,
+                isConnected = false,
+                savedConnections = GetConnections()
+            };
+
+            var output = OSUtils.RunWithOutput("nmcli", "device", "show", "wlan0");
+            if (output == null)
+                return result;
+
+            var lines = OSUtils.GetLines(output, true, true);
+
+            // GENERAL_CONNECTION
+            result.ssid = lines.FirstOrDefault(line => line.ToUpper().StartsWith(GENERAL_CONNECTION));
+            if (!string.IsNullOrWhiteSpace(result.ssid))
+            {
+                result.ssid = result.ssid.Substring(GENERAL_CONNECTION.Length).Trim();
+                if (string.Equals(result.ssid, "--", StringComparison.OrdinalIgnoreCase))
+                    result.ssid = null;
+            }
+
+            // GENERAL_CONNECTION
+            var generalState = lines.FirstOrDefault(line => line.ToUpper().StartsWith(GENERAL_STATE));
+            if (!string.IsNullOrWhiteSpace(generalState))
+            {
+                generalState = generalState.Substring(GENERAL_STATE.Length).Trim();
+                var parts = generalState.Split(' ', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+                if (parts.Length > 0 && int.TryParse(parts[0], out var n))
+                    result.connectionState = n;
+            }
+            //Console.WriteLine($"General.State={generalState}");
+            //Console.WriteLine($"General.State.Int={result.connectionState}");
+            result.isConnected = result.connectionState == 100;   // 100 means "connected"
+
+            // If connected, add IP and signal information
+            if (result.isConnected)
+            {
+                // IP4.ADDRESS[1]
+                var ip4 = lines.FirstOrDefault(line => line.ToUpper().StartsWith(IP_V4));
+                if (!string.IsNullOrWhiteSpace(ip4))
+                {
+                    ip4 = ip4.Substring(IP_V4.Length).Trim();
+                    var parts = ip4.Split('/', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+                    if (parts.Length >= 2 && int.TryParse(parts[1], out var mask))
+                    {
+                        result.ipv4 = parts[0];
+                        result.maskBits = mask;
+                    }
+                    else if (parts.Length > 0)
+                    {
+                        result.ipv4 = parts[0];
+                    }
+                }
+
+                // Signal
+                GetSignal(out var rssi, out var noise, out var frequency);
+                result.rssi = rssi;
+                result.noise = noise;
+                result.frequency = frequency;
+            }
+
+            return result;
+        }
+
         public static string GetWifiDetails()
         {
             // First from iwconfig
@@ -176,57 +175,6 @@ namespace cog1.Hardware
             output += Environment.NewLine + OSUtils.RunWithOutput("ip", "-4", "-o", "addr", "show", "wlan0");
 
             return output;
-        }
-
-        #region Background service: WiFi monitor
-
-        public class WiFiMonitor(ILogger<WiFiMonitor> logger) : BackgroundService
-        {
-            protected override async Task ExecuteAsync(CancellationToken stoppingToken)
-            {
-                logger.LogInformation("WiFi monitor service started");
-
-                if (!Directory.Exists("./wifi_log"))
-                    Directory.CreateDirectory("./wifi_log");
-
-                // Signal that the background task has started
-                await Task.Delay(1000);
-                
-                while (!stoppingToken.IsCancellationRequested)
-                {
-                    try
-                    {
-                        if (!Global.IsDevelopment)
-                        {
-                            var wiFiStatus = WiFiManager.GetWiFiStatus();
-                            var wiFiText =
-                                DateTime.UtcNow.ToString("s") + Environment.NewLine +
-                                Environment.NewLine +
-                                WiFiManager.GetWifiDetails() + Environment.NewLine +
-                                Environment.NewLine +
-                                JsonConvert.SerializeObject(wiFiStatus);
-
-                            //File.WriteAllText($"./wifi_log/{DateTime.UtcNow.ToString("yyyyMMdd.HHmmss")}.txt", wiFiText);
-
-                            if (!wiFiStatus.isConnected)
-                            {
-                                ResetWiFi();
-                                File.WriteAllText($"./wifi_log/{DateTime.UtcNow.ToString("yyyyMMdd.HHmmss")}.reset.txt", wiFiText);
-                            }
-                        }
-
-                        for (var i = 0; i < 60 && !stoppingToken.IsCancellationRequested; i++)
-                            await Task.Delay(1000);
-                    }
-                    catch (Exception ex)
-                    {
-                        logger.LogInformation($"Error in WiFi monitor service: {ex}");
-                        await Task.Delay(1000);
-                    }
-                }
-
-                logger.LogInformation("WiFi monitor service stopped");
-            }
         }
 
         #endregion

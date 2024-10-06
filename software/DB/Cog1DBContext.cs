@@ -46,13 +46,24 @@ namespace Cog1.DB
             {
                 try
                 {
-                    var dataDir = Path.Combine(Directory.GetCurrentDirectory(), "data");
-                    if (!Directory.Exists(dataDir))
-                        Directory.CreateDirectory(dataDir);
-                    var sb = new SqliteConnectionStringBuilder();
-                    sb.DataSource = Path.Combine(dataDir, "cog1.sqlite");
+                    var sb = new SqliteConnectionStringBuilder()
+                    {
+                        DataSource = Path.Combine(Global.DataDirectory, "cog1.sqlite"),
+                        Pooling = true,
+                        
+                    };
                     conn = new SqliteConnection(sb.ConnectionString);
                     conn.Open();
+
+                    // Use "EXTRA" synchronous mode (https://www.sqlite.org/pragma.html)
+                    using (var cmd = conn.CreateCommand())
+                    {
+
+                        cmd.CommandText = "PRAGMA synchronous = 3";
+                        cmd.ExecuteNonQuery();
+                    }
+
+                    // Open a transaction
                     tran = conn.BeginTransaction();
                 }
                 catch
@@ -224,29 +235,53 @@ namespace Cog1.DB
                     Console.Write("Missing users table. Creating table... ");
                     ctx.Execute(
                         @"create table users 
-                    (
-                        user_id integer not null primary key,
-                        user_name text not null,
-                        password text not null,
-                        locale_code text not null,
-                        is_admin int not null
-                    );
+                        (
+                            user_id integer not null primary key,
+                            user_name text not null,
+                            password text not null,
+                            locale_code text not null,
+                            is_admin int not null
+                        );
                     ");
                     Console.WriteLine("Done");
 
                     Console.Write("Adding default users... ");
                     ctx.Execute(
                         @"insert into 
-                    users 
-                        (user_id, user_name, password, locale_code, is_admin) 
-                    values 
-                        ('1', 'admin', @password, @locale_code, 1)
-                    ",
-                        new()
-                        {
-                        { "@password", Utils.HashPassword(1, "cog1pass") },
-                        { "@locale_code", Locales.English.LocaleCode },
-                        });
+                        users 
+                            (user_id, user_name, password, locale_code, is_admin) 
+                        values 
+                            ('1', 'admin', @password, @locale_code, 1)
+                        ",
+                            new()
+                            {
+                            { "@password", Utils.HashPassword(1, "cog1pass") },
+                            { "@locale_code", Locales.English.LocaleCode },
+                    });
+                    Console.WriteLine("Done");
+                }
+
+                // Variables table
+                try
+                {
+                    ctx.GetLong("select 1 from variables");
+                }
+                catch
+                {
+                    Console.Write("Missing variables table. Creating table... ");
+                    ctx.Execute(
+                        @"create table variables
+                        (
+                            variable_id integer not null primary key,
+                            description text not null,
+                            variable_code text null,
+                            variable_type integer not null,
+                            variable_direction integer not null,
+                            units text null,
+                            value real null,
+                            utc_last_updated text null
+                        );
+                    ");
                     Console.WriteLine("Done");
                 }
 

@@ -3,7 +3,9 @@ using cog1.DTO;
 using cog1.Exceptions;
 using Cog1.DB;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
 using System;
+using System.Collections.Generic;
 
 namespace cog1.Business
 {
@@ -13,6 +15,7 @@ namespace cog1.Business
         private ErrorCodes errorCodes = null;
         private Cog1DbContext databaseContext = null;
         private IHttpContextAccessor httpContextAccessor = null;
+        private ILogger<Cog1Context> logger;
 
         public bool Committed { get; private set; } = false;
 
@@ -30,6 +33,9 @@ namespace cog1.Business
         private Lazy<UserDao> userDao;
         public UserDao UserDao => userDao.Value;
 
+        private Lazy<VariableDao> variableDao;
+        public VariableDao VariableDao => variableDao.Value;
+
         // Businesses
         private Lazy<MasterEntityBusiness> masterEntityBusiness;
         public MasterEntityBusiness MasterEntityBusiness => masterEntityBusiness.Value;
@@ -37,25 +43,31 @@ namespace cog1.Business
         public UserBusiness UserBusiness => userBusiness.Value;
         private Lazy<SecurityBusiness> securityBusiness;
         public SecurityBusiness SecurityBusiness => securityBusiness.Value;
+        private Lazy<VariableBusiness> variableBusiness;
+        public VariableBusiness VariableBusiness => variableBusiness.Value;
 
         // Security
         private UserDTO user = null;
         public UserDTO User => GetUser();
 
 
-        public Cog1Context(IHttpContextAccessor httpContextAccessor)
+        public Cog1Context(IHttpContextAccessor httpContextAccessor, ILogger<Cog1Context> logger)
         {
+            this.logger = logger;
+
             // Http context
             this.httpContextAccessor = httpContextAccessor;
             httpContext = new Lazy<HttpContext>(() => httpContextAccessor?.HttpContext);
 
             // Dao
-            userDao = new Lazy<UserDao>(() => new UserDao(this));
+            userDao = new Lazy<UserDao>(() => new UserDao(this, logger));
+            variableDao = new Lazy<VariableDao>(() => new VariableDao(this, logger));
 
             // Business
-            masterEntityBusiness = new Lazy<MasterEntityBusiness>(() => new MasterEntityBusiness(this));
-            userBusiness = new Lazy<UserBusiness>(() => new UserBusiness(this));
-            securityBusiness = new Lazy<SecurityBusiness>(() => new SecurityBusiness(this));
+            masterEntityBusiness = new Lazy<MasterEntityBusiness>(() => new MasterEntityBusiness(this, logger));
+            userBusiness = new Lazy<UserBusiness>(() => new UserBusiness(this, logger));
+            securityBusiness = new Lazy<SecurityBusiness>(() => new SecurityBusiness(this, logger));
+            variableBusiness = new Lazy<VariableBusiness>(() => new VariableBusiness(this, logger));
         }
 
         protected virtual ErrorCodes GetErrorCodes()
@@ -131,6 +143,17 @@ namespace cog1.Business
                 databaseContext.Commit();
                 Committed = true;
             }
+        }
+
+        public List<BusinessBase> EnumerateBusinessObjects()
+        {
+            var result = new List<BusinessBase>();
+            foreach (var prop in this.GetType().GetProperties())
+            {
+                if (prop.PropertyType.IsSubclassOf(typeof(BusinessBase)))
+                    result.Add(prop.GetValue(this) as BusinessBase);
+            }
+            return result;
         }
 
         void IDisposable.Dispose()

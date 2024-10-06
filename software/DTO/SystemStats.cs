@@ -1,18 +1,13 @@
 ﻿using cog1.Hardware;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
-namespace cog1
+namespace cog1.Telemetry
 {
-    public static class SystemStats
+    public static partial class SystemStats
     {
         private class SensorsDataEntry
         {
@@ -236,8 +231,8 @@ namespace cog1
                 sTimeZone = sTimeZone.Split('=', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)[1];
             return new DateTimeReport()
             {
-                utc = DateTime.UtcNow.ToString("s", System.Globalization.CultureInfo.InvariantCulture),
-                local = DateTime.Now.ToString("s", System.Globalization.CultureInfo.InvariantCulture),
+                utc = DateTime.UtcNow,
+                local = DateTime.Now,
                 timeZone = sTimeZone,
                 uptime = GetUptime(),
             };
@@ -255,51 +250,6 @@ namespace cog1
                 wiFi = WiFiManager.GetWiFiStatus(),
             };
         }
-
-        #region Background service: heartbeat
-
-        public class BackgroundTelemetry(ILogger<BackgroundTelemetry> logger) : BackgroundService
-        {
-            protected override async Task ExecuteAsync(CancellationToken stoppingToken)
-            {
-                logger.LogInformation("Background telemetry service started");
-
-                var sw = Stopwatch.StartNew();
-                var nextSec = 1000;
-
-                // Signal that the background task has started
-                await Task.Delay(1000);
-
-                while (!stoppingToken.IsCancellationRequested)
-                {
-                    try
-                    {
-                        if (Global.IsDevelopment)
-                        {
-                            await Task.Delay(1000);
-                        }
-                        else
-                        {
-                            await Task.Delay(800);
-                            while (sw.ElapsedMilliseconds < nextSec)
-                                Thread.Sleep(10);
-                            nextSec += 1000;
-                            SystemStats.Collect1SecondData();
-                        }
-                    } 
-                    catch (Exception ex)
-                    {
-                        logger.LogError($"Background telemetry error: {ex}");
-                        await Task.Delay(1000);
-                    }
-                }
-
-                logger.LogInformation("Background telemetry service stopped");
-            }
-        }
-
-        #endregion
-
 
     }
 }

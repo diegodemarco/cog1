@@ -224,6 +224,16 @@
 
         }
 
+        public static class Variable
+        {
+            public class INVALID_VARIABLE_ID : LiteralConstant
+            {
+                public override string EN => "Invalid variable ID";
+                public override string ES => "ID de variable no válido";
+                public override string PT => "O ID da variável é inválido";
+            }
+        }
+
     }
 
 }

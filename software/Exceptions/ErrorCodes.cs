@@ -15,7 +15,7 @@ namespace cog1.Exceptions
         }
     }
 
-    public class GeneralErrorCodes : BaseErrorCodes
+    public class GeneralErrorCodes : BaseErrorCodes         // Range 100,000 - 100,999
     {
         public GeneralErrorCodes(string localeCode) : base(localeCode) { }
 
@@ -82,7 +82,7 @@ namespace cog1.Exceptions
                 ), HttpStatusCode.BadRequest);
     }
 
-    public class UserErrorCodes : BaseErrorCodes
+    public class UserErrorCodes : BaseErrorCodes                // Range 1000 - 1999
     {
         public UserErrorCodes(string localeCode) : base(localeCode) { }
 
@@ -115,19 +115,27 @@ namespace cog1.Exceptions
             => new ErrorCode(1014, _LocaleCode, new Literals.ErrorCodes.User.PASSWORD_RESET_EXPIRED_OR_INVALID_TOKEN());
     }
 
-    public class SecurityErrorCodes : BaseErrorCodes
+    public class SecurityErrorCodes : BaseErrorCodes                // Range 1000 - 1999
     {
         public SecurityErrorCodes(string localeCode) : base(localeCode) { }
 
         public ErrorCode INVALID_ACCESS_TOKEN
-            => new ErrorCode(16000, _LocaleCode, new Literals.ErrorCodes.Security.INVALID_ACCESS_TOKEN(), HttpStatusCode.Unauthorized);
+            => new ErrorCode(1000, _LocaleCode, new Literals.ErrorCodes.Security.INVALID_ACCESS_TOKEN(), HttpStatusCode.Unauthorized);
         public ErrorCode MUST_BE_ADMIN
-            => new ErrorCode(16001, _LocaleCode, new Literals.ErrorCodes.Security.MUST_BE_ADMIN());
+            => new ErrorCode(1001, _LocaleCode, new Literals.ErrorCodes.Security.MUST_BE_ADMIN(), HttpStatusCode.Unauthorized);
+    }
+
+    public class VariableErrorCodes : BaseErrorCodes                // Range 2000-2999
+    {
+        public VariableErrorCodes(string localeCode) : base(localeCode) { }
+
+        public ErrorCode INVALID_VARIABLE_ID
+            => new ErrorCode(2000, _LocaleCode, new Literals.ErrorCodes.Variable.INVALID_VARIABLE_ID(), HttpStatusCode.Unauthorized);
     }
 
     /// <summary>
-    /// Error codes returned by the business layer
-    /// </summary>
+         /// Error codes returned by the business layer
+         /// </summary>
     public class ErrorCodes
     {
         protected string _LocaleCode = "en";
@@ -140,6 +148,7 @@ namespace cog1.Exceptions
         public GeneralErrorCodes General { get => new GeneralErrorCodes(_LocaleCode); }
         public UserErrorCodes User { get => new UserErrorCodes(_LocaleCode); }
         public SecurityErrorCodes Security { get => new SecurityErrorCodes(_LocaleCode); }
+        public VariableErrorCodes Variable { get => new VariableErrorCodes(_LocaleCode); }
 
     }
 }

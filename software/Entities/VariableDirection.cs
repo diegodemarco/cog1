@@ -23,6 +23,6 @@
         /// an output variable may grigger an external action such as
         /// writing to a bus.
         /// </summary>
-        InputOutput = 2,
+        Output = 2,
     }
 }

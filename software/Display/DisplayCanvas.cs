@@ -14,7 +14,6 @@ namespace cog1
 {
     public class DisplayCanvas
     {
-
         private readonly bool[,] Buffer;
 
         #region Icons
@@ -575,6 +574,11 @@ namespace cog1
         #endregion
 
         #region Constructors
+
+        static DisplayCanvas()
+        {
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+        }
 
         public DisplayCanvas(int width, int height)
         {

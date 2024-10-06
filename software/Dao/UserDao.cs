@@ -5,6 +5,7 @@ using cog1.DTO;
 using System.Threading;
 using System.Linq;
 using cog1.Exceptions;
+using Microsoft.Extensions.Logging;
 
 namespace cog1.Dao
 {
@@ -16,7 +17,7 @@ namespace cog1.Dao
         private Dictionary<int, UserDTO> users = null;
         private static readonly SemaphoreSlim semaphore = new SemaphoreSlim(1, 1);
 
-        public UserDao(Cog1Context context) : base(context)
+        public UserDao(Cog1Context context, ILogger logger) : base(context, logger)
         {
         }
 
@@ -44,24 +45,6 @@ namespace cog1.Dao
                         .Select(row => MakeUser(row))
                         .ToDictionary(item => item.userId);
                 }
-            }
-            finally
-            {
-                semaphore.Release();
-            }
-        }
-
-        private void ReloadUsers()
-        {
-            semaphore.Wait();
-            try
-            {
-                if (users != null)
-                {
-                    users.Clear();
-                    users = null;
-                }
-                LoadUsers();
             }
             finally
             {

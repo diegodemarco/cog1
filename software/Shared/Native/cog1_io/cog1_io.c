@@ -73,10 +73,10 @@ int do_control( int do_bitmap )
 	// upon startup, if this is a reboot/restart, or if power was
 	// lost.
 	unsigned char portValue = 0b01111111;			// "active" bits should be zero
-	if (do_bitmap & 1) portValue &= 0b11110111;		// DO1 = expander bit 3
-	if (do_bitmap & 2) portValue &= 0b11111011;		// DO2 = expander bit 2
-	if (do_bitmap & 4) portValue &= 0b11011111;		// DO3 = expander bit 5
-	if (do_bitmap & 8) portValue &= 0b11101111;		// DO4 = expander bit 4
+	if (do_bitmap & 1) portValue &= 0b11111110;		// DO1 = expander P0
+	if (do_bitmap & 2) portValue &= 0b11111101;		// DO2 = expander P1
+	if (do_bitmap & 4) portValue &= 0b11111011;		// DO3 = expander P2
+	if (do_bitmap & 8) portValue &= 0b11110111;		// DO4 = expander P3
 	int result = i2c_write_byte(expander_fd, io_expander_address, portValue);
 	if (result != 1)
 		printf("Error %d setting port expander output to %d\n", result, portValue);
@@ -196,13 +196,13 @@ void *_di_poll_thread(void *args)
 					//printf("DI: 1=%d, 2=%d, 3=%d, 4=%d\n", values[3], values[4], values[5], values[6]);
 					
 					if (values[3] != prev_di1)
-						flags |= (values[3] ? IO_EVENT_DI1_INACTIVE : IO_EVENT_DI1_ACTIVE);
+						flags |= (values[3] ? IO_EVENT_DI1_ACTIVE : IO_EVENT_DI1_INACTIVE);
 					if (values[4] != prev_di2)
-						flags |= (values[4] ? IO_EVENT_DI2_INACTIVE : IO_EVENT_DI2_ACTIVE);
+						flags |= (values[4] ? IO_EVENT_DI2_ACTIVE : IO_EVENT_DI2_INACTIVE);
 					if (values[5] != prev_di3)
-						flags |= (values[5] ? IO_EVENT_DI3_INACTIVE : IO_EVENT_DI3_ACTIVE);
+						flags |= (values[5] ? IO_EVENT_DI3_ACTIVE : IO_EVENT_DI3_INACTIVE);
 					if (values[6] != prev_di4)
-						flags |= (values[6] ? IO_EVENT_DI4_INACTIVE : IO_EVENT_DI4_ACTIVE);
+						flags |= (values[6] ? IO_EVENT_DI4_ACTIVE : IO_EVENT_DI4_INACTIVE);
 					
 					prev_di1 = values[3];
 					prev_di2 = values[4];
@@ -355,7 +355,8 @@ int io_init(void (*di_isr)(int))
 	_h_line_heartbeat = gpiod_chip_get_line(_h_io_chip, PIN_HEARTBEAT);
 	if (!_h_line_heartbeat)
 		return -6;
-	gpiod_line_request_output(_h_line_heartbeat, _IO_CONSUMER, 1);
+	gpiod_line_request_output(_h_line_heartbeat, _IO_CONSUMER, 0);
+	heartbeat(1);
 	
 	// If an ISR was provided for the digial inputs, set up monitoring on the relevant pins
 	if (di_isr)

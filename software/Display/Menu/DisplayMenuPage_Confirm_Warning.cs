@@ -4,7 +4,7 @@ namespace cog1.Display.Menu
 {
     public class DisplayMenuPage_Confirm_Warning : DisplayMenuPage
     {
-        private int selected;
+        private int selected = 1;       // Default: cancel
         private readonly string title;
         private readonly string option1;
         private readonly Action action;

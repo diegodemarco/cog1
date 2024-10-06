@@ -13,7 +13,7 @@ namespace cog1.DTO
         /// <summary>
         /// Optional string code assigned to the variable.
         /// </summary>
-        public string code { get; set; }
+        public string variableCode { get; set; }
 
         /// <summary>
         /// Description of the variable.

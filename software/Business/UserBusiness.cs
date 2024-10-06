@@ -1,5 +1,6 @@
 ﻿using cog1.DTO;
 using cog1.Exceptions;
+using Microsoft.Extensions.Logging;
 
 namespace cog1.Business
 {
@@ -9,7 +10,7 @@ namespace cog1.Business
     public class UserBusiness : BusinessBase
     {
 
-        public UserBusiness(Cog1Context context) : base(context)
+        public UserBusiness(Cog1Context context, ILogger logger) : base(context, logger)
         {
 
         }

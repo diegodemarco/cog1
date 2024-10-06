@@ -1,7 +1,9 @@
+using cog1.BackgroundServices;
 using cog1.Business;
 using cog1.Display.Menu;
 using cog1.Hardware;
 using cog1.Middleware;
+using cog1.Telemetry;
 using Cog1.DB;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -10,23 +12,23 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Hosting;
+using Microsoft.OpenApi.Any;
+using Microsoft.OpenApi.Models;
 using Newtonsoft.Json;
+using Swashbuckle.AspNetCore.SwaggerGen;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 namespace cog1
 {
-    public class Startup
+    public class Startup()
     {
-        public Startup(IConfiguration configuration)
-        {
-            Configuration = configuration;
-        }
 
         public static void CreateSettings()
         {
-            // Check appsettings 
+            // Create a default "appsettings.json" if it doesn't exist.
             const string cfg_file = "appsettings.json";
             if (!File.Exists(cfg_file))
             {
@@ -77,14 +79,23 @@ namespace cog1
                 .AddScheme<Cog1AuthenticationOptions, Cog1AuthenticationHandler>("cog1", null);
 
             // Register background services
-            services.AddHostedService<IOManager.Heartbeat>();
-            services.AddHostedService<IOManager.AnalogInputPoller>();
-            services.AddHostedService<SystemStats.BackgroundTelemetry>();
-            services.AddHostedService<WiFiManager.WiFiMonitor>();
-            services.AddHostedService<DisplayMenu.MenuLoop>();
+            services.AddHostedService<IOManager.HeartbeatService>();
+            services.AddHostedService<IOManager.AnalogInputPollerService>();
+            services.AddHostedService<SystemStats.BackgroundTelemetryService>();
+            services.AddHostedService<WiFiManager.WiFiMonitorService>();
+            services.AddHostedService<DisplayMenu.MenuLoopService>();
+            services.AddHostedService<HousekeepingService>();
 
             // Add API controllers
             services.AddControllers();
+
+            // Add swagger
+            services.AddSwaggerGen(c =>
+            {
+                c.SwaggerDoc("current", new OpenApiInfo { Title = "cog1 API", Version = "v1" });
+                c.SchemaFilter<EnumSchemaFilter>();
+            });
+            services.AddSwaggerGenNewtonsoftSupport();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -147,6 +158,32 @@ namespace cog1
                 await next();
             });
 
+            // Enable swagger
+            app.UseSwagger();
+
         }
+
+        #region Swagger fixes
+
+        /// <summary>
+        /// This filter is used to ensure that swagger when rendering swagger.json, 
+        /// enums are represented with their values, but also their names are included,
+        /// so that code-generation tools (like swagger-typescript-api, used by the
+        /// frontend), can generate enums that contain the proper names.
+        /// </summary>
+        internal sealed class EnumSchemaFilter : ISchemaFilter
+        {
+            public void Apply(OpenApiSchema model, SchemaFilterContext context)
+            {
+                if (context.Type.IsEnum)
+                {
+                    var xEnumNames = new OpenApiArray();
+                    xEnumNames.AddRange(Enum.GetNames(context.Type).Select(n => new OpenApiString(n)));
+                    model.Extensions.Add("x-enumNames", xEnumNames);
+                }
+            }
+        }
+
+        #endregion
     }
 }

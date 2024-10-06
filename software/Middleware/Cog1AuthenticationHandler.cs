@@ -30,36 +30,43 @@ namespace cog1.Middleware
 
         protected override Task<AuthenticateResult> HandleAuthenticateAsync()
         {
+            // If this is a swagger request, allow it
+            if (Request.Path == "/" || Request.Path.StartsWithSegments("/swagger") || Request.Path.StartsWithSegments("/admin"))
+                return Task.FromResult(AuthenticateResult.NoResult());
+
             // If anonymous access is allowed, go ahead
             var endpoint = Context.GetEndpoint();
             if (endpoint?.Metadata?.GetMetadata<IAllowAnonymous>() != null)
-            {
                 return Task.FromResult(AuthenticateResult.NoResult());
-            }
 
-            if (!Request.Headers.ContainsKey("Authorization"))
+            var accessToken = Request.Query["accessToken"];
+            if (string.IsNullOrWhiteSpace(accessToken))
             {
-                Console.WriteLine("No authorization header");
-                throw new ControllerException(context.ErrorCodes.Security.INVALID_ACCESS_TOKEN);
+                if (!Request.Headers.ContainsKey("Authorization"))
+                {
+                    Console.WriteLine("No authorization header");
+                    throw new ControllerException(context.ErrorCodes.Security.INVALID_ACCESS_TOKEN);
+                }
+
+                string authorizationHeader = Request.Headers["Authorization"];
+
+                if (string.IsNullOrEmpty(authorizationHeader))
+                {
+                    Console.WriteLine("No authorization value");
+                    throw new ControllerException(context.ErrorCodes.Security.INVALID_ACCESS_TOKEN);
+                }
+
+                if (!authorizationHeader.StartsWith("bearer ", StringComparison.OrdinalIgnoreCase))
+                {
+                    Console.WriteLine("Authorization does not start with 'bearer'");
+                    throw new ControllerException(context.ErrorCodes.Security.INVALID_ACCESS_TOKEN);
+                }
+
+                // Validate token
+                accessToken = authorizationHeader.Substring("bearer ".Length).Trim();
             }
 
-            string authorizationHeader = Request.Headers["Authorization"];
-
-            if (string.IsNullOrEmpty(authorizationHeader))
-            {
-                Console.WriteLine("No authorization value");
-                throw new ControllerException(context.ErrorCodes.Security.INVALID_ACCESS_TOKEN);
-            }
-
-            if (!authorizationHeader.StartsWith("bearer ", StringComparison.OrdinalIgnoreCase))
-            {
-                Console.WriteLine("Authorization does not start with 'bearer'");
-                throw new ControllerException(context.ErrorCodes.Security.INVALID_ACCESS_TOKEN);
-            }
-
-            // Validate token
-            string token = authorizationHeader.Substring("bearer ".Length).Trim();
-            if (!Guid.TryParse(token, out Guid tokenGuid))
+            if (!Guid.TryParse(accessToken, out Guid tokenGuid))
             {
                 Console.WriteLine("The token is not a guid");
                 throw new ControllerException(context.ErrorCodes.Security.INVALID_ACCESS_TOKEN);

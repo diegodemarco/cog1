@@ -1,6 +1,4 @@
-﻿using System.Threading;
-
-namespace cog1.Display.Menu
+﻿namespace cog1.Display.Menu
 {
     public class DisplayMenuPage_System_Control : DisplayMenuPage
     {
@@ -57,20 +55,10 @@ namespace cog1.Display.Menu
                 case 0:
                     return DisplayMenuAction.Pop;
                 case 1:
-                    newPage = new DisplayMenuPage_Confirm_Warning("REBOOT", "Reboot now", () =>
-                    {
-                        OSUtils.Reboot();
-                        Thread.Sleep(60000);        // Will never return because a reboot should happen first
-
-                    });
+                    newPage = new DisplayMenuPage_Confirm_Warning("REBOOT", "Reboot now", OSUtils.Reboot);
                     return DisplayMenuAction.Push;
                 case 2:
-                    newPage = new DisplayMenuPage_Confirm_Warning("SHUT DOWN", "Shut down now", () =>
-                    {
-                        OSUtils.Shutdown();
-                        Thread.Sleep(60000);        // Will never return because a shutdown should happen first
-
-                    });
+                    newPage = new DisplayMenuPage_Confirm_Warning("SHUT DOWN", "Shut down now", OSUtils.Shutdown);
                     return DisplayMenuAction.Push;
             }
             return DisplayMenuAction.None;

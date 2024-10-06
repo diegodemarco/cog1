@@ -9,9 +9,7 @@ namespace cog1.Display.Menu
         public override void Update()
         {
             // Read outputs
-            bool[] outputs = new bool[4];
-            for (var i = 0; i < outputs.Length; i++)
-                outputs[i] = IOManager.GetDigitalOutput(i + 1);
+            IOManager.ReadDO(out var do1, out var do2, out var do3, out var do4);
 
             var canvas = new DisplayCanvas();
             canvas.DrawTitle("DO-Control");
@@ -19,10 +17,10 @@ namespace cog1.Display.Menu
             canvas.Draw1234(9);
 
             // Draw outputs
-            canvas.DrawSwitch(70, 16, outputs[0]);
-            canvas.DrawSwitch(70, 28, outputs[1]);
-            canvas.DrawSwitch(70, 40, outputs[2]);
-            canvas.DrawSwitch(70, 52, outputs[3]);
+            canvas.DrawSwitch(70, 16, do1);
+            canvas.DrawSwitch(70, 28, do2);
+            canvas.DrawSwitch(70, 40, do3);
+            canvas.DrawSwitch(70, 52, do4);
 
             // Reverse as needed
             if (selected == 1)
@@ -47,7 +45,9 @@ namespace cog1.Display.Menu
             }
             else
             {
-                IOManager.SetDigitalOutput(selected, !IOManager.GetDigitalOutput(selected));
+                IOManager.ReadDO(out var do1, out var do2, out var do3, out var do4);
+                var doArr = new bool[] { do1, do2, do3, do4 };
+                IOManager.SetDigitalOutput(selected, !doArr[selected - 1]);
                 Update();
                 return DisplayMenuAction.None;
             }

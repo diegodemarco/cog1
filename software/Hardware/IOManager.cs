@@ -23,7 +23,7 @@ namespace cog1.Hardware
         ButtonUp = 4,
     }
 
-    public static class IOManager
+    public static partial class IOManager
     {
         private static object _lock = new object();
 
@@ -177,18 +177,36 @@ namespace cog1.Hardware
 
         private static void EncoderISR(int eventBitmap)
         {
+            // Encoder events
             if ((eventBitmap & IO_EVENT_ENCODER) != 0)
             {
                 // Encoder-related events
-                if ((eventBitmap & IO_EVENT_ENCODER_CW) > 0)
+                if ((eventBitmap & IO_EVENT_ENCODER_CW) != 0)
                     DisplayMenu.EncoderEvent(EncoderEventType.Right);
-                if ((eventBitmap & IO_EVENT_ENCODER_CCW) > 0)
+                if ((eventBitmap & IO_EVENT_ENCODER_CCW) != 0)
                     DisplayMenu.EncoderEvent(EncoderEventType.Left);
-                if ((eventBitmap & IO_EVENT_ENCODER_SW_ACTIVE) > 0)
+                if ((eventBitmap & IO_EVENT_ENCODER_SW_ACTIVE) != 0)
                     DisplayMenu.EncoderEvent(EncoderEventType.ButtonDown);
-                if ((eventBitmap & IO_EVENT_ENCODER_SW_INACTIVE) > 0)
+                if ((eventBitmap & IO_EVENT_ENCODER_SW_INACTIVE) != 0)
                     DisplayMenu.EncoderEvent(EncoderEventType.ButtonUp);
             }
+
+            // Digital input events
+            if ((eventBitmap & IO_EVENT_DI) != 0)
+            {
+                lock (_lock)
+                {
+                    if ((eventBitmap & IO_EVENT_DI1_ACTIVE) != 0) _input_shadow[0] = true;
+                    if ((eventBitmap & IO_EVENT_DI1_INACTIVE) != 0) _input_shadow[0] = false;
+                    if ((eventBitmap & IO_EVENT_DI2_ACTIVE) != 0) _input_shadow[1] = true;
+                    if ((eventBitmap & IO_EVENT_DI2_INACTIVE) != 0) _input_shadow[1] = false;
+                    if ((eventBitmap & IO_EVENT_DI3_ACTIVE) != 0) _input_shadow[2] = true;
+                    if ((eventBitmap & IO_EVENT_DI3_INACTIVE) != 0) _input_shadow[2] = false;
+                    if ((eventBitmap & IO_EVENT_DI4_ACTIVE) != 0) _input_shadow[3] = true;
+                    if ((eventBitmap & IO_EVENT_DI4_INACTIVE) != 0) _input_shadow[3] = false;
+                }
+            }
+
         }
 
         #endregion
@@ -221,13 +239,14 @@ namespace cog1.Hardware
 
         private static bool[] _input_shadow = { false, false, false, false };
 
-        public static bool GetDigitalInput(int Input_number)
+        public static void ReadDI(out bool di1, out bool di2, out bool di3, out bool di4)
         {
-            if (Input_number < 1 || Input_number > _input_shadow.Length)
-                return false;
             lock (_lock)
             {
-                return _input_shadow[Input_number - 1];
+                di1 = _input_shadow[0];
+                di2 = _input_shadow[1];
+                di3 = _input_shadow[2];
+                di4 = _input_shadow[3];
             }
         }
 
@@ -237,13 +256,14 @@ namespace cog1.Hardware
 
         private static bool[] _output_shadow = { false, false, false, false };
 
-        public static bool GetDigitalOutput(int output_number)
+        public static void ReadDO(out bool do1, out bool do2, out bool do3, out bool do4)
         {
-            if (output_number < 1 || output_number > _output_shadow.Length)
-                return false;
             lock (_lock)
             {
-                return _output_shadow[output_number - 1];
+                do1 = _output_shadow[0];
+                do2 = _output_shadow[1];
+                do3 = _output_shadow[2];
+                do4 = _output_shadow[3];
             }
         }
 
@@ -372,99 +392,6 @@ namespace cog1.Hardware
             {
                 Thread.Sleep(1000);
                 AnalogRead();
-            }
-        }
-
-        #endregion
-
-        #region Background service: analog input polling
-
-        public class AnalogInputPoller(ILogger<AnalogInputPoller> logger) : BackgroundService
-        {
-            protected async override Task ExecuteAsync(CancellationToken stoppingToken)
-            {
-                logger.LogInformation("Analog polling service started");
-
-                while (!stoppingToken.IsCancellationRequested)
-                {
-                    try
-                    {
-                        IOManager.AnalogRead();
-                        await Task.Delay(1000);
-                    }
-                    catch (Exception ex)
-                    {
-                        logger.LogError($"Error in analog polling service: {ex}");
-                        await Task.Delay(1000);
-                    }
-                }
-
-                logger.LogInformation("Analog polling service stopped");
-            }
-
-        }
-
-        #endregion
-
-        #region Background service: heartbeat
-
-        public class Heartbeat(ILogger<Heartbeat> logger) : BackgroundService
-        {
-            protected override async Task ExecuteAsync(CancellationToken stoppingToken)
-            {
-                const int short_sleep_min = 40;
-                const int short_sleep_max = 100;
-
-                int short_sleep;
-                int long_sleep;
-                int inter_sleep;
-
-                logger.LogInformation("Heartbeat service started");
-
-                // Signal that the background task has started
-                await Task.Delay(1000);
-
-                while (!stoppingToken.IsCancellationRequested)
-                {
-                    try
-                    {
-                        if (Global.IsDevelopment)
-                        {
-                            await Task.Delay(100);
-                        }
-                        else
-                        {
-                            var cpu = SystemStats.GetCpuUsage(1);
-                            if (cpu == null)
-                            {
-                                short_sleep = short_sleep_max;
-                            }
-                            else
-                            {
-                                short_sleep = (int)(short_sleep_min + (short_sleep_max - short_sleep_min) * cpu.idlePercentage / 100);
-                            }
-
-                            long_sleep = 2 * short_sleep;
-                            inter_sleep = 7 * short_sleep;
-
-                            ioLib.heartbeat(1);
-                            Thread.Sleep(short_sleep);
-                            ioLib.heartbeat(0);
-                            Thread.Sleep(long_sleep);
-                            ioLib.heartbeat(1);
-                            Thread.Sleep(short_sleep);
-                            ioLib.heartbeat(0);
-                            await Task.Delay(inter_sleep);
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        logger.LogError($"Error in heartbeat service: {ex}");
-                        await Task.Delay(1000);
-                    }
-                }
-
-                logger.LogInformation("Heartbeat service stopped");
             }
         }
 

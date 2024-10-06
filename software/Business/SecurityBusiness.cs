@@ -1,7 +1,10 @@
 ﻿using cog1.DTO;
+using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
+using System.IO;
+using System.Linq;
 using System.Threading;
 
 namespace cog1.Business
@@ -11,35 +14,55 @@ namespace cog1.Business
     /// </summary>
     public class SecurityBusiness : BusinessBase
     {
-        public SecurityBusiness(Cog1Context context) : base(context)
+        public SecurityBusiness(Cog1Context context, ILogger logger) : base(context, logger)
         {
 
         }
 
         #region private
 
-        private const long EXPIRATION_MS = 100 * 60 * 60;    // 1 hour
-
+        private const long EXPIRATION_S = 24 * 60 * 60;     // 24 hours
+        private static string accessTokensFileName = Path.Combine(Global.DataDirectory, "access_tokens.json");
         private static SemaphoreSlim semaphore = new SemaphoreSlim(1, 1);
-        private static Stopwatch swExpiration = Stopwatch.StartNew();
-        private static Dictionary<Guid, TokenEntry> tokens = new();
+        private static Dictionary<Guid, AccessTokenEntry> accessTokens = null;
 
-        private class TokenEntry
+        private class AccessTokenEntry
         {
             public int userId;
-            public long expiration;
+            public DateTime expiration;
         }
 
-        private bool FindToken(Guid token, bool renew, out int userId)
+        private static void LoadAccessTokensNoSemaphore()
+        {
+            if (accessTokens == null)
+            {
+                if (File.Exists(accessTokensFileName))
+                {
+                    accessTokens = JsonConvert.DeserializeObject<Dictionary<Guid, AccessTokenEntry>>(File.ReadAllText(accessTokensFileName));
+                }
+                else
+                {
+                    accessTokens = new Dictionary<Guid, AccessTokenEntry>();
+                }
+            }
+        }
+
+        private static void StoreAccessTokensNoSemaphore()
+        {
+            File.WriteAllText(accessTokensFileName, JsonConvert.SerializeObject(accessTokens));
+        }
+
+        private bool FindAccessToken(Guid token, bool renew, out int userId)
         {
             semaphore.Wait();
             try
             {
-                if (tokens.TryGetValue(token, out var entry) && entry.expiration > swExpiration.ElapsedMilliseconds)
+                LoadAccessTokensNoSemaphore();
+                if (accessTokens.TryGetValue(token, out var entry) && entry.expiration > DateTime.UtcNow)
                 {
                     userId = entry.userId;
                     if (renew)
-                        entry.expiration = swExpiration.ElapsedMilliseconds + EXPIRATION_MS;
+                        entry.expiration = DateTime.UtcNow.AddSeconds(EXPIRATION_S);
                     return true;
                 }
                 userId = 0;
@@ -61,11 +84,13 @@ namespace cog1.Business
             semaphore.Wait();
             try
             {
-                tokens[token] = new TokenEntry()
+                LoadAccessTokensNoSemaphore();
+                accessTokens[token] = new AccessTokenEntry()
                 {
                     userId = userId,
-                    expiration = swExpiration.ElapsedMilliseconds + EXPIRATION_MS
+                    expiration = DateTime.UtcNow.AddSeconds(EXPIRATION_S)
                 };
+                StoreAccessTokensNoSemaphore();
                 return token;
             }
             finally
@@ -76,7 +101,7 @@ namespace cog1.Business
 
         public bool ValidateAccessToken(Guid token, out UserDTO user)
         {
-            if (!FindToken(token, true, out var userId))
+            if (!FindAccessToken(token, true, out var userId))
             {
                 user = null;
                 return false;
@@ -86,6 +111,39 @@ namespace cog1.Business
                 return true;
 
             return false;
+        }
+
+        #endregion
+
+        #region Startup fixes and housekeeping
+
+        public override void DoHousekeeping()
+        {
+            semaphore.Wait();
+            try
+            {
+                LoadAccessTokensNoSemaphore();
+
+                // Remove expired access tokens, and persist
+                var expired = accessTokens.Where(item => item.Value.expiration < DateTime.UtcNow).ToList();
+                if (expired.Count == 0)
+                {
+                    Logger.LogInformation($"ScurityBusiness: no expired tokens");
+                }
+                else
+                {
+                    foreach (var t in expired)
+                        accessTokens.Remove(t.Key);
+                    Logger.LogInformation($"Removed {expired.Count} expired token(s)");
+                }
+
+                // Persist any pending changes (expirations)
+                StoreAccessTokensNoSemaphore();
+            }
+            finally
+            {
+                semaphore.Release();
+            }
         }
 
         #endregion
