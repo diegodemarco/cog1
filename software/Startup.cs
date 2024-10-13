@@ -111,13 +111,13 @@ namespace cog1
             app.UseDefaultFiles();
 
             // this will serve js, css, images etc.
-            var adminPath = Path.Combine(Directory.GetCurrentDirectory(), "admin");
-            if (!Directory.Exists(adminPath))
-                Directory.CreateDirectory(adminPath);
+            var consolePath = Path.Combine(Directory.GetCurrentDirectory(), "console");
+            if (!Directory.Exists(consolePath))
+                Directory.CreateDirectory(consolePath);
             app.UseStaticFiles(new StaticFileOptions
             {
-                FileProvider = new PhysicalFileProvider(adminPath),
-                RequestPath = "/admin"
+                FileProvider = new PhysicalFileProvider(consolePath),
+                RequestPath = "/console"
             });
 
             app.UseRouting();
@@ -139,19 +139,19 @@ namespace cog1
             // and prevents a 404 when the user refreshes the browser
             app.Use(async (context, next) =>
             {
-                if (context.Request.Path.HasValue && context.Request.Path.StartsWithSegments("/admin"))
+                if (context.Request.Path.HasValue && context.Request.Path.StartsWithSegments("/console"))
                 {
                     context.Response.ContentType = "text/html";
 
                     await context.Response.SendFileAsync(
-                        env.ContentRootFileProvider.GetFileInfo("admin/index.html")
+                        env.ContentRootFileProvider.GetFileInfo("console/index.html")
                     );
 
                     return;
                 }
                 else if (context.Request.Path.HasValue && context.Request.Path.Value == "/")
                 {
-                    context.Response.Redirect("/admin");
+                    context.Response.Redirect("/console");
 
                     return;
                 }

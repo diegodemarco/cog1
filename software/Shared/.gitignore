@@ -1,4 +1,5 @@
 admin
+console
 wifi_log
 *.so
 appsettings*

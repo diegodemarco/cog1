@@ -13,8 +13,9 @@ cp Native/cog1_io/cog1_io.so /cog1/
 cp ./libe_sqlite3.so /cog1/
 cp ./cog1 /cog1/
 
-rm -r /cog1/admin
-mkdir /cog1/admin
-cp -r admin/* /cog1/admin
+rm -rf /cog1/admin
+rm -rf /cog1/console
+mkdir /cog1/console
+cp -r console/* /cog1/console
 
 systemctl start cog1

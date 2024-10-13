@@ -31,7 +31,7 @@ namespace cog1.Middleware
         protected override Task<AuthenticateResult> HandleAuthenticateAsync()
         {
             // If this is a swagger request, allow it
-            if (Request.Path == "/" || Request.Path.StartsWithSegments("/swagger") || Request.Path.StartsWithSegments("/admin"))
+            if (Request.Path == "/" || Request.Path.StartsWithSegments("/swagger") || Request.Path.StartsWithSegments("/console"))
                 return Task.FromResult(AuthenticateResult.NoResult());
 
             // If anonymous access is allowed, go ahead
