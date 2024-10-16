@@ -5,41 +5,75 @@
         <c-card-group>
           <c-card class="p-4">
             <c-card-body>
-              <form cForm>
-                <h1>Login</h1>
+              <form cForm (submit)="doLogin()" (keydown)="doDataChanged()">
+                <h1>{{literals.common.login}}</h1>
+                <!-- 
                 <p class="text-body-secondary">Sign In to your account</p>
+                -->
                 <c-input-group class="mb-3">
                   <span cInputGroupText>
                     <svg cIcon name="cilUser"></svg>
                   </span>
-                  <input autoComplete="username" cFormControl placeholder="Username" />
+                  <input 
+                    cFormControl
+                    name="username" 
+                    id="username"
+                    autoComplete="username"
+                    [placeholder]="literals.common.username"
+                    [(ngModel)]="username" 
+                  />
                 </c-input-group>
                 <c-input-group class="mb-4">
                   <span cInputGroupText>
                     <svg cIcon name="cilLockLocked"></svg>
                   </span>
                   <input
+                    name="password"
+                    id="password"
                     autoComplete="current-password"
                     cFormControl
-                    placeholder="Password"
+                    [placeholder]="literals.common.password"
                     type="password"
+                    [(ngModel)]="password"
                   />
                 </c-input-group>
+                <c-input-group class="mb-4">
+                  <div class="form-check">
+                    <input 
+                      class="form-check-input"
+                      name="persist"
+                      id="persist" 
+                      type="checkbox"
+                      [(ngModel)]="persist"
+                    />
+                    <label class="form-check-label" for="persist">
+                      {{literals.common.rememberMe}}
+                    </label>
+                  </div>
+                </c-input-group>
+                <c-row>
+                  <c-alert dismissible color="danger" [visible]="alertVisible">
+                    {{alertMessage}}
+                  </c-alert>
+                </c-row>
                 <c-row>
                   <c-col xs="6">
-                    <button cButton class="px-4" color="primary">
-                      Login
+                    <button cButton class="px-4" color="primary" type="submit">
+                      {{literals.common.login}}
                     </button>
                   </c-col>
-                  <c-col class="text-right" xs="6">
+                  <!--
+                  <c-col class="text-right" xs="6" style="text-align: right">
                     <button cButton class="px-0" color="link">
-                      Forgot password?
+                      {{literals.common.iLostMyPassword}}
                     </button>
                   </c-col>
+                  -->
                 </c-row>
               </form>
             </c-card-body>
           </c-card>
+          <!--
           <c-card [ngStyle]="{'minWidth.%': 44}" class="text-white bg-primary py-5">
             <c-card-body class="text-center">
               <div>
@@ -54,6 +88,7 @@
               </div>
             </c-card-body>
           </c-card>
+          -->
         </c-card-group>
       </c-col>
     </c-row>

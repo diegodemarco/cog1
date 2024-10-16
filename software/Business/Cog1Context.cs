@@ -1,6 +1,7 @@
 ﻿using cog1.Dao;
 using cog1.DTO;
 using cog1.Exceptions;
+using cog1.Literals;
 using Cog1.DB;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
@@ -12,14 +13,14 @@ namespace cog1.Business
     public class Cog1Context : IDisposable
     {
         private string localeCode = null;
-        private ErrorCodes errorCodes = null;
+        private Exceptions.ErrorCodes errorCodes = null;
         private Cog1DbContext databaseContext = null;
         private IHttpContextAccessor httpContextAccessor = null;
         private ILogger<Cog1Context> logger;
 
         public bool Committed { get; private set; } = false;
 
-        public ErrorCodes ErrorCodes => GetErrorCodes();
+        public Exceptions.ErrorCodes ErrorCodes => GetErrorCodes();
 
         public string LocaleCode => GetLocaleCode();
 
@@ -50,6 +51,9 @@ namespace cog1.Business
         private UserDTO user = null;
         public UserDTO User => GetUser();
 
+        // Literals
+        private Lazy<LiteralsContainerDTO> _literals;
+        public LiteralsContainerDTO Literals => _literals.Value;
 
         public Cog1Context(IHttpContextAccessor httpContextAccessor, ILogger<Cog1Context> logger)
         {
@@ -58,6 +62,9 @@ namespace cog1.Business
             // Http context
             this.httpContextAccessor = httpContextAccessor;
             httpContext = new Lazy<HttpContext>(() => httpContextAccessor?.HttpContext);
+
+            // Various
+            _literals = new Lazy<LiteralsContainerDTO>(() => new LiteralsContainerDTO(LocaleCode));
 
             // Dao
             userDao = new Lazy<UserDao>(() => new UserDao(this, logger));
@@ -70,10 +77,10 @@ namespace cog1.Business
             variableBusiness = new Lazy<VariableBusiness>(() => new VariableBusiness(this, logger));
         }
 
-        protected virtual ErrorCodes GetErrorCodes()
+        protected virtual Exceptions.ErrorCodes GetErrorCodes()
         {
             if (errorCodes == null)
-                errorCodes = new ErrorCodes(LocaleCode);
+                errorCodes = new Exceptions.ErrorCodes(LocaleCode);
             return errorCodes;
         }
 
@@ -89,7 +96,7 @@ namespace cog1.Business
         {
             if (localeCode == null)
             {
-                if (!string.IsNullOrWhiteSpace(User.localeCode))
+                if (!string.IsNullOrWhiteSpace(User?.localeCode))
                 {
                     localeCode = User.localeCode;
                 }
@@ -99,11 +106,11 @@ namespace cog1.Business
                     {
                         localeCode = MasterEntityBusiness.GetLocaleFromBrowser();
                         if (string.IsNullOrEmpty(localeCode))
-                            localeCode = Literals.Locales.English.LocaleCode;
+                            localeCode = Locales.English.LocaleCode;
                     }
                     catch
                     {
-                        localeCode = Literals.Locales.English.LocaleCode;
+                        localeCode = Locales.English.LocaleCode;
                     }
                 }
             }

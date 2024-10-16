@@ -1,6 +1,6 @@
 import { NgStyle, NgTemplateOutlet } from '@angular/common';
 import { Component, computed, inject, input } from '@angular/core';
-import { RouterLink, RouterLinkActive } from '@angular/router';
+import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 
 import {
   AvatarComponent,
@@ -27,6 +27,8 @@ import {
 } from '@coreui/angular';
 
 import { IconDirective } from '@coreui/icons-angular';
+import { AuthService } from 'src/app/services/auth.service';
+import { LiteralsService } from 'src/app/services/literals.service';
 
 @Component({
   selector: 'app-default-header',
@@ -38,6 +40,7 @@ export class DefaultHeaderComponent extends HeaderComponent {
 
   readonly #colorModeService = inject(ColorModeService);
   readonly colorMode = this.#colorModeService.colorMode;
+  literals: LiteralsService;
 
   readonly colorModes = [
     { name: 'light', text: 'Light', icon: 'cilSun' },
@@ -50,8 +53,15 @@ export class DefaultHeaderComponent extends HeaderComponent {
     return this.colorModes.find(mode => mode.name === currentMode)?.icon ?? 'cilSun';
   });
 
-  constructor() {
+  constructor(private authService: AuthService, private router: Router, literals: LiteralsService) {
     super();
+    this.literals = literals;
+  }
+
+  public doLogout()
+  {
+    this.authService.logout();
+    this.router.navigate(["/login"]);
   }
 
   sidebarId = input('sidebar1');

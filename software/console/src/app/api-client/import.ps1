@@ -22,3 +22,9 @@ npx swagger-typescript-api -p http://192.168.1.220/swagger/current/swagger.json 
 	-replace "systemstatsList", "GetSystemStats" `
 	-replace "systemstatsPingList", "Ping" `
 	| Set-Content -Encoding utf8 -Path SystemStats.ts
+
+# literals controller
+(Get-Content Literals.ts) `
+	-replace "literalsList", "GetLiterals" `
+	-replace "literalsPingList", "Ping" `
+	| Set-Content -Encoding utf8 -Path Literals.ts

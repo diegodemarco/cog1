@@ -11,6 +11,14 @@
     >
       <svg cIcon name="cilMenu" size="lg"></svg>
     </button>
+
+    <c-header-nav class="d-none d-md-flex">
+      <c-container [fluid]="true" class="px-4">
+        <c-breadcrumb-router />
+      </c-container>
+    </c-header-nav>
+  
+    <!--
     <c-header-nav class="d-none d-md-flex">
       <c-nav-item>
         <a cNavLink routerLink="/dashboard" routerLinkActive="active">Dashboard</a>
@@ -22,8 +30,10 @@
         <a cNavLink routerLink="/settings" routerLinkActive="active">Settings</a>
       </c-nav-item>
     </c-header-nav>
+    -->
 
     <c-header-nav class="d-none d-md-flex ms-auto ">
+      <!--
       <a cNavLink>
         <svg cIcon class="my-1" name="cilBell" size="lg"></svg>
       </a>
@@ -33,6 +43,7 @@
       <a cNavLink>
         <svg cIcon class="my-1" name="cilEnvelopeOpen" size="lg"></svg>
       </a>
+      -->
     </c-header-nav>
 
     <c-header-nav class="ms-auto ms-md-0">
@@ -50,9 +61,11 @@
     </c-header-nav>
 
   </c-container>
+  <!--
   <c-container [fluid]="true" class="px-4">
     <c-breadcrumb-router />
   </c-container>
+  -->
 </ng-container>
 <!--</c-header>-->
 
@@ -71,9 +84,10 @@
     <ul cDropdownMenu class="pt-0 w-auto">
       <li>
         <h6 cDropdownHeader class="bg-body-secondary text-body-secondary fw-semibold py-2 rounded-top">
-          Account
+          {{literals.common.profile}}
         </h6>
       </li>
+      <!--
       <li>
         <a cDropdownItem routerLink="">
           <svg cIcon class="me-2" name="cilBell"></svg>
@@ -110,12 +124,14 @@
         </h6>
       </li>
       <li></li>
+      -->
       <li>
         <a cDropdownItem routerLink="">
           <svg cIcon class="me-2" name="cilUser"></svg>
-          Profile
+          {{literals.common.profile}}
         </a>
       </li>
+      <!--
       <li>
         <a cDropdownItem routerLink="">
           <svg cIcon class="me-2" name="cilSettings"></svg>
@@ -140,19 +156,22 @@
           </c-badge>
         </a>
       </li>
+      -->
       <li>
         <hr cDropdownDivider />
       </li>
+      <!--
       <li>
         <a cDropdownItem routerLink="">
           <svg cIcon class="me-2" name="cilLockLocked"></svg>
           Lock Account
         </a>
       </li>
+      -->
       <li>
-        <a cDropdownItem routerLink="">
+        <a cDropdownItem routerLink="" (click)="doLogout()">
           <svg cIcon class="me-2" name="cilAccountLogout"></svg>
-          Logout
+          {{literals.common.logout}}
         </a>
       </li>
     </ul>

@@ -1,12 +1,13 @@
-<app-widgets-dropdown />
+<!-- <app-widgets-dropdown /> -->
 <c-card class="my-4">
   <c-card-body>
     <c-row>
       <c-col sm="5">
-        <h4 class="card-title mb-0" id="traffic">Traffic</h4>
-        <div class="small text-body-secondary">January - December 2023</div>
+        <h4 class="card-title mb-0" id="cpu">CPU</h4>
+        <div class="small text-body-secondary">Last 5 minutes</div>
       </c-col>
       <c-col class="d-none d-md-block" sm="7">
+        <!--
         <button cButton class="float-end" color="primary" aria-label="Download">
           <svg cIcon name="cilCloudDownload"></svg>
         </button>
@@ -65,6 +66,7 @@
             </label>
           </c-button-group>
         </form>
+        -->
       </c-col>
     </c-row>
     <c-chart
@@ -109,8 +111,11 @@
   </c-card-footer>
 </c-card>
 
+<!--
 <app-widgets-brand [withCharts]="true" />
+-->
 
+<!--
 <c-row class="mt-4">
   <c-col xs>
     <c-card class="mb-4">
@@ -318,6 +323,9 @@
     </c-card>
   </c-col>
 </c-row>
+-->
+
+<!--
 <c-row>
   <c-col xs>
     <c-card class="mb-4">
@@ -393,3 +401,4 @@
     </c-card>
   </c-col>
 </c-row>
+-->

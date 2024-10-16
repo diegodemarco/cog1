@@ -106,6 +106,12 @@ namespace cog1
                 app.UseDeveloperExceptionPage();
             }
 
+            // Configure CORS
+            app.UseCors(x => x
+                    .AllowAnyOrigin()
+                    .AllowAnyMethod()
+                    .AllowAnyHeader());
+
             //app.UseHttpsRedirection();
 
             app.UseDefaultFiles();

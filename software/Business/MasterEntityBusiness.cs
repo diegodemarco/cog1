@@ -20,14 +20,16 @@ namespace cog1.Business
         {
             if (Context.HttpContext != null)
             {
+                Logger.LogInformation("HttpContext is not null");
                 var request = Context.HttpContext.Request;
                 if (request != null)
                 {
                     // Search the supported browser languages against the system languages
-                    var AcceptedLanguages = request.Headers["Accept-Language"];
-                    if (!string.IsNullOrEmpty(AcceptedLanguages))
+                    var acceptedLanguages = request.Headers["Accept-Language"];
+                    Logger.LogInformation($"AcceptedLanguages: {acceptedLanguages}");
+                    if (!string.IsNullOrEmpty(acceptedLanguages))
                     {
-                        foreach (var lang in AcceptedLanguages.ToString().Split(','))
+                        foreach (var lang in acceptedLanguages.ToString().Split(','))
                         {
                             var code = lang.Split(';')[0].Trim().ToLower();
                             foreach (var l in Locales.All)
@@ -39,6 +41,14 @@ namespace cog1.Business
                         }
                     }
                 }
+                else
+                {
+                    Logger.LogInformation("Context.HttpContext.Request is null");
+                }
+            }
+            else
+            {
+                Logger.LogInformation("HttpContext is null");
             }
 
             // No match. Return default language.
