@@ -2,7 +2,11 @@
 ![cog1 front and back as built](docs/images/picture_1.jpg)
 
 ## What is cog1?
-cog1 is an open-source industrial IoT gateway (hardware and software) built as a motherboard hosting an [Orange Pi Zero 3](http://www.orangepi.org/html/hardWare/computerAndMicrocontrollers/details/Orange-Pi-Zero-3.html) linux SBC (Wiki [here](http://www.orangepi.org/orangepiwiki/index.php/Orange_Pi_Zero_3)). The motherboard was designed using [KiCad](https://www.kicad.org/). Its software uses the [.net core framework](https://dotnet.microsoft.com/) (currently at version 8) to provide the services running in the hardware, as well as the back-end web services for the user interface (not started yet), which will be developed in [Angular](https://angular.dev/).
+cog1 is an open-source industrial IoT gateway (hardware and software) built as a motherboard hosting an [Orange Pi Zero 3](http://www.orangepi.org/html/hardWare/computerAndMicrocontrollers/details/Orange-Pi-Zero-3.html) linux SBC (Wiki [here](http://www.orangepi.org/orangepiwiki/index.php/Orange_Pi_Zero_3)).
+- The motherboard was designed using [KiCad](https://www.kicad.org/).
+- Its software uses the [.net core framework](https://dotnet.microsoft.com/) (currently at version 8) to provide the services running in the hardware, as well as the back-end web services for the UI.
+- It also hosts the user interface (console), which is written  in [Angular](https://angular.dev/), based on the [Core-UI admin template](https://coreui.io/product/free-angular-admin-template/).
+- In essence, it's a fully self-contained IoT gateway capable of interfacing with sensors and actuators directly, designed to process data, make local decisions, and communicate with external cloud services if needed.
 
 ### Features
 
@@ -23,14 +27,17 @@ The cog1 platform currently supports:
   - A front USB port (USB 2.0)
 
 #### Software
-The current software is extremely basic, but includes everything needed to fully test the hardware. Additionally, the software already has the correct "architecture", i.e. it is designed as a linux service file that can be started, stopped, etc., and communicates with the hardware through a low-level i/o library created with native code (plain old C).
+![cog1 admin console](docs/images/console-1.png)
+The current software is rather basic, but includes everything needed to fully test the hardware. Additionally, the software already has the correct "architecture", i.e. it is designed as a linux service file that can be started, stopped, etc., and communicates with the hardware through a low-level i/o library created with native code (plain old C).
+
+The front-end (console) is written in Angular, based on the [Core-UI admin template](https://coreui.io/product/free-angular-admin-template/), and it communicates with the back-end via web-services, which are already integrated in such a way that creating new controllers/endpoints and consuming them from the front-end is really simple. 
 
 The plan is to continue developing the software so that it can:
-- Communicate with a user interface (to be developed in Angular) to allow configuration and monitoring.
 - Enable the definition of "variables" based on the various inputs and outputs as well as on Modbus RTU (through the built-in RS-485 port). This could easily be extended to use Modbus TCP as well, or any other LAN protocol that could be relevant.
 - Provide data-extraction web services.
 - Communicate with external cloud services via MQTT or any other protocol that could be relevant.
 - Allow running javascript code using [Jint](https://github.com/sebastienros/jint) to make it possible to compute complex variables, do edge data-processing, etc.
+- Update the console UI to allow further management of all avaible functionality, as it grows over time.
 
 ### Hardware
 #### PCB
@@ -51,17 +58,23 @@ The enclosure for the cog1 is a rather standard extruded-aluminum case, which ca
 All designs, done in SolidWorks, are included in this project. I have printed everything with an Elegoo Mars 3 Pro (resin), and expect that all parts would print well on any resin 3D printer. I have not tried to print this on a filament printer, as I believe the quality would not be good enough. When printed in resin, all parts really look production-grade if the proper resin is used.
 
 ### Software
-#### Main code
+#### Main back-end code
 The main code of the cog1 platform is a .net core application that contains all the necessary components (web services and general logic) to keep the cog1 working. The current version is relatively basic, and only contains those features needed to test the hardware. A web service is in place to provide basic status of the cog1, which is currently used to test the overall reliability of the hardware. All hardware functions have been tested with this software.
 
 This is by far the area that needs the most effort, so that the cog1 can be turned into a fully-functional gateway.
 
-#### Native code
+#### Native back-end code
 There are a few small portions of the software written in plan old C, and compiled directly in the SBC:
 - A low-level i/o library that deals with digital and analog i/o, display, etc.
 - A small "logo" application (configured as a service that starts early in the Linux boot process) to display the cog1 logo while the cog1 is booting.
 
 Everything else is c#, so there's no low-level really in the c# code. 
+
+#### Front-end code
+The front-end (console) is written in Angular, based on the [Core-UI admin template](https://coreui.io/product/free-angular-admin-template/), and it communicates with the back-end via web-services, which are already integrated in such a way that creating new controllers/endpoints and consuming them from the front-end is really simple. While the functionality is relatively limited at the moment, the front-end contains all the necessary building-blocks to be extended easily:
+- It communicates with the back-end via web-services, with proxies created using [swagger-typescript-api](https://github.com/acacode/swagger-typescript-api). This makes it very simple to create new controllers and endpoints in the back-end andthen use them in the front-end with full type-checking and code insight.
+- It handles authentication with the back-end.
+- It fully supports loading literals (in the language of the user) from the back-end, before the application starts.
 
 ## Getting started
 ### Building the hardware
