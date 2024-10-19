@@ -3,7 +3,7 @@
     public class DisplayMenuPage_System_Control : DisplayMenuPage
     {
         private int selected = 0;
-        private const int OPTION_COUNT = 3;
+        private const int OPTION_COUNT = 4;
 
         public override void Update()
         {
@@ -14,14 +14,16 @@
             canvas.DrawBackArrow(selected == 0);
 
             // Options
-            canvas.DrawText(3, 16, font, "Reboot");
-            canvas.DrawText(3, 24, font, "Shut down");
+            canvas.DrawText(3, 16, font, "Reinit");
+            canvas.DrawText(3, 24, font, "Reboot");
+            canvas.DrawText(3, 32, font, "Shut down");
 
-            // Reverse as needed
-            if (selected == 1)
-                canvas.Reverse(0, 16, 127, 16 + 7);
-            if (selected == 2)
-                canvas.Reverse(0, 24, 127, 24 + 7);
+            // Highlight the selected item
+            if (selected > 0)
+            {
+                int y = 16 + 8 * (selected - 1);
+                canvas.Reverse(0, y, 127, y + 7);
+            }
 
             // Draw
             canvas.ToDisplay();
@@ -55,9 +57,12 @@
                 case 0:
                     return DisplayMenuAction.Pop;
                 case 1:
-                    newPage = new DisplayMenuPage_Confirm_Warning("REBOOT", "Reboot now", OSUtils.Reboot);
+                    newPage = new DisplayMenuPage_Confirm_Warning("REINIT", "Reinit now", OSUtils.Reinit);
                     return DisplayMenuAction.Push;
                 case 2:
+                    newPage = new DisplayMenuPage_Confirm_Warning("REBOOT", "Reboot now", OSUtils.Reboot);
+                    return DisplayMenuAction.Push;
+                case 3:
                     newPage = new DisplayMenuPage_Confirm_Warning("SHUT DOWN", "Shut down now", OSUtils.Shutdown);
                     return DisplayMenuAction.Push;
             }

@@ -89,16 +89,24 @@ namespace cog1.Hardware
             {
                 lock (_lock)
                 {
-                    if (OSUtils.Rebooting)
+                    DisplayCanvas canvas;
+                    switch (OSUtils.RebootStatus)
                     {
-                        var canvas = new DisplayCanvas();
-                        canvas.DrawText(0, 18, DisplayCanvas.Font_8x12, "   Rebooting");
-                        canvas.DrawText(0, 37, DisplayCanvas.Font_6x8, "   Please wait...");
-                        canvas.ToDisplay();
-                    }
-                    else
-                    {
-                        ioLib.display_clear();
+                        case RebootStatus.Reinit:
+                            canvas = new DisplayCanvas();
+                            canvas.DrawText(0, 18, DisplayCanvas.Font_8x12, "Re-initializing");
+                            canvas.DrawText(0, 37, DisplayCanvas.Font_6x8,  "   Please wait...");
+                            canvas.ToDisplay();
+                            break;
+                        case RebootStatus.Reboot:
+                            canvas = new DisplayCanvas();
+                            canvas.DrawText(0, 18, DisplayCanvas.Font_8x12, "   Rebooting");
+                            canvas.DrawText(0, 37, DisplayCanvas.Font_6x8, "   Please wait...");
+                            canvas.ToDisplay();
+                            break;
+                        default:
+                            ioLib.display_clear();
+                            break;
                     }
 
                     if (active)

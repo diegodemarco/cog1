@@ -5,11 +5,18 @@ using System.Linq;
 
 namespace cog1
 {
+    public enum RebootStatus
+    {
+        Shutdown = 0,
+        Reinit = 1,
+        Reboot = 2,
+    }
+
     public static class OSUtils
     {
-        static bool rebooting = false;
+        static RebootStatus rebootStatus = RebootStatus.Shutdown;
 
-        public static bool Rebooting => rebooting;
+        public static RebootStatus RebootStatus => rebootStatus;
 
         public static string RunWithOutput(string fileName, params string[] parameters)
         {
@@ -146,12 +153,19 @@ namespace cog1
 
         public static void Reboot()
         {
-            rebooting = true;
+            rebootStatus = RebootStatus.Reboot;
             Run("reboot", "now");
+        }
+
+        public static void Reinit()
+        {
+            rebootStatus = RebootStatus.Reinit;
+            Run("systemctl", "restart", "cog1");
         }
 
         public static void Shutdown()
         {
+            rebootStatus = RebootStatus.Shutdown;
             Run("shutdown", "now");
         }
 
