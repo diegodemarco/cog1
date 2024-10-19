@@ -5,26 +5,28 @@ npx swagger-typescript-api -p http://192.168.1.220/swagger/current/swagger.json 
 
 # security controller
 (Get-Content Security.ts) `
-	-replace "securityLoginCreate", "Login" `
-	-replace "securityPingList", "Ping" `
+	-replace "securityLoginCreate", "login" `
+	-replace "securityAccesstokenList", "getAccessTokenInfo" `
+	-replace "securityPingList", "ping" `
 	| Set-Content -Encoding utf8 -Path Security.ts
 
 # variables controller
 (Get-Content Variables.ts) `
-	-replace "variablesValuesDetail", "GetVariableValue" `
-	-replace "variablesValuesList", "GetVariableValues" `
-	-replace "variablesList", "EnumerateVariables" `
-	-replace "variablesPingList", "Ping" `
+	-replace "variablesValuesDetail", "getVariableValue" `
+	-replace "variablesValuesList", "getVariableValues" `
+	-replace "variablesList", "enumerateVariables" `
+	-replace "variablesPingList", "ping" `
 	| Set-Content -Encoding utf8 -Path Variables.ts
 
-# system stats controller
-(Get-Content SystemStats.ts) `
-	-replace "systemstatsList", "GetSystemStats" `
-	-replace "systemstatsPingList", "Ping" `
-	| Set-Content -Encoding utf8 -Path SystemStats.ts
+# system controller
+(Get-Content System.ts) `
+	-replace "systemstatsList", "getSystemStats" `
+	-replace "systemPingList", "ping" `
+	-replace "systemStatsCpuHistory5MinList", "getCpuHistory5Min" `
+	| Set-Content -Encoding utf8 -Path System.ts
 
 # literals controller
 (Get-Content Literals.ts) `
-	-replace "literalsList", "GetLiterals" `
-	-replace "literalsPingList", "Ping" `
+	-replace "literalsList", "getLiterals" `
+	-replace "literalsPingList", "ping" `
 	| Set-Content -Encoding utf8 -Path Literals.ts

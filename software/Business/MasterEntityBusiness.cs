@@ -26,7 +26,6 @@ namespace cog1.Business
                 {
                     // Search the supported browser languages against the system languages
                     var acceptedLanguages = request.Headers["Accept-Language"];
-                    Logger.LogInformation($"AcceptedLanguages: {acceptedLanguages}");
                     if (!string.IsNullOrEmpty(acceptedLanguages))
                     {
                         foreach (var lang in acceptedLanguages.ToString().Split(','))

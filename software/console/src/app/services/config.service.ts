@@ -27,7 +27,7 @@ export class ConfigService {
         .catch(error =>
         {
           // Nothing to do
-          console.log("Config data unchanged");
+          console.log("Config data missing");
         });
       return promise;
   }

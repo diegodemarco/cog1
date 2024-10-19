@@ -17,10 +17,10 @@ export class Variables<SecurityDataType = unknown> extends HttpClient<SecurityDa
    * No description
    *
    * @tags Variables
-   * @name EnumerateVariables
+   * @name enumerateVariables
    * @request GET:/api/variables
    */
-  EnumerateVariables = (params: RequestParams = {}) =>
+  enumerateVariables = (params: RequestParams = {}) =>
     this.request<VariableDTO[], any>({
       path: `/api/variables`,
       method: "GET",
@@ -31,10 +31,10 @@ export class Variables<SecurityDataType = unknown> extends HttpClient<SecurityDa
    * No description
    *
    * @tags Variables
-   * @name GetVariableValues
+   * @name getVariableValues
    * @request GET:/api/variables/values
    */
-  GetVariableValues = (params: RequestParams = {}) =>
+  getVariableValues = (params: RequestParams = {}) =>
     this.request<VariableValueDTO[], any>({
       path: `/api/variables/values`,
       method: "GET",
@@ -45,10 +45,10 @@ export class Variables<SecurityDataType = unknown> extends HttpClient<SecurityDa
    * No description
    *
    * @tags Variables
-   * @name GetVariableValue
+   * @name getVariableValue
    * @request GET:/api/variables/values/{variableId}
    */
-  GetVariableValue = (variableId: number, params: RequestParams = {}) =>
+  getVariableValue = (variableId: number, params: RequestParams = {}) =>
     this.request<VariableValueDTO, any>({
       path: `/api/variables/values/${variableId}`,
       method: "GET",
@@ -59,10 +59,10 @@ export class Variables<SecurityDataType = unknown> extends HttpClient<SecurityDa
    * No description
    *
    * @tags Variables
-   * @name Ping
+   * @name ping
    * @request GET:/api/variables/ping
    */
-  Ping = (params: RequestParams = {}) =>
+  ping = (params: RequestParams = {}) =>
     this.request<string, any>({
       path: `/api/variables/ping`,
       method: "GET",

@@ -1,7 +1,7 @@
 import { DOCUMENT, NgStyle } from '@angular/common';
 import { Component, DestroyRef, effect, inject, OnInit, Renderer2, signal, WritableSignal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
-import { ChartOptions } from 'chart.js';
+import { ChartData, ChartDataset, ChartOptions, PluginOptionsByType, ScaleOptions, TooltipLabelStyle } from 'chart.js';
 import {
   AvatarComponent,
   ButtonDirective,
@@ -21,10 +21,15 @@ import {
 } from '@coreui/angular';
 import { ChartjsComponent } from '@coreui/angular-chartjs';
 import { IconDirective } from '@coreui/icons-angular';
+import { getStyle, hexToRgba } from '@coreui/utils';
 
 import { WidgetsBrandComponent } from '../widgets/widgets-brand/widgets-brand.component';
 import { WidgetsDropdownComponent } from '../widgets/widgets-dropdown/widgets-dropdown.component';
-import { DashboardChartsData, IChartProps } from './dashboard-charts-data';
+//import { DashboardChartsData, IChartProps } from './dashboard-charts-data';
+import { LiteralsService } from 'src/app/services/literals.service';
+import { ViewStatusService } from 'src/app/services/view-status.service';
+import { BackendService } from 'src/app/services/backend.service';
+import { DeepPartial } from 'chart.js/dist/types/utils';
 
 interface IUser {
   name: string;
@@ -47,11 +52,6 @@ interface IUser {
   imports: [WidgetsDropdownComponent, TextColorDirective, CardComponent, CardBodyComponent, RowComponent, ColComponent, ButtonDirective, IconDirective, ReactiveFormsModule, ButtonGroupComponent, FormCheckLabelDirective, ChartjsComponent, NgStyle, CardFooterComponent, GutterDirective, ProgressBarDirective, ProgressComponent, WidgetsBrandComponent, CardHeaderComponent, TableDirective, AvatarComponent]
 })
 export class DashboardComponent implements OnInit {
-
-  readonly #destroyRef: DestroyRef = inject(DestroyRef);
-  readonly #document: Document = inject(DOCUMENT);
-  readonly #renderer: Renderer2 = inject(Renderer2);
-  readonly #chartsData: DashboardChartsData = inject(DashboardChartsData);
 
   public users: IUser[] = [
     {
@@ -134,36 +134,188 @@ export class DashboardComponent implements OnInit {
     }
   ];
 
-  public mainChart: IChartProps = { type: 'line' };
-  public mainChartRef: WritableSignal<any> = signal(undefined);
-  #mainChartRefEffect = effect(() => {
-    if (this.mainChartRef()) {
-      this.setChartStyles();
-    }
-  });
-  public chart: Array<IChartProps> = [];
-  public trafficRadioGroup = new FormGroup({
-    trafficRadio: new FormControl('Month')
-  });
+  readonly #destroyRef: DestroyRef = inject(DestroyRef);
+  readonly #document: Document = inject(DOCUMENT);
+  readonly #renderer: Renderer2 = inject(Renderer2);
+
+  private cpuChartRef: WritableSignal<any> = signal(undefined);
+  public cpuChartData!: ChartData;
+  public cpuChartOptions!: ChartOptions;
+
+  //public chart: Array<IChartProps> = [];
+  public literals: LiteralsService;
+
+  public cpuPercentage: number | null = null;
+  public cpuText: string | null = "...";
+  public cpuColor: string = "succes";
+  public ramPercentage: number | null = null;
+  public ramText: string | null = "...";
+  public ramColor: string = "succes";
+  public storagePercentage: number | null = null;
+  public storageText: string | null = "...";
+  public storageColor: string = "succes";
+  public temperaturePercentage: number | null = null;
+  public temperatureText: string | null = "...";
+  public temperatureColor: string = "succes";
+
+  constructor(private backend: BackendService, literals: LiteralsService, viewStatus: ViewStatusService) 
+  {
+    this.literals = literals;
+    viewStatus.setTitle(literals.dashboard.dashboard!);
+  }
 
   ngOnInit(): void {
-    this.initCharts();
+
+    this.initCpuChart();
+
     this.updateChartOnColorModeChange();
+
+    this.backend.system.getCpuHistory5Min()
+      .then((data) => 
+      {
+        this.updateCpuChart(data.data);
+        return this.backend.system.getSystemStats()
+      })
+      .then((data) =>
+      {
+        // CPU
+        this.cpuPercentage = 100 - data.data.cpuReport?.usage?.last5Minutes?.idlePercentage!;
+        this.cpuColor = this.makeColor(this.cpuPercentage, 15, 50);
+        this.cpuText = this.cpuPercentage.toFixed(2) + "%";
+        // RAM
+        this.ramPercentage = 100 - data.data.memory?.freePercentage!;
+        this.ramColor = this.makeColor(this.ramPercentage, 75, 90);
+        this.ramText = this.formatStorage(data.data.memory?.usedBytes!) + " (" + this.ramPercentage.toFixed(0) + "%)";
+        // Storage
+        this.storagePercentage = 100 - data.data.disk?.freePercentage!;
+        this.storageColor = this.makeColor(this.storagePercentage, 70, 90);
+        this.storageText = this.formatStorage(data.data.disk?.bytesUsed!) + " (" + this.storagePercentage.toFixed(0) + "%)";
+        // Temperature
+        this.temperaturePercentage = (100 * data.data.temperature?.maxTemperatureC!) / 100;
+        this.temperatureColor = this.makeColor(this.temperaturePercentage, 60, 80);
+        this.temperatureText = (data.data.temperature?.maxTemperatureC!).toFixed(0) + " °C";
+      });
   }
 
-  initCharts(): void {
-    this.mainChart = this.#chartsData.mainChart;
+  private initCpuChart()
+  {
+    const plugins: DeepPartial<PluginOptionsByType<any>> = {
+      legend: {
+        display: false
+      },
+      tooltip: {
+        callbacks: {
+          labelColor: (context) => ({ backgroundColor: context.dataset.borderColor } as TooltipLabelStyle)
+        }
+      }
+    };
+
+    const scales = this.getCpuChartScales();
+  
+    this.cpuChartOptions = {
+      maintainAspectRatio: false,
+      plugins,
+      scales,
+      elements: {
+        line: {
+          tension: 0.4
+        },
+        point: {
+          radius: 0,
+          hitRadius: 10,
+          hoverRadius: 4,
+          hoverBorderWidth: 3
+        }
+      }
+    };
+
   }
 
-  setTrafficPeriod(value: string): void {
-    this.trafficRadioGroup.setValue({ trafficRadio: value });
-    this.#chartsData.initMainChart(value);
-    this.initCharts();
+  private getCpuChartScales() 
+  {
+    const colorBorderTranslucent = getStyle('--cui-border-color-translucent');
+    const colorBody = getStyle('--cui-body-color');
+
+    const scales: ScaleOptions<any> = {
+      x: {
+        grid: {
+          color: colorBorderTranslucent,
+          drawOnChartArea: false
+        },
+        ticks: {
+          color: colorBody
+        }
+      },
+      y: {
+        border: {
+          color: colorBorderTranslucent
+        },
+        grid: {
+          color: colorBorderTranslucent
+        },
+        max: 100,
+        beginAtZero: true,
+        // ticks: {
+        //   color: colorBody,
+        //   maxTicksLimit: 5,
+        //   stepSize: Math.ceil(100 / 5)
+        // }
+      }
+    };
+    return scales;
+  }
+
+  private updateCpuChart(cpuData: number[])
+  {
+    const brandInfoBg = hexToRgba(getStyle('--cui-info') ?? '#20a8d8', 10);
+    const brandInfo = getStyle('--cui-info') ?? '#20a8d8';
+
+    const datasets: ChartDataset[] = [
+      {
+        data: cpuData,
+        label: 'CPU',
+        backgroundColor: brandInfoBg,
+        borderColor: brandInfo,
+        pointHoverBackgroundColor: brandInfo,
+        borderWidth: 2,
+        fill: true
+      }
+    ];
+
+    const labels: string[] = [];
+    for (let i: number = 0; i < cpuData.length; i++) {
+      labels.push((cpuData.length - i).toString());
+    }
+
+    this.cpuChartData = {
+      datasets,
+      labels
+    };
+  }
+
+  private makeColor(value: number, limit1: number, limit2: number): string
+  {
+    if (value >= limit2)
+      return "danger";
+    if (value >= limit1)
+      return "warning";
+    return "success";
+  }
+
+  private formatStorage(bytes: number): string
+  {
+    if (bytes > 1024 * 1024 * 1024)
+      return (bytes / 1024 / 1024 / 1024).toFixed(2) + " GB";
+    if (bytes > 1024 * 1024)
+      return (bytes / 1024 / 1024).toFixed(0) + " MB";
+    if (bytes > 1024)
+      return (bytes / 1024).toFixed(0) + " KB";
+    return bytes.toFixed(0) + " B";
   }
 
   handleChartRef($chartRef: any) {
     if ($chartRef) {
-      this.mainChartRef.set($chartRef);
+      this.cpuChartRef.set($chartRef);
     }
   }
 
@@ -178,12 +330,12 @@ export class DashboardComponent implements OnInit {
   }
 
   setChartStyles() {
-    if (this.mainChartRef()) {
+    if (this.cpuChartRef()) {
       setTimeout(() => {
-        const options: ChartOptions = { ...this.mainChart.options };
-        const scales = this.#chartsData.getScales();
-        this.mainChartRef().options.scales = { ...options.scales, ...scales };
-        this.mainChartRef().update();
+        const options: ChartOptions = { ...this.cpuChartOptions };
+        const scales = this.getCpuChartScales();
+        this.cpuChartRef().options.scales = { ...options.scales, ...scales };
+        this.cpuChartRef().update();
       });
     }
   }

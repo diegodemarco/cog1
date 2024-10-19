@@ -1,5 +1,5 @@
 import { NgStyle, NgTemplateOutlet } from '@angular/common';
-import { Component, computed, inject, input } from '@angular/core';
+import { Component, computed, HostListener, inject, input } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 
 import {
@@ -29,6 +29,7 @@ import {
 import { IconDirective } from '@coreui/icons-angular';
 import { AuthService } from 'src/app/services/auth.service';
 import { LiteralsService } from 'src/app/services/literals.service';
+import { ViewStatusService } from 'src/app/services/view-status.service';
 
 @Component({
   selector: 'app-default-header',
@@ -41,6 +42,7 @@ export class DefaultHeaderComponent extends HeaderComponent {
   readonly #colorModeService = inject(ColorModeService);
   readonly colorMode = this.#colorModeService.colorMode;
   literals: LiteralsService;
+  viewStatus: ViewStatusService;
 
   readonly colorModes = [
     { name: 'light', text: 'Light', icon: 'cilSun' },
@@ -53,10 +55,23 @@ export class DefaultHeaderComponent extends HeaderComponent {
     return this.colorModes.find(mode => mode.name === currentMode)?.icon ?? 'cilSun';
   });
 
-  constructor(private authService: AuthService, private router: Router, literals: LiteralsService) {
+  constructor(private authService: AuthService, private router: Router, 
+    literals: LiteralsService, viewStatus: ViewStatusService)  {
     super();
     this.literals = literals;
+    this.viewStatus = viewStatus;
   }
+
+  /*
+  titleBarWidth: string = "auto";
+
+  @HostListener('window:resize', ['$event'])
+  onResize(event: Event) {
+      this.titleBarWidth = ((event.target as Window).innerWidth - 150) + "px";
+      this.width = ;
+      this.height = (event.target as Window).innerHeight;
+  }
+  */
 
   public doLogout()
   {
@@ -66,6 +81,7 @@ export class DefaultHeaderComponent extends HeaderComponent {
 
   sidebarId = input('sidebar1');
 
+  /*
   public newMessages = [
     {
       id: 0,
@@ -140,5 +156,7 @@ export class DefaultHeaderComponent extends HeaderComponent {
     { id: 3, title: 'Add new layouts', value: 75, color: 'info' },
     { id: 4, title: 'Angular Version', value: 100, color: 'success' }
   ];
+
+  */
 
 }

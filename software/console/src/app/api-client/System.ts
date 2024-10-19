@@ -12,17 +12,17 @@
 import { SystemStatsReport } from "./data-contracts";
 import { HttpClient, RequestParams } from "./http-client";
 
-export class SystemStats<SecurityDataType = unknown> extends HttpClient<SecurityDataType> {
+export class System<SecurityDataType = unknown> extends HttpClient<SecurityDataType> {
   /**
    * No description
    *
-   * @tags SystemStats
-   * @name GetSystemStats
-   * @request GET:/api/systemstats
+   * @tags System
+   * @name getSystemStats
+   * @request GET:/api/system/stats
    */
-  GetSystemStats = (params: RequestParams = {}) =>
+  getSystemStats = (params: RequestParams = {}) =>
     this.request<SystemStatsReport, any>({
-      path: `/api/systemstats`,
+      path: `/api/system/stats`,
       method: "GET",
       format: "json",
       ...params,
@@ -30,13 +30,27 @@ export class SystemStats<SecurityDataType = unknown> extends HttpClient<Security
   /**
    * No description
    *
-   * @tags SystemStats
-   * @name Ping
-   * @request GET:/api/systemstats/ping
+   * @tags System
+   * @name getCpuHistory5Min
+   * @request GET:/api/system/stats/cpu/history-5min
    */
-  Ping = (params: RequestParams = {}) =>
+  getCpuHistory5Min = (params: RequestParams = {}) =>
+    this.request<number[], any>({
+      path: `/api/system/stats/cpu/history-5min`,
+      method: "GET",
+      format: "json",
+      ...params,
+    });
+  /**
+   * No description
+   *
+   * @tags System
+   * @name ping
+   * @request GET:/api/system/ping
+   */
+  ping = (params: RequestParams = {}) =>
     this.request<string, any>({
-      path: `/api/systemstats/ping`,
+      path: `/api/system/ping`,
       method: "GET",
       format: "json",
       ...params,

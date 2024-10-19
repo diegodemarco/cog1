@@ -1,10 +1,9 @@
-﻿#pragma warning disable 1591
-
-namespace cog1.Literals
+﻿namespace cog1.Literals
 {
     public class LiteralsContainerDTO : BaseLiteralsContainer
     {
-        private CommonLiteralsContainer _Common;
+        private CommonLiteralsContainer common;
+        private DashboardLiteralsContainer dashboard;
         //private GeneralParametersLiteralsContainer _GeneralParameters;
 
         public LiteralsContainerDTO() : base() { }
@@ -14,9 +13,20 @@ namespace cog1.Literals
         {
             get
             {
-                if (_Common == null)
-                    _Common = new CommonLiteralsContainer(LocaleCode);
-                return _Common;
+                if (common == null)
+                    common = new CommonLiteralsContainer(LocaleCode);
+                return common;
+            }
+            set { }
+        }
+
+        public DashboardLiteralsContainer Dashboard
+        {
+            get
+            {
+                if (dashboard == null)
+                    dashboard = new DashboardLiteralsContainer(LocaleCode);
+                return dashboard;
             }
             set { }
         }
@@ -35,5 +45,3 @@ namespace cog1.Literals
     }
 
 }
-
-#pragma warning restore 1591

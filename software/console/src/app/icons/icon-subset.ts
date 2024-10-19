@@ -97,7 +97,6 @@ import {
 } from '@coreui/icons';
 
 import { signet } from './signet';
-import { logo } from './logo';
 
 export const iconSubset = {
   cibCcAmex,
@@ -195,7 +194,6 @@ export const iconSubset = {
   cilUserFemale,
   cilUserFollow,
   cilUserUnfollow,
-  logo,
   signet
 };
 

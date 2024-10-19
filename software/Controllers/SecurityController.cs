@@ -24,7 +24,7 @@ namespace cog1.Controllers
         [Route("login")]
         public LoginResponseDTO Login([FromBody] LoginRequestDTO request)
         {
-            return MethodPattern<LoginResponseDTO>(() =>
+            return MethodPattern(() =>
             {
                 if (!Context.UserBusiness.ValidateUserCredentials(request.userName, request.password, out var user))
                     throw new ControllerException(Context.ErrorCodes.User.INVALID_LOGIN_DETAILS);
@@ -36,5 +36,19 @@ namespace cog1.Controllers
                 };
             });
         }
+
+        [HttpGet]
+        [Route("access-token")]
+        public AccessTokenInfoDTO GetAccessTokenInfo()
+        {
+            return MethodPattern(() =>
+            {
+                return new AccessTokenInfoDTO()
+                {
+                    user = Context.User
+                };
+            });
+        }
+
     }
 }

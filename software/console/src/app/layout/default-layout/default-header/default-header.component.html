@@ -12,53 +12,55 @@
       <svg cIcon name="cilMenu" size="lg"></svg>
     </button>
 
-    <c-header-nav class="d-none d-md-flex">
-      <c-container [fluid]="true" class="px-4">
-        <c-breadcrumb-router />
-      </c-container>
-    </c-header-nav>
-  
-    <!--
-    <c-header-nav class="d-none d-md-flex">
-      <c-nav-item>
-        <a cNavLink routerLink="/dashboard" routerLinkActive="active">Dashboard</a>
-      </c-nav-item>
-      <c-nav-item>
-        <a cNavLink routerLink="/users" routerLinkActive="active">Users</a>
-      </c-nav-item>
-      <c-nav-item>
-        <a cNavLink routerLink="/settings" routerLinkActive="active">Settings</a>
-      </c-nav-item>
-    </c-header-nav>
-    -->
-
-    <c-header-nav class="d-none d-md-flex ms-auto ">
+    <div #title_container style="width:100%;height:100%">
+      <c-header-nav class="d-block d-md-flex" id="titleHeader">
+        <c-container [fluid]="true" class="px-4">
+          <h4 class="cog1-ellipsis" [ngStyle]="{ 'height': '100%', 'width': (title_container.parentElement!.offsetWidth - 244) + 'px' }">{{ viewStatus.title }}</h4>
+        </c-container>
+      </c-header-nav>
+    </div>
+    
       <!--
-      <a cNavLink>
-        <svg cIcon class="my-1" name="cilBell" size="lg"></svg>
-      </a>
-      <a cNavLink>
-        <svg cIcon class="my-1" name="cilList" size="lg"></svg>
-      </a>
-      <a cNavLink>
-        <svg cIcon class="my-1" name="cilEnvelopeOpen" size="lg"></svg>
-      </a>
+      <c-header-nav class="d-none d-md-flex">
+        <c-nav-item>
+          <a cNavLink routerLink="/dashboard" routerLinkActive="active">Dashboard</a>
+        </c-nav-item>
+        <c-nav-item>
+          <a cNavLink routerLink="/users" routerLinkActive="active">Users</a>
+        </c-nav-item>
+        <c-nav-item>
+          <a cNavLink routerLink="/settings" routerLinkActive="active">Settings</a>
+        </c-nav-item>
+      </c-header-nav>
       -->
-    </c-header-nav>
 
-    <c-header-nav class="ms-auto ms-md-0">
-      <div class="nav-item py-1">
-        <div class="vr h-100 mx-2 text-body text-opacity-75"></div>
-      </div>
-      <ng-container *ngTemplateOutlet="themeDropdown" />
-      <div class="nav-item py-1">
-        <div class="vr h-100 mx-2 text-body text-opacity-75"></div>
-      </div>
-    </c-header-nav>
+      <c-header-nav class="d-none d-md-flex ms-auto ">
+        <!--
+        <a cNavLink>
+          <svg cIcon class="my-1" name="cilBell" size="lg"></svg>
+        </a>
+        <a cNavLink>
+          <svg cIcon class="my-1" name="cilList" size="lg"></svg>
+        </a>
+        <a cNavLink>
+          <svg cIcon class="my-1" name="cilEnvelopeOpen" size="lg"></svg>
+        </a>
+        -->
+      </c-header-nav>
 
-    <c-header-nav class="mx-0">
-      <ng-container *ngTemplateOutlet="userDropdown" />
-    </c-header-nav>
+      <c-header-nav class="ms-auto ms-md-0">
+        <div class="nav-item py-1">
+          <div class="vr h-100 mx-2 text-body text-opacity-75"></div>
+        </div>
+        <ng-container *ngTemplateOutlet="themeDropdown" />
+        <div class="nav-item py-1">
+          <div class="vr h-100 mx-2 text-body text-opacity-75"></div>
+        </div>
+      </c-header-nav>
+
+      <c-header-nav class="mx-0">
+        <ng-container *ngTemplateOutlet="userDropdown" />
+      </c-header-nav>
 
   </c-container>
   <!--
@@ -75,7 +77,7 @@
       <c-avatar
         shape="rounded-1"
         [size]="'md'"
-        src="./assets/images/avatars/8.jpg"
+        src="./assets/images/avatars/default.png"
         status="success"
         textColor="primary"
         alt="User avatar"

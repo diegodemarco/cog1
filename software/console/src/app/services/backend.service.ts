@@ -1,19 +1,31 @@
-import { inject, Injectable } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { Security } from '../api-client/Security'
 import { Variables } from '../api-client/Variables'
 import { Literals } from '../api-client/Literals'
-import { SystemStats } from '../api-client/SystemStats'
+import { System } from '../api-client/System'
 import { ConfigService } from './config.service';
+import { ApiConfig } from '../api-client/http-client';
 
 @Injectable({
   providedIn: 'root'
 })
-export class BackendService {
+export class BackendService 
+{
+  private apiConfig: ApiConfig = 
+  {
+    baseApiParams: 
+    { 
+      credentials: "same-origin",
+      headers: { },
+      redirect: "follow",
+      referrerPolicy: "no-referrer",
+     }
+  };
 
-  security: Security = new Security();;
-  variables: Variables = new Variables();
-  systemStats: SystemStats = new  SystemStats();
-  literals: Literals = new Literals();
+  security: Security = new Security( this.apiConfig );
+  variables: Variables = new Variables( this.apiConfig );
+  system: System = new  System( this.apiConfig );
+  literals: Literals = new Literals( this.apiConfig );
 
   constructor (private config: ConfigService) {}
 
@@ -21,8 +33,19 @@ export class BackendService {
   {
       this.security.baseUrl = this.config.apiBasePath;
       this.variables.baseUrl = this.config.apiBasePath;
-      this.systemStats.baseUrl = this.config.apiBasePath;
+      this.system.baseUrl = this.config.apiBasePath;
       this.literals.baseUrl = this.config.apiBasePath;
+  }
+
+  public updateCredentials(accessToken: string)
+  {
+    console.log("Updated access token to ", accessToken);
+    if (accessToken.length > 0) {
+      this.apiConfig.baseApiParams!.headers = { Authorization: "bearer " + accessToken };
+    }
+    else {
+      this.apiConfig.baseApiParams!.headers = { };
+    }
   }
 
 }

@@ -17,10 +17,10 @@ export class Literals<SecurityDataType = unknown> extends HttpClient<SecurityDat
    * No description
    *
    * @tags Literals
-   * @name GetLiterals
+   * @name getLiterals
    * @request GET:/api/literals
    */
-  GetLiterals = (params: RequestParams = {}) =>
+  getLiterals = (params: RequestParams = {}) =>
     this.request<LiteralsContainerDTO, any>({
       path: `/api/literals`,
       method: "GET",
@@ -31,10 +31,10 @@ export class Literals<SecurityDataType = unknown> extends HttpClient<SecurityDat
    * No description
    *
    * @tags Literals
-   * @name Ping
+   * @name ping
    * @request GET:/api/literals/ping
    */
-  Ping = (params: RequestParams = {}) =>
+  ping = (params: RequestParams = {}) =>
     this.request<string, any>({
       path: `/api/literals/ping`,
       method: "GET",

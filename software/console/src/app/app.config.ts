@@ -14,18 +14,24 @@ import {
 import { DropdownModule, SidebarModule } from '@coreui/angular';
 import { IconSetService } from '@coreui/icons-angular';
 import { routes } from './app.routes';
-import { HttpClient, provideHttpClient } from '@angular/common/http';
+import { provideHttpClient } from '@angular/common/http';
 import { BackendService } from './services/backend.service';
+import { AuthService } from './services/auth.service';
 
-export function configInit(configService: ConfigService, backendService: BackendService, listeralsService: LiteralsService) {
+export function configInit(configService: ConfigService, backendService: BackendService, 
+  listeralsService: LiteralsService, authService: AuthService) {
   return () => {
     return configService.load()
       .then(() => 
       {
         backendService.configure();
         return listeralsService.load();
+      })
+      .then(() => 
+      {
+        return authService.reloadAccessTokenInfo();
       });
-  };
+    };
 }
 
 export const appConfig: ApplicationConfig = {
@@ -47,7 +53,7 @@ export const appConfig: ApplicationConfig = {
       provide: APP_INITIALIZER,
       useFactory: configInit,
       multi: true,
-      deps: [ConfigService, BackendService, LiteralsService]
+      deps: [ConfigService, BackendService, LiteralsService, AuthService]
     },
     importProvidersFrom(SidebarModule, DropdownModule),
     IconSetService,

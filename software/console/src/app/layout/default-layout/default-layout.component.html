@@ -5,11 +5,11 @@
   colorScheme="dark"
   id="sidebar1"
   visible
+  (visibleChange)="doVisibleChanged($event)"
 >
-  <c-sidebar-header class="border-bottom">
+  <c-sidebar-header class="border-bottom" style="padding:0">
     <c-sidebar-brand [routerLink]="[]">
-      <svg [class]="{icon: false}" cIcon class="sidebar-brand-full" height="32" name="logo" title="CoreUI Logo"></svg>
-      <svg cIcon class="sidebar-brand-narrow" height="32" name="signet" title="CoreUI Logo"></svg>
+      <img src="./assets/brand/cog1-logo.png" height="40" style="margin-left: 10px;" />
     </c-sidebar-brand>
   </c-sidebar-header>
 
@@ -30,13 +30,14 @@
   <!--app-header-->
   <app-default-header
     [cShadowOnScroll]="'sm'"
-    class="mb-4 d-print-none header header-sticky p-0 shadow-sm"
+    class="mb-3 d-print-none header header-sticky p-0 shadow-sm"
     position="sticky"
     sidebarId="sidebar1"
+    style="flex-wrap: nowrap;"
   />
   <!--app-body-->
   <div class="body flex-grow-1">
-    <c-container breakpoint="lg" class="h-auto px-4">
+    <c-container breakpoint="xlg" class="h-auto px-4">
       <router-outlet />
     </c-container>
   </div>

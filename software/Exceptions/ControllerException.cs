@@ -49,7 +49,7 @@ namespace cog1.Exceptions
 
         private static string GetExceptionMessage(Exception e, string localeCode)
         {
-            GetExceptionFields(e, localeCode, out string dummy, out string message, out dummy, out dummy);
+            GetExceptionFields(e, localeCode, out _, out string message, out _, out _, out _);
             return message;
         }
 
@@ -65,7 +65,7 @@ namespace cog1.Exceptions
             faultData = extraData;
         }
 
-        private static void GetExceptionFields(Exception e, string localeCode, out string className, out string message, out string faultCode, out string faultData)
+        private static void GetExceptionFields(Exception e, string localeCode, out string className, out string message, out string faultCode, out string faultData, out HttpStatusCode statusCode)
         {
             if (e is ControllerException)
             {
@@ -74,6 +74,7 @@ namespace cog1.Exceptions
                 message = se.Message;
                 faultCode = se.FaultCode;
                 faultData = se.FaultData;
+                statusCode = se.StatusCode;
             }
             else
             {
@@ -95,6 +96,7 @@ namespace cog1.Exceptions
                 message = err.Message;
                 faultCode = err.Code.ToString();
                 faultData = e.ToString();
+                statusCode = err.StatusCode;
             }
         }
 
@@ -113,7 +115,8 @@ namespace cog1.Exceptions
 
         public ControllerException(Exception e, string localeCode) : base(GetExceptionMessage(e, localeCode))
         {
-            GetExceptionFields(e, localeCode, out ClassName, out string dummy, out FaultCode, out FaultData);
+            GetExceptionFields(e, localeCode, out ClassName, out string dummy, out FaultCode, out FaultData, out var sc);
+            StatusCode = sc;
         }
 
         public ControllerException(Exception e) : this(e, "")

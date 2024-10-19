@@ -36,11 +36,22 @@ export class LoginComponent {
 
   doLogin()
   {
-    this.backend.security.Login({ userName: this.username, password: this.password })
+    this.backend.security.login({ userName: this.username, password: this.password })
     .then(result => 
     {
-      this.authService.storeCredentials(result.data.token!, this.persist)
-      this.router.navigate(["/"]);
+      // Store the received credentials
+      this.authService.storeCredentials(result.data.token!, this.persist);
+
+      // Reload the information related to the received access token
+      this.authService.reloadAccessTokenInfo().then(() =>
+      {
+        // Reload literals (language may have changed)
+        this.literals.load().then(() =>
+        {
+          // Navigate to the home page
+          this.router.navigate(["/"]); 
+        });
+      });      
     })
     .catch(error =>
     {

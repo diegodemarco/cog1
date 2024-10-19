@@ -133,6 +133,31 @@ namespace cog1.Telemetry
             }
         }
 
+        public static List<double> GetCPUHistory(int pastSeconds)
+        {
+            var result = new List<double>();
+            lock (_lock)
+            {
+                if (cpu1SecMeasurements.Count >= 2)
+                {
+                    var m1Index = cpu1SecMeasurements.Count - pastSeconds - 1;
+                    if (m1Index < 0)
+                        m1Index = 0;
+                    while (m1Index < cpu1SecMeasurements.Count - 1)
+                    {
+                        var m1 = cpu1SecMeasurements[m1Index];
+                        var m2 = cpu1SecMeasurements[m1Index + 1];
+                        var deltaTotal = m2.totalTime - m1.totalTime;
+                        var deltaIdle = m2.idleTime - m1.idleTime;
+                        result.Add(Math.Round(((deltaTotal - deltaIdle) * 100) / (double)deltaTotal, 2));
+                        m1Index++;
+                    }
+                    return result;
+                }
+                return new List<double>();
+            }
+        }
+
         public static CPUReport GetCpuReport()
         {
             var result = new CPUReport();

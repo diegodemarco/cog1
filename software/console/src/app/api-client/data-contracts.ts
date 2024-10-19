@@ -9,6 +9,10 @@
  * ---------------------------------------------------------------
  */
 
+export interface AccessTokenInfoDTO {
+  user?: UserDTO;
+}
+
 export interface CPUReport {
   usage?: CPUUsage;
   architecture?: string | null;
@@ -190,6 +194,16 @@ export interface CommonLiteralsContainer {
   result?: string | null;
 }
 
+export interface DashboardLiteralsContainer {
+  dashboard?: string | null;
+  cpu?: string | null;
+  ram?: string | null;
+  storage?: string | null;
+  temperature?: string | null;
+  last5Minutes?: string | null;
+  cpuLast5Minutes?: string | null;
+}
+
 export interface DateTimeReport {
   /** @format date-time */
   utc?: string;
@@ -213,6 +227,7 @@ export interface DiskReport {
 
 export interface LiteralsContainerDTO {
   common?: CommonLiteralsContainer;
+  dashboard?: DashboardLiteralsContainer;
 }
 
 export interface LoginRequestDTO {
@@ -258,6 +273,14 @@ export interface TemperatureReportEntry {
   /** @format double */
   criticalTemperatureC?: number | null;
   isCritical?: boolean;
+}
+
+export interface UserDTO {
+  /** @format int32 */
+  userId?: number;
+  userName?: string | null;
+  isAdmin?: boolean;
+  localeCode?: string | null;
 }
 
 export interface VariableDTO {

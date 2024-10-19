@@ -21,3 +21,9 @@
 // Examples
 // We use those styles to show code examples, you should remove them in your application.
 @import "examples";
+
+.cog1-ellipsis {
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+}

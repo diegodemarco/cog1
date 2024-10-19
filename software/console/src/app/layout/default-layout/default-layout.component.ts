@@ -56,4 +56,12 @@ export class DefaultLayoutComponent {
     // console.log('verticalUsed', $event.verticalUsed);
     // }
   }
+
+  doVisibleChanged(isVisible: boolean)
+  {
+    setTimeout(() => {
+      window.dispatchEvent(new Event('resize'));
+    }, 300);
+  }
+
 }

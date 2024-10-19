@@ -9,7 +9,7 @@
  * ---------------------------------------------------------------
  */
 
-import { LoginRequestDTO, LoginResponseDTO } from "./data-contracts";
+import { AccessTokenInfoDTO, LoginRequestDTO, LoginResponseDTO } from "./data-contracts";
 import { ContentType, HttpClient, RequestParams } from "./http-client";
 
 export class Security<SecurityDataType = unknown> extends HttpClient<SecurityDataType> {
@@ -17,10 +17,10 @@ export class Security<SecurityDataType = unknown> extends HttpClient<SecurityDat
    * No description
    *
    * @tags Security
-   * @name Login
+   * @name login
    * @request POST:/api/security/login
    */
-  Login = (data: LoginRequestDTO, params: RequestParams = {}) =>
+  login = (data: LoginRequestDTO, params: RequestParams = {}) =>
     this.request<LoginResponseDTO, any>({
       path: `/api/security/login`,
       method: "POST",
@@ -33,10 +33,24 @@ export class Security<SecurityDataType = unknown> extends HttpClient<SecurityDat
    * No description
    *
    * @tags Security
-   * @name Ping
+   * @name getAccessTokenInfo
+   * @request GET:/api/security/access-token
+   */
+  getAccessTokenInfo = (params: RequestParams = {}) =>
+    this.request<AccessTokenInfoDTO, any>({
+      path: `/api/security/access-token`,
+      method: "GET",
+      format: "json",
+      ...params,
+    });
+  /**
+   * No description
+   *
+   * @tags Security
+   * @name ping
    * @request GET:/api/security/ping
    */
-  Ping = (params: RequestParams = {}) =>
+  ping = (params: RequestParams = {}) =>
     this.request<string, any>({
       path: `/api/security/ping`,
       method: "GET",

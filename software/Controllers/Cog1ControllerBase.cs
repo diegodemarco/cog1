@@ -24,6 +24,10 @@ namespace cog1.Controllers
             {
                 action();
             }
+            catch (ControllerException)
+            {
+                throw;
+            }
             catch (Exception e)
             {
                 throw new ControllerException(e, Context.LocaleCode);
@@ -36,6 +40,10 @@ namespace cog1.Controllers
             {
                 var result = action();
                 return result;
+            }
+            catch (ControllerException)
+            {
+                throw;
             }
             catch (Exception e)
             {
@@ -64,6 +72,10 @@ namespace cog1.Controllers
             {
                 var result = action().Result;
                 return result;
+            }
+            catch (ControllerException)
+            {
+                throw;
             }
             catch (AggregateException e)
             {

@@ -33,7 +33,7 @@ namespace cog1.Business
             return user != null;
         }
 
-        private UserDTO GetUser(int userId)
+        public UserDTO GetUser(int userId)
         {
             var result = Context.UserDao.GetUser(userId);
             if (result == null)
