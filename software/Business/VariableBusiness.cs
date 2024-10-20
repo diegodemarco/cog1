@@ -1,5 +1,6 @@
 ﻿using cog1.Dao;
 using cog1.DTO;
+using cog1.Entities;
 using cog1.Exceptions;
 using cog1.Hardware;
 using Microsoft.Extensions.Logging;
@@ -83,6 +84,46 @@ namespace cog1.Business
             }
 
             return result;
+        }
+
+        public VariableValueDTO GetVariableValue(int variableId)
+        {
+            var result = GetVariableValues()
+            .FirstOrDefault(item => item.variableId == variableId);
+            if (result == null)
+                throw new ControllerException(Context.ErrorCodes.Variable.INVALID_VARIABLE_ID);
+            return result;
+        }
+
+        public void SetVariableValue(int variableId, double value)
+        {
+            var v = GetVariable(variableId);
+            if (v.isBuiltIn)
+            {
+                if (v.direction != VariableDirection.Output)
+                    throw new ControllerException(Context.ErrorCodes.Variable.VARIABLE_NOT_WRITABLE);
+                switch (variableId)
+                {
+                    case 13:
+                        IOManager.SetDigitalOutput(1, value != 0);
+                        break;
+                    case 14:
+                        IOManager.SetDigitalOutput(2, value != 0);
+                        break;
+                    case 15:
+                        IOManager.SetDigitalOutput(3, value != 0);
+                        break;
+                    case 16:
+                        IOManager.SetDigitalOutput(4, value != 0);
+                        break;
+                    default:
+                        throw new ControllerException(Context.ErrorCodes.Variable.VARIABLE_NOT_WRITABLE);
+                }
+            }
+            else
+            {
+                throw new ControllerException(Context.ErrorCodes.Variable.VARIABLE_NOT_WRITABLE);
+            }
         }
 
         #endregion

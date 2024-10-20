@@ -379,6 +379,18 @@ namespace cog1.Literals
 
         public virtual string Result { get => new CommonLiterals.Result().ExtractLiteral(LocaleCode); set { } }
 
+        public virtual string Results { get => new CommonLiterals.Results().ExtractLiteral(LocaleCode); set { } }
+
+        public virtual string Variable { get => new CommonLiterals.Variable().ExtractLiteral(LocaleCode); set { } }
+
+        public virtual string Variables { get => new CommonLiterals.Variables().ExtractLiteral(LocaleCode); set { } }
+
+        public virtual string Binary { get => new CommonLiterals.Binary().ExtractLiteral(LocaleCode); set { } }
+
+        public virtual string Integer { get => new CommonLiterals.Integer().ExtractLiteral(LocaleCode); set { } }
+
+        public virtual string FLoatingPoint { get => new CommonLiterals.FloatingPoint().ExtractLiteral(LocaleCode); set { } }
+
     }
 
 }

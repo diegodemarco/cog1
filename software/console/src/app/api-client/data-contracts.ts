@@ -192,6 +192,12 @@ export interface CommonLiteralsContainer {
   price?: string | null;
   unsubscribe?: string | null;
   result?: string | null;
+  results?: string | null;
+  variable?: string | null;
+  variables?: string | null;
+  binary?: string | null;
+  integer?: string | null;
+  fLoatingPoint?: string | null;
 }
 
 export interface DashboardLiteralsContainer {
@@ -291,6 +297,7 @@ export interface VariableDTO {
   units?: string | null;
   type?: VariableType;
   direction?: VariableDirection;
+  isBuiltIn?: boolean;
 }
 
 /** @format int32 */

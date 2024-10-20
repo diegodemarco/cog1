@@ -30,19 +30,12 @@ import { LiteralsService } from 'src/app/services/literals.service';
 import { ViewStatusService } from 'src/app/services/view-status.service';
 import { BackendService } from 'src/app/services/backend.service';
 import { DeepPartial } from 'chart.js/dist/types/utils';
+import { VariableType, VariableDTO, VariableDirection } from 'src/app/api-client/data-contracts';
+import { IconSubset } from 'src/app/icons/icon-subset';
 
-interface IUser {
-  name: string;
-  state: string;
-  registered: string;
-  country: string;
-  usage: number;
-  period: string;
-  payment: string;
-  activity: string;
-  avatar: string;
-  status: string;
-  color: string;
+interface VarWithValue extends VariableDTO 
+{
+  value?: number | null | undefined;
 }
 
 @Component({
@@ -53,86 +46,8 @@ interface IUser {
 })
 export class DashboardComponent implements OnInit {
 
-  public users: IUser[] = [
-    {
-      name: 'Yiorgos Avraamu',
-      state: 'New',
-      registered: 'Jan 1, 2021',
-      country: 'Us',
-      usage: 50,
-      period: 'Jun 11, 2021 - Jul 10, 2021',
-      payment: 'Mastercard',
-      activity: '10 sec ago',
-      avatar: './assets/images/avatars/1.jpg',
-      status: 'success',
-      color: 'success'
-    },
-    {
-      name: 'Avram Tarasios',
-      state: 'Recurring ',
-      registered: 'Jan 1, 2021',
-      country: 'Br',
-      usage: 10,
-      period: 'Jun 11, 2021 - Jul 10, 2021',
-      payment: 'Visa',
-      activity: '5 minutes ago',
-      avatar: './assets/images/avatars/2.jpg',
-      status: 'danger',
-      color: 'info'
-    },
-    {
-      name: 'Quintin Ed',
-      state: 'New',
-      registered: 'Jan 1, 2021',
-      country: 'In',
-      usage: 74,
-      period: 'Jun 11, 2021 - Jul 10, 2021',
-      payment: 'Stripe',
-      activity: '1 hour ago',
-      avatar: './assets/images/avatars/3.jpg',
-      status: 'warning',
-      color: 'warning'
-    },
-    {
-      name: 'Enéas Kwadwo',
-      state: 'Sleep',
-      registered: 'Jan 1, 2021',
-      country: 'Fr',
-      usage: 98,
-      period: 'Jun 11, 2021 - Jul 10, 2021',
-      payment: 'Paypal',
-      activity: 'Last month',
-      avatar: './assets/images/avatars/4.jpg',
-      status: 'secondary',
-      color: 'danger'
-    },
-    {
-      name: 'Agapetus Tadeáš',
-      state: 'New',
-      registered: 'Jan 1, 2021',
-      country: 'Es',
-      usage: 22,
-      period: 'Jun 11, 2021 - Jul 10, 2021',
-      payment: 'ApplePay',
-      activity: 'Last week',
-      avatar: './assets/images/avatars/5.jpg',
-      status: 'success',
-      color: 'primary'
-    },
-    {
-      name: 'Friderik Dávid',
-      state: 'New',
-      registered: 'Jan 1, 2021',
-      country: 'Pl',
-      usage: 43,
-      period: 'Jun 11, 2021 - Jul 10, 2021',
-      payment: 'Amex',
-      activity: 'Yesterday',
-      avatar: './assets/images/avatars/6.jpg',
-      status: 'info',
-      color: 'dark'
-    }
-  ];
+  readonly VariableType = VariableType;
+  readonly VariableDirection = VariableDirection;
 
   readonly #destroyRef: DestroyRef = inject(DestroyRef);
   readonly #document: Document = inject(DOCUMENT);
@@ -145,6 +60,7 @@ export class DashboardComponent implements OnInit {
   //public chart: Array<IChartProps> = [];
   public literals: LiteralsService;
 
+  // Stats data
   public cpuPercentage: number | null = null;
   public cpuText: string | null = "...";
   public cpuColor: string = "succes";
@@ -157,6 +73,9 @@ export class DashboardComponent implements OnInit {
   public temperaturePercentage: number | null = null;
   public temperatureText: string | null = "...";
   public temperatureColor: string = "succes";
+
+  // Variable data
+  public builtinVariables: VarWithValue[] = [];
 
   constructor(private backend: BackendService, literals: LiteralsService, viewStatus: ViewStatusService) 
   {
@@ -174,9 +93,10 @@ export class DashboardComponent implements OnInit {
       .then((data) => 
       {
         this.updateCpuChart(data.data);
-        return this.backend.system.getSystemStats()
-      })
-      .then((data) =>
+      });
+
+    this.backend.system.getSystemStats()
+      .then(data =>
       {
         // CPU
         this.cpuPercentage = 100 - data.data.cpuReport?.usage?.last5Minutes?.idlePercentage!;
@@ -185,7 +105,8 @@ export class DashboardComponent implements OnInit {
         // RAM
         this.ramPercentage = 100 - data.data.memory?.freePercentage!;
         this.ramColor = this.makeColor(this.ramPercentage, 75, 90);
-        this.ramText = this.formatStorage(data.data.memory?.usedBytes!) + " (" + this.ramPercentage.toFixed(0) + "%)";
+        this.ramText = this.formatStorage(data.data.memory?.totalBytes! - data.data.memory?.freeBytes!) 
+          + " (" + this.ramPercentage.toFixed(0) + "%)";
         // Storage
         this.storagePercentage = 100 - data.data.disk?.freePercentage!;
         this.storageColor = this.makeColor(this.storagePercentage, 70, 90);
@@ -195,6 +116,8 @@ export class DashboardComponent implements OnInit {
         this.temperatureColor = this.makeColor(this.temperaturePercentage, 60, 80);
         this.temperatureText = (data.data.temperature?.maxTemperatureC!).toFixed(0) + " °C";
       });
+
+    this.loadVariables();
   }
 
   private initCpuChart()
@@ -339,4 +262,67 @@ export class DashboardComponent implements OnInit {
       });
     }
   }
+
+  getIconSubset(type: VariableType): string
+  {
+    switch (type)
+    {
+      case VariableType.Binary:
+        return IconSubset.cilToggleOn;
+      case VariableType.Integer:
+      case VariableType.FloatingPoint:
+        return IconSubset.cibCreativeCommonsZero;
+    }
+    return "";
+  }
+
+  getVariableType(type: VariableType): string
+  {
+    switch (type)
+    {
+      case VariableType.Binary:
+        return this.literals.common.binary!;
+      case VariableType.Integer:
+        return this.literals.common.integer!;
+      case VariableType.FloatingPoint:
+        return this.literals.common.fLoatingPoint!;
+    }
+    return "";
+  }
+
+  private loadVariables()
+  {
+    this.backend.variables.enumerateVariables()
+      .then(data =>
+      {
+        let list: VarWithValue[] = [];
+        data.data.filter((item) => item.variableId! < 1000)
+          .forEach(item =>
+          {
+            let x: VarWithValue = {};
+            Object.assign(x, item);
+            list.push(x);
+          });
+        this.builtinVariables = list;
+        return this.backend.variables.getVariableValues();
+      })
+      .then(data => 
+      {
+        data.data.forEach(item =>
+        {
+          let v = this.builtinVariables.find(x => x.variableId! == item.variableId!);
+          v!.value = item.value
+        });
+      });
+  }
+
+  setBinaryOutput(variableId: number, turnOn: boolean)
+  {
+    this.backend.variables.setVariableValue(variableId, turnOn ? 1 : 0)
+      .then(() =>
+      {
+        this.loadVariables();
+      })
+  }
+
 }

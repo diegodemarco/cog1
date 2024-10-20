@@ -130,12 +130,14 @@ namespace cog1.Exceptions
         public VariableErrorCodes(string localeCode) : base(localeCode) { }
 
         public ErrorCode INVALID_VARIABLE_ID
-            => new ErrorCode(2000, _LocaleCode, new Literals.ErrorCodes.Variable.INVALID_VARIABLE_ID(), HttpStatusCode.Unauthorized);
+            => new ErrorCode(2000, _LocaleCode, new Literals.ErrorCodes.Variable.INVALID_VARIABLE_ID(), HttpStatusCode.NotFound);
+        public ErrorCode VARIABLE_NOT_WRITABLE
+            => new ErrorCode(2001, _LocaleCode, new Literals.ErrorCodes.Variable.VARIABLE_NOT_WRITABLE(), HttpStatusCode.BadRequest);
     }
 
     /// <summary>
-         /// Error codes returned by the business layer
-         /// </summary>
+    /// Error codes returned by the business layer
+    /// </summary>
     public class ErrorCodes
     {
         protected string _LocaleCode = "en";

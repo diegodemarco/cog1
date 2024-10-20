@@ -122,6 +122,81 @@
   </c-col>
 </c-row>
 
+<c-row>
+  <c-col>
+    <c-card class="my-3">
+      <c-card-body>
+        <c-row>
+          <c-col class="mb-3">
+            <h4 style="display: inline" class="card-title">{{literals.common.variables}}</h4>
+          </c-col>
+        </c-row>
+        @for (v of builtinVariables; track v.variableId)
+        {
+          <c-card>
+            <c-card-body>
+              <c-row>
+                <c-col xs="5">
+                  <c-row>
+                    <c-col lg="3">
+                      <h5 class="mb-0">{{v.variableId}}</h5>
+                    </c-col>
+                    <c-col lg="9">
+                      {{v.description}}
+                    </c-col>
+                  </c-row>
+                </c-col>
+                <c-col xs="5">
+                  <c-row>
+                    <c-col [lg]="((v.variableCode ?? '') > '') ? 6 : 12">
+                      <svg cIcon [name]="getIconSubset(v.type!)" size="xl" style="margin-bottom:-5px; margin-right: 5px"></svg>
+                      {{getVariableType(v.type!)}}
+                    </c-col>
+                    @if ((v.variableCode ?? '') > '')
+                    {
+                      <c-col lg="6">
+                        {{v.variableCode}}
+                      </c-col>
+                    }
+                  </c-row>
+                </c-col>
+                <c-col xs="2">
+                  <c-row style="height:100%">
+                    <c-col style="height:100%; display: flex; align-items: center; justify-content: right;">
+                      @if (v.type! == VariableType.Binary) 
+                      {
+                        <div class="form-check form-switch">
+                          <input 
+                            class="form-check-input" 
+                            type="checkbox"
+                            role="switch" 
+                            [id]="'binSwitch_' + v.variableId?.toString()"
+                            aria-label="Switch" 
+                            [checked]="v.value" 
+                            [disabled]="v.direction != VariableDirection.Output"
+                            (change)="setBinaryOutput(v.variableId!, (v.value == 0))">
+                        </div>
+                      }
+                      @if (v.type! == VariableType.Integer) 
+                      {
+                        <span style="margin-right: 8px;">{{v.value?.toFixed(0)}}</span>
+                      }
+                      @if (v.type! == VariableType.FloatingPoint) 
+                      {
+                        <span style="margin-right: 8px;">{{v.value?.toFixed(2)}}</span>
+                      }
+                    </c-col>
+                  </c-row>
+                </c-col>
+              </c-row>
+            </c-card-body>
+          </c-card>
+        }
+      </c-card-body>
+    </c-card>
+  </c-col>
+</c-row>
+
 <!--
 <app-widgets-brand [withCharts]="true" />
 -->

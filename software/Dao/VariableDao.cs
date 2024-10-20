@@ -48,14 +48,16 @@ namespace cog1.Dao
 
         private VariableDTO MakeVariable(DataRow r)
         {
+            int variableId = (int)r.Field<long>("variable_id");
             return new VariableDTO
             {
-                variableId = (int)r.Field<long>("variable_id"),
+                variableId = variableId,
                 description = r.Field<string>("description"),
                 variableCode = r.Field<string>("variable_code"),
                 type = (VariableType)r.Field<long>("variable_type"),
                 direction = (VariableDirection)r.Field<long>("variable_direction"),
                 units = r.Field<string>("units"),
+                isBuiltIn = variableId < 1000
             };
         }
 

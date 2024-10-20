@@ -232,6 +232,13 @@
                 public override string ES => "ID de variable no válido";
                 public override string PT => "O ID da variável é inválido";
             }
+
+            public class VARIABLE_NOT_WRITABLE : LiteralConstant
+            {
+                public override string EN => "The specified variable is not writable";
+                public override string ES => "ID de variable no válido";
+                public override string PT => "O ID da variável é inválido";
+            }
         }
 
     }

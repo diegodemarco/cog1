@@ -10,7 +10,7 @@
  */
 
 import { VariableDTO, VariableValueDTO } from "./data-contracts";
-import { HttpClient, RequestParams } from "./http-client";
+import { ContentType, HttpClient, RequestParams } from "./http-client";
 
 export class Variables<SecurityDataType = unknown> extends HttpClient<SecurityDataType> {
   /**
@@ -52,6 +52,22 @@ export class Variables<SecurityDataType = unknown> extends HttpClient<SecurityDa
     this.request<VariableValueDTO, any>({
       path: `/api/variables/values/${variableId}`,
       method: "GET",
+      format: "json",
+      ...params,
+    });
+  /**
+   * No description
+   *
+   * @tags Variables
+   * @name setVariableValue
+   * @request POST:/api/variables/values/{variableId}
+   */
+  setVariableValue = (variableId: number, data: number, params: RequestParams = {}) =>
+    this.request<VariableValueDTO, any>({
+      path: `/api/variables/values/${variableId}`,
+      method: "POST",
+      body: data,
+      type: ContentType.Json,
       format: "json",
       ...params,
     });

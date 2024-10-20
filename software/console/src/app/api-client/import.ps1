@@ -12,9 +12,10 @@ npx swagger-typescript-api -p http://192.168.1.220/swagger/current/swagger.json 
 
 # variables controller
 (Get-Content Variables.ts) `
-	-replace "variablesValuesDetail", "getVariableValue" `
-	-replace "variablesValuesList", "getVariableValues" `
 	-replace "variablesList", "enumerateVariables" `
+	-replace "variablesValuesList", "getVariableValues" `
+	-replace "variablesValuesDetail", "getVariableValue" `
+	-replace "variablesValuesCreate", "setVariableValue" `
 	-replace "variablesPingList", "ping" `
 	| Set-Content -Encoding utf8 -Path Variables.ts
 

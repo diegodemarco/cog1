@@ -20,7 +20,7 @@
         /// <summary>
         /// Indicates that the variable can be read and written to,
         /// both from inside and outside of the gateway. Writing to
-        /// an output variable may grigger an external action such as
+        /// an output variable may trigger an external action such as
         /// writing to a bus.
         /// </summary>
         Output = 2,

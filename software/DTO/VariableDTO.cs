@@ -34,5 +34,11 @@ namespace cog1.DTO
         /// Direction of variable. See the VariableDirection enum for more information.
         /// </summary>
         public VariableDirection direction { get; set; }
+        /// <summary>
+        /// Indicates if the variable is built in. Built-in variables are part
+        /// of the hardware of the controller, and therefore they cannot
+        /// be deleted. Other restrictions may apply.
+        /// </summary>
+        public bool isBuiltIn { get; set; }
     }
 }

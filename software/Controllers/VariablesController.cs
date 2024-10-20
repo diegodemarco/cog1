@@ -46,15 +46,19 @@ namespace cog1.Controllers
 
         [HttpGet]
         [Route("values/{variableId}")]
-        public VariableValueDTO GetVariableValues(int variableId)
+        public VariableValueDTO GetVariableValue(int variableId)
+        {
+            return MethodPattern(() => Context.VariableBusiness.GetVariableValue(variableId));
+        }
+
+        [HttpPost]
+        [Route("values/{variableId}")]
+        public VariableValueDTO SetVariableValue(int variableId, [FromBody] double value)
         {
             return MethodPattern(() =>
             {
-                var result = Context.VariableBusiness.GetVariableValues()
-                .FirstOrDefault(item => item.variableId == variableId);
-                if (result == null)
-                    throw new ControllerException(Context.ErrorCodes.Variable.INVALID_VARIABLE_ID);
-                return result;
+                Context.VariableBusiness.SetVariableValue(variableId, value);
+                return Context.VariableBusiness.GetVariableValue(variableId);
             });
         }
 
