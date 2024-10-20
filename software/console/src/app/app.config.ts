@@ -25,11 +25,11 @@ export function configInit(configService: ConfigService, backendService: Backend
       .then(() => 
       {
         backendService.configure();
-        return listeralsService.load();
+        return authService.reloadAccessTokenInfo();
       })
       .then(() => 
       {
-        return authService.reloadAccessTokenInfo();
+        return listeralsService.load();
       });
     };
 }

@@ -4,11 +4,11 @@ namespace cog1.Literals
 {
     public class BaseLiteralsContainer
     {
-        private string _localeCode;
-        protected string LocaleCode { get => _localeCode; }
+        private string localeCode;
+        public string LocaleCode => localeCode;
 
-        public BaseLiteralsContainer() { _localeCode = "en"; }
-        public BaseLiteralsContainer(string localeCode) { _localeCode = localeCode; }
+        public BaseLiteralsContainer() { localeCode = "en"; }
+        public BaseLiteralsContainer(string localeCode) { this.localeCode = localeCode; }
 
     }
 

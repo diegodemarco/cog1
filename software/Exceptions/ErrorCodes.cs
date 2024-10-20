@@ -140,17 +140,18 @@ namespace cog1.Exceptions
     /// </summary>
     public class ErrorCodes
     {
-        protected string _LocaleCode = "en";
+        protected string localeCode = "en";
+        public string LocaleCode => localeCode;
 
         public ErrorCodes(string localeCode)
         {
-            _LocaleCode = localeCode;
+            this.localeCode = localeCode;
         }
 
-        public GeneralErrorCodes General { get => new GeneralErrorCodes(_LocaleCode); }
-        public UserErrorCodes User { get => new UserErrorCodes(_LocaleCode); }
-        public SecurityErrorCodes Security { get => new SecurityErrorCodes(_LocaleCode); }
-        public VariableErrorCodes Variable { get => new VariableErrorCodes(_LocaleCode); }
+        public GeneralErrorCodes General { get => new GeneralErrorCodes(localeCode); }
+        public UserErrorCodes User { get => new UserErrorCodes(localeCode); }
+        public SecurityErrorCodes Security { get => new SecurityErrorCodes(localeCode); }
+        public VariableErrorCodes Variable { get => new VariableErrorCodes(localeCode); }
 
     }
 }

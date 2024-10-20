@@ -13,14 +13,11 @@ namespace cog1.Business
     public class Cog1Context : IDisposable
     {
         private string localeCode = null;
-        private Exceptions.ErrorCodes errorCodes = null;
         private Cog1DbContext databaseContext = null;
         private IHttpContextAccessor httpContextAccessor = null;
         private ILogger<Cog1Context> logger;
 
         public bool Committed { get; private set; } = false;
-
-        public Exceptions.ErrorCodes ErrorCodes => GetErrorCodes();
 
         public string LocaleCode => GetLocaleCode();
 
@@ -52,8 +49,12 @@ namespace cog1.Business
         public UserDTO User => GetUser();
 
         // Literals
-        private Lazy<LiteralsContainerDTO> _literals;
-        public LiteralsContainerDTO Literals => _literals.Value;
+        private LiteralsContainerDTO literals = null;
+        public LiteralsContainerDTO Literals => GetLiterals();
+
+        // Error codes
+        private Exceptions.ErrorCodes errorCodes = null;
+        public Exceptions.ErrorCodes ErrorCodes => GetErrorCodes();
 
         public Cog1Context(IHttpContextAccessor httpContextAccessor, ILogger<Cog1Context> logger)
         {
@@ -62,9 +63,6 @@ namespace cog1.Business
             // Http context
             this.httpContextAccessor = httpContextAccessor;
             httpContext = new Lazy<HttpContext>(() => httpContextAccessor?.HttpContext);
-
-            // Various
-            _literals = new Lazy<LiteralsContainerDTO>(() => new LiteralsContainerDTO(LocaleCode));
 
             // Dao
             userDao = new Lazy<UserDao>(() => new UserDao(this, logger));
@@ -114,12 +112,37 @@ namespace cog1.Business
                     }
                 }
             }
+            Console.WriteLine($"locale code: {localeCode}");
             return localeCode;
         }
 
         public void SetUser(UserDTO user)
         {
             this.user = user;
+
+            Console.WriteLine($"set user: {user.userName}");
+
+            // Update the locale (and the error codes if necessary) if the
+            // new users's locale is different.
+            if (localeCode != user.localeCode)
+            {
+                Console.WriteLine($"locale changed from {localeCode} to {user.localeCode}");
+                localeCode = user.localeCode;
+                if (errorCodes != null && errorCodes.LocaleCode != localeCode)
+                {
+                    Console.WriteLine($"destroying existing error codes");
+                    errorCodes = null;
+                }
+                if (literals != null && literals.LocaleCode != localeCode)
+                {
+                    Console.WriteLine($"destroying existing literals");
+                    literals = null;
+                }
+            }
+            else
+            {
+                Console.WriteLine($"keeping locale: {user.localeCode}");
+            }
         }
 
         private UserDTO GetUser()
@@ -134,6 +157,13 @@ namespace cog1.Business
                 };
             }
             return user;
+        }
+
+        private LiteralsContainerDTO GetLiterals()
+        {
+            if (literals == null)
+                literals = new LiteralsContainerDTO(LocaleCode);
+            return literals;
         }
 
         public void CheckIsAdmin()

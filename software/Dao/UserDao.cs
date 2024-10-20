@@ -30,6 +30,7 @@ namespace cog1.Dao
                 userId = (int)r.Field<long>("user_id"),
                 userName = r.Field<string>("user_name"),
                 isAdmin = r.Field<long>("is_admin") > 0,
+                localeCode = r.Field<string>("locale_code"),
             };
         }
 
