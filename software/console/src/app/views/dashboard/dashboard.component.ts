@@ -32,6 +32,8 @@ import { BackendService } from 'src/app/services/backend.service';
 import { DeepPartial } from 'chart.js/dist/types/utils';
 import { VariableType, VariableDTO, VariableDirection } from 'src/app/api-client/data-contracts';
 import { IconSubset } from 'src/app/icons/icon-subset';
+import { interval, Subscription, timer } from 'rxjs';
+import { animation } from '@angular/animations';
 
 interface VarWithValue extends VariableDTO 
 {
@@ -44,17 +46,29 @@ interface VarWithValue extends VariableDTO
   standalone: true,
   imports: [WidgetsDropdownComponent, TextColorDirective, CardComponent, CardBodyComponent, RowComponent, ColComponent, ButtonDirective, IconDirective, ReactiveFormsModule, ButtonGroupComponent, FormCheckLabelDirective, ChartjsComponent, NgStyle, CardFooterComponent, GutterDirective, ProgressBarDirective, ProgressComponent, WidgetsBrandComponent, CardHeaderComponent, TableDirective, AvatarComponent]
 })
-export class DashboardComponent implements OnInit {
-
+export class DashboardComponent implements OnInit 
+{
+  // Enums
   readonly VariableType = VariableType;
   readonly VariableDirection = VariableDirection;
+
+  // Subscriptions
+  private cpuTimerSub: Subscription | null = null;
+  private statTimerSub: Subscription | null = null;
+  private varTimerSub: Subscription | null = null;
 
   readonly #destroyRef: DestroyRef = inject(DestroyRef);
   readonly #document: Document = inject(DOCUMENT);
   readonly #renderer: Renderer2 = inject(Renderer2);
 
+  //
+  public cpuChartData: ChartData;
+  private cpuChartLabels: string[];
+  private cpuChartScales: ScaleOptions<any>;
+  private brandInfoBg: string | undefined;
+  private brandInfo: string | undefined;
+
   private cpuChartRef: WritableSignal<any> = signal(undefined);
-  public cpuChartData!: ChartData;
   public cpuChartOptions!: ChartOptions;
 
   //public chart: Array<IChartProps> = [];
@@ -81,20 +95,45 @@ export class DashboardComponent implements OnInit {
   {
     this.literals = literals;
     viewStatus.setTitle(literals.dashboard.dashboard!);
+    this.updateChartBrandInfo();
+    this.cpuChartLabels = [];
+    this.cpuChartData = {
+      datasets: [],
+      labels: this.cpuChartLabels
+    };
   }
 
   ngOnInit(): void {
 
-    this.initCpuChart();
-
+    // Update color scheme for the chart, and respond to theme changes
+    this.updateChartBrandInfo();
     this.updateChartOnColorModeChange();
 
+    // Timers
+    this.cpuTimerSub  = timer(0,  5000).subscribe(() => this.updateCpuHistory());   // Every 5 seconds
+    this.statTimerSub = timer(0, 30000).subscribe(() => this.updateSystemStats());  // Every 1 minute
+    this.varTimerSub  = timer(0,  2000).subscribe(() => this.updateVariables());    // Every 2 seconds
+  }
+
+  ngOnDestroy(): void
+  {
+    // Unsubscribe from timers
+    this.cpuTimerSub!.unsubscribe();
+    this.statTimerSub!.unsubscribe();
+    this.varTimerSub!.unsubscribe();
+  }
+
+  private updateCpuHistory(): void
+  {
     this.backend.system.getCpuHistory5Min()
       .then((data) => 
       {
-        this.updateCpuChart(data.data);
+        this.updateCpuChartData(data.data);
       });
+  }
 
+  private updateSystemStats()
+  {
     this.backend.system.getSystemStats()
       .then(data =>
       {
@@ -116,12 +155,47 @@ export class DashboardComponent implements OnInit {
         this.temperatureColor = this.makeColor(this.temperaturePercentage, 60, 80);
         this.temperatureText = (data.data.temperature?.maxTemperatureC!).toFixed(0) + " °C";
       });
-
-    this.loadVariables();
   }
 
-  private initCpuChart()
+  private updateVariables()
   {
+    let tempList: VarWithValue[] = [];
+
+    this.backend.variables.enumerateVariables()
+      .then(data =>
+      {
+        data.data.filter((item) => item.variableId! < 1000)
+          .forEach(item =>
+          {
+            let x: VarWithValue = {};
+            Object.assign(x, item);
+            tempList.push(x);
+          });
+        return this.backend.variables.getVariableValues();
+      })
+      .then(data => 
+      {
+        data.data.forEach(item =>
+        {
+          let v = tempList.find(x => x.variableId! == item.variableId!);
+          v!.value = item.value
+        });
+        this.builtinVariables = tempList;
+      });
+  }
+
+  private updateChartBrandInfo()
+  {
+    this.brandInfoBg = hexToRgba(getStyle('--cui-info') ?? '#20a8d8', 10);
+    this.brandInfo = getStyle('--cui-info') ?? '#20a8d8';
+
+    const colorBorderTranslucent = getStyle('--cui-border-color-translucent');
+    const colorBody = getStyle('--cui-body-color');
+
+    console.log("brandInfoBg: ", this.brandInfoBg, "brandInfo: ", this.brandInfo);
+    console.log("colorBorderTranslucent: ", colorBorderTranslucent, "colorBody: ", colorBody);
+
+    // Plugins
     const plugins: DeepPartial<PluginOptionsByType<any>> = {
       legend: {
         display: false
@@ -133,33 +207,8 @@ export class DashboardComponent implements OnInit {
       }
     };
 
-    const scales = this.getCpuChartScales();
-  
-    this.cpuChartOptions = {
-      maintainAspectRatio: false,
-      plugins,
-      scales,
-      elements: {
-        line: {
-          tension: 0.4
-        },
-        point: {
-          radius: 0,
-          hitRadius: 10,
-          hoverRadius: 4,
-          hoverBorderWidth: 3
-        }
-      }
-    };
-
-  }
-
-  private getCpuChartScales() 
-  {
-    const colorBorderTranslucent = getStyle('--cui-border-color-translucent');
-    const colorBody = getStyle('--cui-body-color');
-
-    const scales: ScaleOptions<any> = {
+    // Scales
+    this.cpuChartScales = {
       x: {
         grid: {
           color: colorBorderTranslucent,
@@ -185,34 +234,52 @@ export class DashboardComponent implements OnInit {
         // }
       }
     };
-    return scales;
+
+    // Options
+    this.cpuChartOptions = {
+      animations: { animation: { duration: 0 } },
+      maintainAspectRatio: false,
+      plugins,
+      scales: this.cpuChartScales,
+      elements: {
+        line: {
+          tension: 0.4
+        },
+        point: {
+          radius: 0,
+          hitRadius: 10,
+          hoverRadius: 4,
+          hoverBorderWidth: 3
+        }
+      }
+    };
+
   }
 
-  private updateCpuChart(cpuData: number[])
+  private updateCpuChartData(cpuData: number[])
   {
-    const brandInfoBg = hexToRgba(getStyle('--cui-info') ?? '#20a8d8', 10);
-    const brandInfo = getStyle('--cui-info') ?? '#20a8d8';
-
-    const datasets: ChartDataset[] = [
-      {
-        data: cpuData,
-        label: 'CPU',
-        backgroundColor: brandInfoBg,
-        borderColor: brandInfo,
-        pointHoverBackgroundColor: brandInfo,
-        borderWidth: 2,
-        fill: true
-      }
-    ];
-
-    const labels: string[] = [];
-    for (let i: number = 0; i < cpuData.length; i++) {
-      labels.push((cpuData.length - i).toString());
+    // Update chart labels if necessary
+    if (this.cpuChartLabels.length != cpuData.length)
+    {
+      this.cpuChartLabels = [];
+      for (let i: number = 0; i < cpuData.length; i++)
+        this.cpuChartLabels.push((cpuData.length - i).toString());
     }
 
+    // Update chart data
+    const dataset =
+    {
+      data: cpuData,
+      label: 'CPU',
+      backgroundColor: this.brandInfoBg,
+      borderColor: this.brandInfo,
+      pointHoverBackgroundColor: this.brandInfo,
+      borderWidth: 2,
+      fill: true
+    };
     this.cpuChartData = {
-      datasets,
-      labels
+      datasets: [dataset],
+      labels: this.cpuChartLabels
     };
   }
 
@@ -252,12 +319,14 @@ export class DashboardComponent implements OnInit {
     });
   }
 
-  setChartStyles() {
-    if (this.cpuChartRef()) {
+  setChartStyles() 
+  {
+    if (this.cpuChartRef()) 
+    {
+      this.updateChartBrandInfo();
       setTimeout(() => {
         const options: ChartOptions = { ...this.cpuChartOptions };
-        const scales = this.getCpuChartScales();
-        this.cpuChartRef().options.scales = { ...options.scales, ...scales };
+        this.cpuChartRef().options.scales = { ...options.scales, ...this.cpuChartScales };
         this.cpuChartRef().update();
       });
     }
@@ -290,38 +359,12 @@ export class DashboardComponent implements OnInit {
     return "";
   }
 
-  private loadVariables()
-  {
-    this.backend.variables.enumerateVariables()
-      .then(data =>
-      {
-        let list: VarWithValue[] = [];
-        data.data.filter((item) => item.variableId! < 1000)
-          .forEach(item =>
-          {
-            let x: VarWithValue = {};
-            Object.assign(x, item);
-            list.push(x);
-          });
-        this.builtinVariables = list;
-        return this.backend.variables.getVariableValues();
-      })
-      .then(data => 
-      {
-        data.data.forEach(item =>
-        {
-          let v = this.builtinVariables.find(x => x.variableId! == item.variableId!);
-          v!.value = item.value
-        });
-      });
-  }
-
   setBinaryOutput(variableId: number, turnOn: boolean)
   {
     this.backend.variables.setVariableValue(variableId, turnOn ? 1 : 0)
       .then(() =>
       {
-        this.loadVariables();
+        this.updateVariables();
       })
   }
 

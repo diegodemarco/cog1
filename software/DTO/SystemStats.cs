@@ -140,7 +140,7 @@ namespace cog1.Telemetry
             {
                 if (cpu1SecMeasurements.Count >= 2)
                 {
-                    var m1Index = cpu1SecMeasurements.Count - pastSeconds - 1;
+                    var m1Index = cpu1SecMeasurements.Count - pastSeconds - 2;
                     if (m1Index < 0)
                         m1Index = 0;
                     while (m1Index < cpu1SecMeasurements.Count - 1)
@@ -244,7 +244,9 @@ namespace cog1.Telemetry
                     ioWaitTime = longParts[4],
                 });
 
-                while (cpu1SecMeasurements.Count > 300)
+                // We need 301 samples to retrieve 300 measurements, becase these are the difference between
+                // one sample and the next.
+                while (cpu1SecMeasurements.Count > 301)
                     cpu1SecMeasurements.RemoveAt(0);
             }
         }
