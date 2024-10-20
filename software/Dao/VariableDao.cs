@@ -6,6 +6,7 @@ using System.Threading;
 using System.Linq;
 using cog1.Entities;
 using Microsoft.Extensions.Logging;
+using System;
 
 namespace cog1.Dao
 {
@@ -31,14 +32,14 @@ namespace cog1.Dao
                 new VariableDTO() { variableId =  2, description = "Digital input 2", type = VariableType.Binary, direction = VariableDirection.Input },
                 new VariableDTO() { variableId =  3, description = "Digital input 3", type = VariableType.Binary, direction = VariableDirection.Input },
                 new VariableDTO() { variableId =  4, description = "Digital input 4", type = VariableType.Binary, direction = VariableDirection.Input },
-                new VariableDTO() { variableId =  5, description = "Analog voltage input 1", type = VariableType.FloatingPoint, direction = VariableDirection.Input },
-                new VariableDTO() { variableId =  6, description = "Analog voltage input 2", type = VariableType.FloatingPoint, direction = VariableDirection.Input },
-                new VariableDTO() { variableId =  7, description = "Analog voltage input 3", type = VariableType.FloatingPoint, direction = VariableDirection.Input },
-                new VariableDTO() { variableId =  8, description = "Analog voltage input 4", type = VariableType.FloatingPoint, direction = VariableDirection.Input },
-                new VariableDTO() { variableId =  9, description = "Analog current input 1", type = VariableType.FloatingPoint, direction = VariableDirection.Input },
-                new VariableDTO() { variableId = 10, description = "Analog current input 2", type = VariableType.FloatingPoint, direction = VariableDirection.Input },
-                new VariableDTO() { variableId = 11, description = "Analog current input 3", type = VariableType.FloatingPoint, direction = VariableDirection.Input },
-                new VariableDTO() { variableId = 12, description = "Analog current input 4", type = VariableType.FloatingPoint, direction = VariableDirection.Input },
+                new VariableDTO() { variableId =  5, description = "Analog voltage input 1", type = VariableType.FloatingPoint, direction = VariableDirection.Input, units = "V"},
+                new VariableDTO() { variableId =  6, description = "Analog voltage input 2", type = VariableType.FloatingPoint, direction = VariableDirection.Input, units = "V"},
+                new VariableDTO() { variableId =  7, description = "Analog voltage input 3", type = VariableType.FloatingPoint, direction = VariableDirection.Input, units = "V"},
+                new VariableDTO() { variableId =  8, description = "Analog voltage input 4", type = VariableType.FloatingPoint, direction = VariableDirection.Input, units = "V"},
+                new VariableDTO() { variableId =  9, description = "Analog current input 1", type = VariableType.FloatingPoint, direction = VariableDirection.Input, units = "mA"},
+                new VariableDTO() { variableId = 10, description = "Analog current input 2", type = VariableType.FloatingPoint, direction = VariableDirection.Input, units = "mA"},
+                new VariableDTO() { variableId = 11, description = "Analog current input 3", type = VariableType.FloatingPoint, direction = VariableDirection.Input, units = "mA"},
+                new VariableDTO() { variableId = 12, description = "Analog current input 4", type = VariableType.FloatingPoint, direction = VariableDirection.Input, units = "mA"},
                 new VariableDTO() { variableId = 13, description = "Digital output 1", type = VariableType.Binary, direction = VariableDirection.Output },
                 new VariableDTO() { variableId = 14, description = "Digital output 2", type = VariableType.Binary, direction = VariableDirection.Output },
                 new VariableDTO() { variableId = 15, description = "Digital output 3", type = VariableType.Binary, direction = VariableDirection.Output },
@@ -168,14 +169,15 @@ namespace cog1.Dao
                 if (GetVariable(v.variableId) == null)
                 {
                     Context.Db.Execute(
-                        "insert into variables (variable_id, description, variable_type, variable_direction) " +
-                        "values (@variable_id, @description, @variable_type, @variable_direction)",
+                        "insert into variables (variable_id, description, variable_type, variable_direction, units) " +
+                        "values (@variable_id, @description, @variable_type, @variable_direction, @units)",
                         new()
                         {
                             { "@variable_id", v.variableId },
                             { "@description", v.description },
                             { "@variable_type", v.type},
-                            { "@variable_direction", v.direction }
+                            { "@variable_direction", v.direction },
+                            { "@units", string.IsNullOrWhiteSpace(v.units) ? DBNull.Value : v.units },
                         });
                     varsCreated = true;
                     Logger.LogInformation($"Created missing variable {v.variableId}: {v.description}");

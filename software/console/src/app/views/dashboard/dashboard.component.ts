@@ -275,7 +275,7 @@ export class DashboardComponent implements OnInit
       borderColor: this.brandInfo,
       pointHoverBackgroundColor: this.brandInfo,
       borderWidth: 2,
-      fill: true
+      fill: false
     };
     this.cpuChartData = {
       datasets: [dataset],

@@ -177,13 +177,10 @@
                             (change)="setBinaryOutput(v.variableId!, (v.value == 0))">
                         </div>
                       }
-                      @if (v.type! == VariableType.Integer) 
+                      @if (v.type! == VariableType.Integer || v.type! == VariableType.FloatingPoint) 
                       {
-                        <span style="margin-right: 8px;">{{v.value?.toFixed(0)}}</span>
-                      }
-                      @if (v.type! == VariableType.FloatingPoint) 
-                      {
-                        <span style="margin-right: 8px;">{{v.value?.toFixed(2)}}</span>
+                        <span>{{v.value?.toFixed(v.type! == VariableType.Integer ? 0 : 2)}}</span>
+                        <span style="margin-left: 3px; margin-right: 8px;">{{v.units}}</span>
                       }
                     </c-col>
                   </c-row>
