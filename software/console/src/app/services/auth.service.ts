@@ -13,6 +13,7 @@ export class AuthService
   public accessToken : string | null = null;
   public isAdmin: boolean = false;
   public userName: string = '';
+  public localeCode: string = '';
 
   constructor(private backend: BackendService, private router: Router) { }
 
@@ -39,6 +40,7 @@ export class AuthService
     this.accessToken = '';
     this.isAdmin = false;
     this.userName = '';
+    this.localeCode = '';
 
     // Update the access token in the backend
     this.backend.updateCredentials('');
@@ -75,6 +77,7 @@ export class AuthService
       .then(data => {
         this.isAdmin = data.data.user!.isAdmin!;
         this.userName = data.data.user!.userName!;
+        this.localeCode = data.data.user!.localeCode!;
         console.log("Loaded access token info: userName: ", this.userName, " isAdmin: ", this.isAdmin);
       })
       .catch(error =>

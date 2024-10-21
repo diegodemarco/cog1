@@ -41,6 +41,13 @@ namespace cog1.Business
             return result;
         }
 
+        public void UpdateUserProfile(int userId, string localeCode)
+        {
+            if (string.IsNullOrWhiteSpace(localeCode))
+                throw new ControllerException(Context.ErrorCodes.General.INVALID_MANDATORY_DATA("localeCode"));
+            Context.UserDao.UpdateUserProfile(userId, localeCode);
+        }
+
         #endregion
 
     }

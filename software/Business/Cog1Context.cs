@@ -112,7 +112,6 @@ namespace cog1.Business
                     }
                 }
             }
-            Console.WriteLine($"locale code: {localeCode}");
             return localeCode;
         }
 
@@ -120,28 +119,15 @@ namespace cog1.Business
         {
             this.user = user;
 
-            Console.WriteLine($"set user: {user.userName}");
-
             // Update the locale (and the error codes if necessary) if the
             // new users's locale is different.
             if (localeCode != user.localeCode)
             {
-                Console.WriteLine($"locale changed from {localeCode} to {user.localeCode}");
                 localeCode = user.localeCode;
                 if (errorCodes != null && errorCodes.LocaleCode != localeCode)
-                {
-                    Console.WriteLine($"destroying existing error codes");
                     errorCodes = null;
-                }
                 if (literals != null && literals.LocaleCode != localeCode)
-                {
-                    Console.WriteLine($"destroying existing literals");
                     literals = null;
-                }
-            }
-            else
-            {
-                Console.WriteLine($"keeping locale: {user.localeCode}");
             }
         }
 

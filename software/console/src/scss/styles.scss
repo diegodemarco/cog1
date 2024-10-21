@@ -27,3 +27,7 @@
     text-overflow: ellipsis;
     overflow: hidden;
 }
+
+.modal-backdrop.show {
+    opacity: 0.75;
+}

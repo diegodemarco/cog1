@@ -4,7 +4,8 @@
     {
         private CommonLiteralsContainer common;
         private DashboardLiteralsContainer dashboard;
-        //private GeneralParametersLiteralsContainer _GeneralParameters;
+        private SecurityLiteralsContainer security;
+        private VariablesLiteralsContainer variables;
 
         public LiteralsContainerDTO() : base() { }
         public LiteralsContainerDTO(string localeCode) : base(localeCode) { }
@@ -31,16 +32,27 @@
             set { }
         }
 
-        //public GeneralParametersLiteralsContainer GeneralParameters
-        //{
-        //    get
-        //    {
-        //        if (_GeneralParameters == null)
-        //            _GeneralParameters = new GeneralParametersLiteralsContainer(LocaleCode);
-        //        return _GeneralParameters;
-        //    }
-        //    set { }
-        //}
+        public SecurityLiteralsContainer Security
+        {
+            get
+            {
+                if (security == null)
+                    security = new SecurityLiteralsContainer(LocaleCode);
+                return security;
+            }
+            set { }
+        }
+
+        public VariablesLiteralsContainer Variables
+        {
+            get
+            {
+                if (variables == null)
+                    variables = new VariablesLiteralsContainer(LocaleCode);
+                return variables;
+            }
+            set { }
+        }
 
     }
 

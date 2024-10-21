@@ -1,0 +1,22 @@
+<c-modal id="profileModal" [(visible)]="visible" alignment="center" backdrop="static" keyboard="true">
+  <form cForm (submit)="saveChanges()">
+    <c-modal-header>
+      <h5 cModalTitle>Modal title</h5>
+      <button (click)="dismiss()" cButtonClose></button>
+    </c-modal-header>
+    <c-modal-body>
+      <label for="userName">{{literals.common.username}}: </label>
+      <input cFormControl type="text" id="userName" name="userName" [value]="authService.userName" class="mb-3" disabled>
+      <label for="localeCode">{{literals.common.language}}: </label>
+      <select cFormControl type="text" id="localeCode" name="localeCode" cSelect class="mb-3" [(ngModel)]="localeCode">
+        <option value="en">English</option>
+        <option value="es">Spanish</option>
+        <option value="pt">Portuguese</option>
+      </select>
+    </c-modal-body>
+    <c-modal-footer>
+      <button type="submit" cButton color="primary">Save</button>
+      <button (click)="dismiss()" cButton color="secondary">Cancel</button>
+    </c-modal-footer>
+  </form>
+</c-modal>

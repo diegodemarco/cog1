@@ -21,10 +21,12 @@ namespace cog1.Business
 
         #region private
 
+        private object _lock = new object();
         private const long EXPIRATION_S = 24 * 60 * 60;     // 24 hours
         private static string accessTokensFileName = Path.Combine(Global.DataDirectory, "access_tokens.json");
-        private static SemaphoreSlim semaphore = new SemaphoreSlim(1, 1);
+        //private static SemaphoreSlim semaphore = new SemaphoreSlim(1, 1);
         private static Dictionary<Guid, AccessTokenEntry> accessTokens = null;
+
 
         private class AccessTokenEntry
         {
@@ -32,7 +34,7 @@ namespace cog1.Business
             public DateTime expiration;
         }
 
-        private static void LoadAccessTokensNoSemaphore()
+        private static void LoadAccessTokensNoLock()
         {
             if (accessTokens == null)
             {
@@ -47,17 +49,16 @@ namespace cog1.Business
             }
         }
 
-        private static void StoreAccessTokensNoSemaphore()
+        private static void StoreAccessTokensNoLock()
         {
             File.WriteAllText(accessTokensFileName, JsonConvert.SerializeObject(accessTokens));
         }
 
         private bool FindAccessToken(Guid token, bool renew, out int userId)
         {
-            semaphore.Wait();
-            try
+            lock (_lock)
             {
-                LoadAccessTokensNoSemaphore();
+                LoadAccessTokensNoLock();
                 if (accessTokens.TryGetValue(token, out var entry) && entry.expiration > DateTime.UtcNow)
                 {
                     userId = entry.userId;
@@ -68,10 +69,6 @@ namespace cog1.Business
                 userId = 0;
                 return false;
             }
-            finally
-            {
-                semaphore.Release();
-            }
         }
 
         #endregion
@@ -81,21 +78,16 @@ namespace cog1.Business
         public Guid CreateAccessToken(int userId)
         {
             var token = Guid.NewGuid();
-            semaphore.Wait();
-            try
+            lock (_lock)
             {
-                LoadAccessTokensNoSemaphore();
+                LoadAccessTokensNoLock();
                 accessTokens[token] = new AccessTokenEntry()
                 {
                     userId = userId,
                     expiration = DateTime.UtcNow.AddSeconds(EXPIRATION_S)
                 };
-                StoreAccessTokensNoSemaphore();
+                StoreAccessTokensNoLock();
                 return token;
-            }
-            finally
-            {
-                semaphore.Release();
             }
         }
 
@@ -119,10 +111,9 @@ namespace cog1.Business
 
         public override void DoHousekeeping()
         {
-            semaphore.Wait();
-            try
+            lock (_lock) 
             {
-                LoadAccessTokensNoSemaphore();
+                LoadAccessTokensNoLock();
 
                 // Remove expired access tokens, and persist
                 var expired = accessTokens.Where(item => item.Value.expiration < DateTime.UtcNow).ToList();
@@ -138,11 +129,7 @@ namespace cog1.Business
                 }
 
                 // Persist any pending changes (expirations)
-                StoreAccessTokensNoSemaphore();
-            }
-            finally
-            {
-                semaphore.Release();
+                StoreAccessTokensNoLock();
             }
         }
 

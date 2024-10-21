@@ -12,22 +12,22 @@ namespace Cog1.DB
 
     public class Cog1DbContext : IDisposable
     {
-        private static readonly SemaphoreSlim semaphore = new SemaphoreSlim(1, 1);
+        //private static readonly SemaphoreSlim semaphore = new SemaphoreSlim(1, 1);
         private SqliteConnection conn = null;
         private SqliteTransaction tran = null;
-        private bool inSemaphore = true;
+        //private bool inSemaphore = true;
         public IDbTransaction Transaction { get => GetTransaction(); }
 
         public static Cog1DbContext CreateInstance()
         {
-            semaphore.Wait();
+            //semaphore.Wait();
             try
             {
                 return new Cog1DbContext();
             }
             catch
             {
-                semaphore.Release();
+                //semaphore.Release();
                 throw;
             }
             
@@ -118,11 +118,11 @@ namespace Cog1.DB
                 conn.Dispose();
                 conn = null;
             }
-            if (inSemaphore)
-            {
-                semaphore.Release();
-                inSemaphore = false;
-            }
+            //if (inSemaphore)
+            //{
+            //    semaphore.Release();
+            //    inSemaphore = false;
+            //}
         }
 
         #endregion

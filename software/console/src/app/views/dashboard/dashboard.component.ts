@@ -32,8 +32,8 @@ import { BackendService } from 'src/app/services/backend.service';
 import { DeepPartial } from 'chart.js/dist/types/utils';
 import { VariableType, VariableDTO, VariableDirection } from 'src/app/api-client/data-contracts';
 import { IconSubset } from 'src/app/icons/icon-subset';
-import { interval, Subscription, timer } from 'rxjs';
-import { animation } from '@angular/animations';
+import { Subscription, timer } from 'rxjs';
+import { ProfileModalComponent } from 'src/app/modals/profile/profile-modal.component';
 
 interface VarWithValue extends VariableDTO 
 {
@@ -44,7 +44,11 @@ interface VarWithValue extends VariableDTO
   templateUrl: 'dashboard.component.html',
   styleUrls: ['dashboard.component.scss'],
   standalone: true,
-  imports: [WidgetsDropdownComponent, TextColorDirective, CardComponent, CardBodyComponent, RowComponent, ColComponent, ButtonDirective, IconDirective, ReactiveFormsModule, ButtonGroupComponent, FormCheckLabelDirective, ChartjsComponent, NgStyle, CardFooterComponent, GutterDirective, ProgressBarDirective, ProgressComponent, WidgetsBrandComponent, CardHeaderComponent, TableDirective, AvatarComponent]
+  imports: [WidgetsDropdownComponent, TextColorDirective, CardComponent, CardBodyComponent, RowComponent, 
+    ColComponent, ButtonDirective, IconDirective, ReactiveFormsModule, ButtonGroupComponent,
+    FormCheckLabelDirective, ChartjsComponent, NgStyle, CardFooterComponent, GutterDirective,
+    ProgressBarDirective, ProgressComponent, WidgetsBrandComponent, CardHeaderComponent, TableDirective, AvatarComponent,
+    ProfileModalComponent]
 })
 export class DashboardComponent implements OnInit 
 {
@@ -350,11 +354,11 @@ export class DashboardComponent implements OnInit
     switch (type)
     {
       case VariableType.Binary:
-        return this.literals.common.binary!;
+        return this.literals.variables.binary!;
       case VariableType.Integer:
-        return this.literals.common.integer!;
+        return this.literals.variables.integer!;
       case VariableType.FloatingPoint:
-        return this.literals.common.fLoatingPoint!;
+        return this.literals.variables.fLoatingPoint!;
     }
     return "";
   }

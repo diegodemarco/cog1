@@ -32,17 +32,19 @@ export const routes: Routes = [
       //   path: 'buttons',
       //   loadChildren: () => import('./views/buttons/routes').then((m) => m.routes)
       // },
-      // {
-      //   path: 'forms',
-      //   loadChildren: () => import('./views/forms/routes').then((m) => m.routes)
-      // },
+      {
+        path: 'forms',
+        loadChildren: () => import('./views/forms/routes').then((m) => m.routes),
+        canActivate: [AuthGuard]
+      },
       // {
       //   path: 'icons',
       //   loadChildren: () => import('./views/icons/routes').then((m) => m.routes)
       // },
       // {
       //   path: 'notifications',
-      //   loadChildren: () => import('./views/notifications/routes').then((m) => m.routes)
+      //   loadChildren: () => import('./views/notifications/routes').then((m) => m.routes),
+      //   canActivate: [AuthGuard]
       // },
       // {
       //   path: 'widgets',

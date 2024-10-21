@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { BackendService } from './backend.service';
-import type { CommonLiteralsContainer, DashboardLiteralsContainer } from '../api-client/data-contracts';
+import type { CommonLiteralsContainer, DashboardLiteralsContainer, SecurityLiteralsContainer, VariablesLiteralsContainer } from '../api-client/data-contracts';
 
 @Injectable({
   providedIn: 'root'
@@ -9,6 +9,8 @@ export class LiteralsService {
 
   public common!: CommonLiteralsContainer;
   public dashboard!: DashboardLiteralsContainer;
+  public security!: SecurityLiteralsContainer;
+  public variables!: VariablesLiteralsContainer;
 
   constructor(private backend: BackendService) { }
 
@@ -18,6 +20,8 @@ export class LiteralsService {
       .then(data => {
         this.common = data.data.common!;
         this.dashboard = data.data.dashboard!;
+        this.security = data.data.security!;
+        this.variables = data.data.variables!;
         console.log("Loaded literals: ", this.common);
       })
       .catch(error =>

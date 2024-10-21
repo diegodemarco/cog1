@@ -1,5 +1,5 @@
 import { NgStyle, NgTemplateOutlet } from '@angular/common';
-import { Component, computed, HostListener, inject, input } from '@angular/core';
+import { Component, computed, inject, input } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 
 import {
@@ -35,14 +35,20 @@ import { ViewStatusService } from 'src/app/services/view-status.service';
   selector: 'app-default-header',
   templateUrl: './default-header.component.html',
   standalone: true,
-  imports: [ContainerComponent, HeaderTogglerDirective, SidebarToggleDirective, IconDirective, HeaderNavComponent, NavItemComponent, NavLinkDirective, RouterLink, RouterLinkActive, NgTemplateOutlet, BreadcrumbRouterComponent, ThemeDirective, DropdownComponent, DropdownToggleDirective, TextColorDirective, AvatarComponent, DropdownMenuDirective, DropdownHeaderDirective, DropdownItemDirective, BadgeComponent, DropdownDividerDirective, ProgressBarDirective, ProgressComponent, NgStyle]
+  imports: [ContainerComponent, HeaderTogglerDirective, SidebarToggleDirective, 
+    IconDirective, HeaderNavComponent, NavItemComponent, NavLinkDirective, RouterLink, 
+    RouterLinkActive, NgTemplateOutlet, BreadcrumbRouterComponent, ThemeDirective, 
+    DropdownComponent, DropdownToggleDirective, TextColorDirective, AvatarComponent,
+    DropdownMenuDirective, DropdownHeaderDirective, DropdownItemDirective, BadgeComponent,
+    DropdownDividerDirective, ProgressBarDirective, ProgressComponent, NgStyle
+  ]
 })
 export class DefaultHeaderComponent extends HeaderComponent {
 
   readonly #colorModeService = inject(ColorModeService);
   readonly colorMode = this.#colorModeService.colorMode;
-  literals: LiteralsService;
-  viewStatus: ViewStatusService;
+  readonly literals: LiteralsService;
+  readonly viewStatus: ViewStatusService;
 
   readonly colorModes = [
     { name: 'light', text: 'Light', icon: 'cilSun' },
@@ -73,10 +79,13 @@ export class DefaultHeaderComponent extends HeaderComponent {
   }
   */
 
-  public doLogout()
-  {
+  public doLogout() {
     this.authService.logout();
     this.router.navigate(["/login"]);
+  }
+
+  public doProfileClick() {
+    this.viewStatus.showProfileModal();
   }
 
   sidebarId = input('sidebar1');

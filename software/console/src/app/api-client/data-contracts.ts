@@ -193,11 +193,7 @@ export interface CommonLiteralsContainer {
   unsubscribe?: string | null;
   result?: string | null;
   results?: string | null;
-  variable?: string | null;
-  variables?: string | null;
-  binary?: string | null;
-  integer?: string | null;
-  fLoatingPoint?: string | null;
+  localeCode?: string | null;
 }
 
 export interface DashboardLiteralsContainer {
@@ -208,6 +204,7 @@ export interface DashboardLiteralsContainer {
   temperature?: string | null;
   last5Minutes?: string | null;
   cpuLast5Minutes?: string | null;
+  localeCode?: string | null;
 }
 
 export interface DateTimeReport {
@@ -234,6 +231,9 @@ export interface DiskReport {
 export interface LiteralsContainerDTO {
   common?: CommonLiteralsContainer;
   dashboard?: DashboardLiteralsContainer;
+  security?: SecurityLiteralsContainer;
+  variables?: VariablesLiteralsContainer;
+  localeCode?: string | null;
 }
 
 export interface LoginRequestDTO {
@@ -254,6 +254,12 @@ export interface MemoryReport {
   freeBytes?: number;
   /** @format double */
   freePercentage?: number;
+}
+
+export interface SecurityLiteralsContainer {
+  security?: string | null;
+  users?: string | null;
+  localeCode?: string | null;
 }
 
 export interface SystemStatsReport {
@@ -279,6 +285,10 @@ export interface TemperatureReportEntry {
   /** @format double */
   criticalTemperatureC?: number | null;
   isCritical?: boolean;
+}
+
+export interface UpdateProfileRequestDTO {
+  localeCode?: string | null;
 }
 
 export interface UserDTO {
@@ -322,6 +332,15 @@ export interface VariableValueDTO {
   value?: number | null;
   /** @format date-time */
   lastUpdateUtc?: string | null;
+}
+
+export interface VariablesLiteralsContainer {
+  variable?: string | null;
+  variables?: string | null;
+  binary?: string | null;
+  integer?: string | null;
+  fLoatingPoint?: string | null;
+  localeCode?: string | null;
 }
 
 export interface WiFiReport {

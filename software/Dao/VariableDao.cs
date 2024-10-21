@@ -15,8 +15,9 @@ namespace cog1.Dao
     /// </summary>
     public class VariableDao : DaoBase
     {
+        private object _lock = new object();
         private Dictionary<int, VariableDTO> variables = null;
-        private static readonly SemaphoreSlim semaphore = new SemaphoreSlim(1, 1);
+        //private static readonly SemaphoreSlim semaphore = new SemaphoreSlim(1, 1);
 
         public VariableDao(Cog1Context context, ILogger logger) : base(context, logger)
         {
@@ -74,8 +75,7 @@ namespace cog1.Dao
 
         private void LoadVariables(bool forceReload = false)
         {
-            semaphore.Wait();
-            try
+            lock (_lock)
             {
                 if (forceReload && variables != null)
                 {
@@ -90,23 +90,14 @@ namespace cog1.Dao
                         .ToDictionary(item => item.variableId);
                 }
             }
-            finally
-            {
-                semaphore.Release();
-            }
         }
 
         private List<VariableDTO> _GetVariables()
         {
             LoadVariables();
-            semaphore.Wait();
-            try
+            lock (_lock)
             {
                 return variables.Select(item => item.Value).ToList();      // Clone
-            }
-            finally
-            {
-                semaphore.Release();
             }
         }
 
@@ -122,30 +113,20 @@ namespace cog1.Dao
         public VariableDTO GetVariable(int VariableId)
         {
             LoadVariables();
-            semaphore.Wait();
-            try
+            lock (_lock)
             {
                 if (variables.TryGetValue(VariableId, out VariableDTO Variable))
                     return Variable;
                 return null;
-            }
-            finally
-            {
-                semaphore.Release();
             }
         }
 
         public VariableDTO GetVariable(string variableCode)
         {
             LoadVariables();
-            semaphore.Wait();
-            try
+            lock (_lock)
             {
                 return variables.Values.FirstOrDefault(item => string.Equals(item.variableCode, variableCode, System.StringComparison.OrdinalIgnoreCase));
-            }
-            finally
-            {
-                semaphore.Release();
             }
         }
 

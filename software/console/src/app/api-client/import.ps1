@@ -31,3 +31,9 @@ npx swagger-typescript-api -p http://192.168.1.220/swagger/current/swagger.json 
 	-replace "literalsList", "getLiterals" `
 	-replace "literalsPingList", "ping" `
 	| Set-Content -Encoding utf8 -Path Literals.ts
+
+# Users controller
+(Get-Content Users.ts) `
+	-replace "usersProfileCreate", "updateUserProfile" `
+	-replace "usersPingList", "ping" `
+	| Set-Content -Encoding utf8 -Path Users.ts

@@ -1,6 +1,9 @@
 <!--<c-header class="mb-4 d-print-none" position="sticky">-->
+
 <ng-container>
+
   <c-container [fluid]="true" class="border-bottom px-4">
+
     <button
       [cSidebarToggle]="sidebarId()"
       cHeaderToggler
@@ -72,6 +75,7 @@
 <!--</c-header>-->
 
 <ng-template #userDropdown>
+
   <c-dropdown [popperOptions]="{ placement: 'bottom-start' }" variant="nav-item">
     <button [caret]="false" cDropdownToggle class="py-0 pe-0" aria-label="Open user menu">
       <c-avatar
@@ -128,7 +132,7 @@
       <li></li>
       -->
       <li>
-        <a cDropdownItem routerLink="">
+        <a cDropdownItem (click)="doProfileClick()">
           <svg cIcon class="me-2" name="cilUser"></svg>
           {{literals.common.profile}}
         </a>

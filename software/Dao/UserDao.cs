@@ -6,6 +6,7 @@ using System.Threading;
 using System.Linq;
 using cog1.Exceptions;
 using Microsoft.Extensions.Logging;
+using System;
 
 namespace cog1.Dao
 {
@@ -14,8 +15,9 @@ namespace cog1.Dao
     /// </summary>
     public class UserDao : DaoBase
     {
+        private object _lock = new object();
         private Dictionary<int, UserDTO> users = null;
-        private static readonly SemaphoreSlim semaphore = new SemaphoreSlim(1, 1);
+        //private static readonly SemaphoreSlim semaphore = new SemaphoreSlim(1, 1);
 
         public UserDao(Cog1Context context, ILogger logger) : base(context, logger)
         {
@@ -34,11 +36,15 @@ namespace cog1.Dao
             };
         }
 
-        private void LoadUsers()
+        private void LoadUsers(bool reload = false)
         {
-            semaphore.Wait();
-            try
+            lock (_lock)
             {
+                if (reload && users != null)
+                {
+                    users.Clear();
+                    users = null;
+                }
                 if (users == null)
                 {
                     users = Context.Db.GetDataTable("select * from users")
@@ -47,23 +53,14 @@ namespace cog1.Dao
                         .ToDictionary(item => item.userId);
                 }
             }
-            finally
-            {
-                semaphore.Release();
-            }
         }
 
         private List<UserDTO> _GetUsers()
         {
             LoadUsers();
-            semaphore.Wait();
-            try
+            lock (_lock)
             {
                 return users.Select(item => item.Value).ToList();      // Clone
-            }
-            finally
-            {
-                semaphore.Release();
             }
         }
 
@@ -77,30 +74,20 @@ namespace cog1.Dao
         public UserDTO GetUser(int userId)
         {
             LoadUsers();
-            semaphore.Wait();
-            try
+            lock (_lock)
             {
                 if (users.TryGetValue(userId, out UserDTO user))
                     return user;
                 return null;
-            }
-            finally
-            {
-                semaphore.Release();
             }
         }
 
         public UserDTO GetUser(string userName)
         {
             LoadUsers();
-            semaphore.Wait();
-            try
+            lock (_lock)
             {
                 return users.Values.FirstOrDefault(item => string.Equals(item.userName, userName, System.StringComparison.OrdinalIgnoreCase));
-            }
-            finally
-            {
-                semaphore.Release();
             }
         }
 
@@ -116,6 +103,21 @@ namespace cog1.Dao
                     userData = user;
             }
             return userData != null;
+        }
+
+        public void UpdateUserProfile(int userId, string localeCode)
+        {
+            var user = GetUser(userId);
+            if (!string.Equals(user.localeCode, localeCode, StringComparison.OrdinalIgnoreCase))
+            {
+                Context.Db.Execute("update users set locale_code = @locale_code where user_id = @user_id",
+                    new()
+                    {
+                    { "@user_id", userId },
+                    { "@locale_code", localeCode }
+                    });
+                LoadUsers(true);
+            }
         }
 
         /*

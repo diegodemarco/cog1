@@ -5,7 +5,7 @@ import { LiteralsService } from './services/literals.service';
 import {
   provideRouter,
   withEnabledBlockingInitialNavigation,
-  //withHashLocation,
+  withHashLocation,
   withInMemoryScrolling,
   withRouterConfig,
   withViewTransitions
