@@ -2,6 +2,7 @@ import { Component, HostListener } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { BasicEntitiesService } from '../../services/basic-entities.service';
 import { RowComponent, ColComponent, TextColorDirective, CardComponent, CardHeaderComponent, CardBodyComponent, FormDirective, FormLabelDirective, FormControlDirective, ButtonDirective, FormSelectDirective } from '@coreui/angular';
+import { IconDirective } from '@coreui/icons-angular';
 import { 
   ButtonCloseDirective,
   ModalBodyComponent,
@@ -13,67 +14,66 @@ import {
   PopoverDirective,
   ThemeDirective,
   TooltipDirective } from '@coreui/angular';
-import { AuthService } from 'src/app/services/auth.service';
-import { BackendService } from 'src/app/services/backend.service';
-import { LiteralsContainerDTO, LocaleDTO } from 'src/app/api-client/data-contracts';
+import { BackendService } from '../../services/backend.service';
+import { IconSubset } from 'src/app/icons/icon-subset';
+import { LiteralsContainerDTO } from 'src/app/api-client/data-contracts';
 
 @Component({
-  selector: 'app-profile-modal',
+  selector: 'app-warning-prompt-modal',
   standalone: true,
   imports: [
     FormsModule, RowComponent, ColComponent, TextColorDirective, CardComponent, CardHeaderComponent,
     CardBodyComponent, ModalComponent, ModalHeaderComponent, ModalTitleDirective, ThemeDirective,
     ButtonCloseDirective, ModalBodyComponent, ModalFooterComponent, ButtonDirective, ModalToggleDirective,
-    PopoverDirective, TooltipDirective, FormDirective, FormLabelDirective, FormControlDirective, FormSelectDirective
+    PopoverDirective, TooltipDirective, FormDirective, FormLabelDirective, FormControlDirective, 
+    FormSelectDirective, IconDirective
   ],
-  templateUrl: './profile-modal.component.html',
-  styleUrl: './profile-modal.component.scss'
+  templateUrl: './warning-prompt-modal.component.html',
+  styleUrl: './warning-prompt-modal.component.scss'
 })
-export class ProfileModalComponent {
+export class WarningPromptModalComponent {
 
   visible: boolean = false;
   localeCode: string = "";
   readonly literals: LiteralsContainerDTO;
-  readonly locales: LocaleDTO[];
-  readonly authService: AuthService;
-
+  readonly iconSubset = IconSubset;
+  private promiseResolve?: () => void;
+  private promiseReject?: () => void;
+  modalTitle?: string = undefined;
+  message?: string = undefined;
+    
   @HostListener('window:keydown.escape')
   keyEvent() {
     if (this.visible) this.dismiss();
   }
 
-  constructor(private backend: BackendService, private basicEntitiesService: BasicEntitiesService, authService: AuthService) {
+  constructor(private backend: BackendService, basicEntitiesService: BasicEntitiesService) {
     this.literals = basicEntitiesService.literals;
-    this.locales = basicEntitiesService.locales;
-    this.authService = authService;
   }
 
-  show()
+  show(title: string, message: string): Promise<void>
   {
-    this.localeCode = this.authService.localeCode;
+    this.modalTitle = title;
+    this.message = message;
     this.visible = true;
+    return new Promise((resolve, reject) => {
+      this.promiseResolve = resolve;
+      this.promiseReject = reject;
+    });
   }
 
   dismiss()
   {
     this.visible = false;
+    if (this.promiseReject)
+      this.promiseReject();
   }
 
-  public saveChanges()
+  public accept()
   {
-    this.backend.security.updateUserProfile({ localeCode: this.localeCode })
-      .then(() =>
-      {
-        return this.authService.reloadAccessTokenInfo();
-      }).then(() =>
-      {
-        return this.basicEntitiesService.load();
-      })
-      .then(() =>
-      {
-        this.dismiss();
-        location.reload();
-      });
+    if (this.promiseResolve)
+      this.promiseResolve();
+    this.dismiss();
   }
 
 }

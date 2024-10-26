@@ -11,8 +11,10 @@ export class AuthService
   private accessTokenKey: string = "access-key";
 
   public accessToken : string | null = null;
+  public isOperator: boolean = false;
   public isAdmin: boolean = false;
   public userName: string = '';
+  public userId: number = 0;
   public localeCode: string = '';
 
   constructor(private backend: BackendService, private router: Router) { }
@@ -38,8 +40,10 @@ export class AuthService
     localStorage.removeItem(this.accessTokenKey)
     sessionStorage.removeItem(this.accessTokenKey)
     this.accessToken = '';
+    this.isOperator = false;
     this.isAdmin = false;
     this.userName = '';
+    this.userId = 0;
     this.localeCode = '';
 
     // Update the access token in the backend
@@ -54,7 +58,6 @@ export class AuthService
         this.accessToken = '';
     }
     const result = (this.accessToken.length > 0);
-    console.log("isAuthenticated(): ", result);
     return result;
   }
 
@@ -75,14 +78,14 @@ export class AuthService
         else this.backend.updateCredentials(token!);
       const promise = this.backend.security.getAccessTokenInfo()
       .then(data => {
+        this.isOperator = data.data.user!.isOperator!;
         this.isAdmin = data.data.user!.isAdmin!;
         this.userName = data.data.user!.userName!;
+        this.userId = data.data.user!.userId!;
         this.localeCode = data.data.user!.localeCode!;
-        console.log("Loaded access token info: userName: ", this.userName, " isAdmin: ", this.isAdmin);
       })
       .catch(error =>
       {
-        console.log("Error loading access token information: status: ", error.status, "details: ", error);
         // If this a 401 error, we should not move forward
         if (error.status == 401)
         {

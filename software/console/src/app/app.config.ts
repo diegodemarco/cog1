@@ -1,7 +1,7 @@
 import { APP_INITIALIZER, ApplicationConfig, importProvidersFrom } from '@angular/core';
 import { provideAnimations } from '@angular/platform-browser/animations';
 import { ConfigService } from './services/config.service';
-import { LiteralsService } from './services/literals.service';
+import { BasicEntitiesService } from './services/basic-entities.service';
 import {
   provideRouter,
   withEnabledBlockingInitialNavigation,
@@ -19,7 +19,7 @@ import { BackendService } from './services/backend.service';
 import { AuthService } from './services/auth.service';
 
 export function configInit(configService: ConfigService, backendService: BackendService, 
-  listeralsService: LiteralsService, authService: AuthService) {
+  basicEntitiesService: BasicEntitiesService, authService: AuthService) {
   return () => {
     return configService.load()
       .then(() => 
@@ -29,7 +29,7 @@ export function configInit(configService: ConfigService, backendService: Backend
       })
       .then(() => 
       {
-        return listeralsService.load();
+        return basicEntitiesService.load();
       });
     };
 }
@@ -53,7 +53,7 @@ export const appConfig: ApplicationConfig = {
       provide: APP_INITIALIZER,
       useFactory: configInit,
       multi: true,
-      deps: [ConfigService, BackendService, LiteralsService, AuthService]
+      deps: [ConfigService, BackendService, BasicEntitiesService, AuthService]
     },
     importProvidersFrom(SidebarModule, DropdownModule),
     IconSetService,

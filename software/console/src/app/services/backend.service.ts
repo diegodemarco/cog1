@@ -1,9 +1,8 @@
 import { Injectable } from '@angular/core';
 import { Security } from '../api-client/Security'
 import { Variables } from '../api-client/Variables'
-import { Literals } from '../api-client/Literals'
+import { Entities } from '../api-client/Entities'
 import { System } from '../api-client/System'
-import { Users } from '../api-client/Users'
 import { ConfigService } from './config.service';
 import { ApiConfig } from '../api-client/http-client';
 
@@ -26,8 +25,7 @@ export class BackendService
   security: Security = new Security( this.apiConfig );
   variables: Variables = new Variables( this.apiConfig );
   system: System = new  System( this.apiConfig );
-  literals: Literals = new Literals( this.apiConfig );
-  users: Users = new Users( this.apiConfig );
+  entities: Entities = new Entities( this.apiConfig );
 
   constructor (private config: ConfigService) {}
 
@@ -36,13 +34,11 @@ export class BackendService
       this.security.baseUrl = this.config.apiBasePath;
       this.variables.baseUrl = this.config.apiBasePath;
       this.system.baseUrl = this.config.apiBasePath;
-      this.literals.baseUrl = this.config.apiBasePath;
-      this.users.baseUrl = this.config.apiBasePath;
+      this.entities.baseUrl = this.config.apiBasePath;
   }
 
   public updateCredentials(accessToken: string)
   {
-    console.log("Updated access token to ", accessToken);
     if (accessToken.length > 0) {
       this.apiConfig.baseApiParams!.headers = { Authorization: "bearer " + accessToken };
     }

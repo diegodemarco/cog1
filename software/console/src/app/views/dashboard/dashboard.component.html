@@ -4,8 +4,8 @@
       <c-card-body>
         <c-row>
           <c-col sm="12">
-            <h4 style="display: inline" class="card-title mb-0" id="cpu">{{literals.dashboard.cpu}}</h4>
-            <span style="margin-left:5px" class="small text-body-secondary">{{literals.dashboard.last5Minutes}}</span>
+            <h4 style="display: inline" class="card-title mb-0" id="cpu">{{literals.dashboard!.cpu}}</h4>
+            <span style="margin-left:5px" class="small text-body-secondary">{{literals.dashboard!.last5Minutes}}</span>
           </c-col>
           <!--
           <c-col class="d-none d-md-block" sm="7">
@@ -89,28 +89,28 @@
         <div style="width:100%" #statsDiv>
           <c-row>
             <c-col [ngStyle]="{ 'width': (statsDiv.offsetWidth - 24) + 'px'}">
-              <div class="text-body-secondary cog1-ellipsis" >{{literals.dashboard.cpuLast5Minutes}}</div>
+              <div class="text-body-secondary cog1-ellipsis" >{{literals.dashboard!.cpuLast5Minutes}}</div>
               <strong>{{cpuText}}</strong>
               <c-progress class="mt-2" thin [color]="cpuColor" [value]="cpuPercentage" />
             </c-col>
           </c-row>
           <c-row>
             <c-col [ngStyle]="{ 'width': (statsDiv.offsetWidth - 24) + 'px'}">
-              <div class="text-body-secondary cog1-ellipsis mt-3">{{literals.dashboard.ram}}</div>
+              <div class="text-body-secondary cog1-ellipsis mt-3">{{literals.dashboard!.ram}}</div>
               <div class="fw-semibold text-truncate">{{ramText}}</div>
               <c-progress class="mt-2" thin [color]="ramColor" [value]="ramPercentage" />
             </c-col>
           </c-row>
           <c-row>
             <c-col [ngStyle]="{ 'width': (statsDiv.offsetWidth - 24) + 'px'}">
-              <div class="text-body-secondary cog1-ellipsis mt-3">{{literals.dashboard.storage}}</div>
+              <div class="text-body-secondary cog1-ellipsis mt-3">{{literals.dashboard!.storage}}</div>
               <div class="fw-semibold text-truncate">{{storageText}}</div>
               <c-progress class="mt-2" thin [color]="storageColor" [value]="storagePercentage" />
             </c-col>
           </c-row>
           <c-row>
             <c-col [ngStyle]="{ 'width': (statsDiv.offsetWidth - 24) + 'px'}">
-              <div class="text-body-secondary cog1-ellipsis mt-3">{{literals.dashboard.temperature}}</div>
+              <div class="text-body-secondary cog1-ellipsis mt-3">{{literals.dashboard!.temperature}}</div>
               <div class="fw-semibold text-truncate">{{temperatureText}}</div>
               <c-progress class="mt-2" thin [color]="temperatureColor" [value]="temperaturePercentage" />
             </c-col>
@@ -127,7 +127,7 @@
       <c-card-body>
         <c-row>
           <c-col class="mb-3">
-            <h4 style="display: inline" class="card-title">{{literals.variables.variables}}</h4>
+            <h4 style="display: inline" class="card-title">{{literals.variables!.variables}}</h4>
           </c-col>
         </c-row>
         @for (v of builtinVariables; track v.variableId)
@@ -172,7 +172,7 @@
                             [id]="'binSwitch_' + v.variableId?.toString()"
                             aria-label="Switch" 
                             [checked]="v.value" 
-                            [disabled]="v.direction != VariableDirection.Output"
+                            [disabled]="(v.direction != VariableDirection.Output) || (!authService.isOperator)"
                             (change)="setBinaryOutput(v.variableId!, (v.value == 0))">
                         </div>
                       }

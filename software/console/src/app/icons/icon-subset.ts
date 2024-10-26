@@ -98,7 +98,9 @@ import {
   cilToggleOff,
   cibCreativeCommonsZero,
   cilGroup,
-  cilGraph
+  cilGraph,
+  cilWarning,
+  cilPlus
 } from '@coreui/icons';
 
 import { signet } from './signet';
@@ -204,7 +206,9 @@ export const iconSubset = {
   cilToggleOff,
   cibCreativeCommonsZero,
   cilGroup,
-  cilGraph
+  cilGraph,
+  cilWarning,
+  cilPlus
 };
 
 export enum IconSubset {
@@ -309,6 +313,8 @@ export enum IconSubset {
   cilToggleOff = 'cilToggleOff',
   cibCreativeCommonsZero = 'cibCreativeCommonsZero',
   cilGroup = 'cilGroup',
-  cilGraph = 'cilGraph'
+  cilGraph = 'cilGraph',
+  cilWarning = 'cilWarning',
+  cilPlus = 'cilPlus'
 }
 

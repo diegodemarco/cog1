@@ -1,0 +1,48 @@
+<c-modal id="profileModal" [(visible)]="visible" alignment="center" backdrop="static" keyboard="true">
+  <form cForm (submit)="saveChanges()">
+    <c-modal-header>
+      <h5 cModalTitle>{{modalTitle}}</h5>
+      <button (click)="dismiss()" cButtonClose></button>
+    </c-modal-header>
+    <c-modal-body>
+
+      @if (currentVariable.variableId!) {
+        <label for="variableId">{{literals.variables!.variableId}}</label>
+        <input cFormControl type="text" id="variableId" name="variableId" class="mb-3" [value]="currentVariable.variableId" disabled>
+      }
+
+      <label for="description">{{literals.common!.description}}</label>
+      <input cFormControl type="text" id="description" name="description" class="mb-3" [(ngModel)]="currentVariable.description">
+
+      <label for="variableCode">{{literals.variables!.variableCode}}</label>
+      <input cFormControl type="text" id="variableCode" name="variableCode" class="mb-3" [(ngModel)]="currentVariable.variableCode">
+
+      <label for="variableType">{{literals.variables!.variableType}}</label>
+      <select cFormControl type="text" id="variableType" name="variableType" cSelect class="mb-3"
+        [(ngModel)]="currentVariable!.type"
+        [disabled]="currentVariable.isBuiltIn!"
+        >
+        @for (d of variableTypes; track d.variableType) 
+        {
+          <option [value]="d.variableType">{{d.description}}</option>
+        }
+      </select>
+
+      <label for="variableDirection">{{literals.variables!.variableDirection}}</label>
+      <select cFormControl type="text" id="variableDirection" name="variableDirection" cSelect class="mb-3"
+        [(ngModel)]="currentVariable!.direction"
+        [disabled]="currentVariable.isBuiltIn!"
+        >
+        @for (d of variableDirections; track d.variableDirection) 
+        {
+          <option [value]="d.variableDirection">{{d.description}}</option>
+        }
+
+      </select>
+    </c-modal-body>
+    <c-modal-footer>
+      <button type="submit" cButton color="primary">{{literals.common!.buttonOk}}</button>
+      <button (click)="dismiss()" cButton color="secondary">{{literals.common!.buttonCancel}}</button>
+    </c-modal-footer>
+  </form>
+</c-modal>

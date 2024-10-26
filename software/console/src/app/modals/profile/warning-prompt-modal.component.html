@@ -1,0 +1,20 @@
+<c-modal id="profileModal" [(visible)]="visible" alignment="center" backdrop="static" keyboard="true">
+  <form cForm (submit)="dismiss()">
+    <c-modal-header>
+      <span style="margin-right: 8px; margin-bottom: -3px;">
+        <svg cIcon [name]="iconSubset.cilWarning" size="xl"></svg>
+      </span>
+      <h5 cModalTitle>{{modalTitle}}</h5>
+      <button (click)="dismiss()" cButtonClose></button>
+    </c-modal-header>
+    <c-modal-body>
+      <p>
+        {{message}}
+      </p>
+    </c-modal-body>
+    <c-modal-footer>
+      <button cButton color="primary" (click)="accept()">{{literals.common!.buttonOk}}</button>
+      <button type="submit" (click)="dismiss()" cButton color="secondary">{{literals.common!.buttonCancel}}</button>
+    </c-modal-footer>
+  </form>
+</c-modal>

@@ -13,6 +13,13 @@ export interface AccessTokenInfoDTO {
   user?: UserDTO;
 }
 
+export interface BasicEntitiesContainerDTO {
+  literals?: LiteralsContainerDTO;
+  locales?: LocaleDTO[] | null;
+  variableTypes?: VariableTypeDTO[] | null;
+  variableDirections?: VariableDirectionDTO[] | null;
+}
+
 export interface CPUReport {
   usage?: CPUUsage;
   architecture?: string | null;
@@ -127,7 +134,6 @@ export interface CommonLiteralsContainer {
   currentInformation?: string | null;
   dashboard?: string | null;
   dashboards?: string | null;
-  descargas?: string | null;
   totalRowCount?: string | null;
   details?: string | null;
   category?: string | null;
@@ -193,6 +199,7 @@ export interface CommonLiteralsContainer {
   unsubscribe?: string | null;
   result?: string | null;
   results?: string | null;
+  success?: string | null;
   localeCode?: string | null;
 }
 
@@ -236,6 +243,11 @@ export interface LiteralsContainerDTO {
   localeCode?: string | null;
 }
 
+export interface LocaleDTO {
+  localeCode?: string | null;
+  description?: string | null;
+}
+
 export interface LoginRequestDTO {
   userName?: string | null;
   password?: string | null;
@@ -245,27 +257,44 @@ export interface LoginResponseDTO {
   token?: string | null;
 }
 
-export interface MemoryReport {
+export interface MemoryReportDTO {
   /** @format int64 */
   totalBytes?: number;
   /** @format int64 */
   usedBytes?: number;
   /** @format int64 */
   freeBytes?: number;
+  /** @format int64 */
+  availableBytes?: number;
   /** @format double */
   freePercentage?: number;
+  /** @format double */
+  availablePercentage?: number;
 }
 
 export interface SecurityLiteralsContainer {
+  basicUser?: string | null;
+  operator?: string | null;
+  administrator?: string | null;
+  userRole?: string | null;
   security?: string | null;
   users?: string | null;
+  newUser?: string | null;
+  editUser?: string | null;
+  deleteUser?: string | null;
+  deleteUserConfirmation?: string | null;
+  changePassword?: string | null;
+  noUsersToDisplay?: string | null;
+  userCreated?: string | null;
+  userUpdated?: string | null;
+  userDeleted?: string | null;
   localeCode?: string | null;
 }
 
 export interface SystemStatsReport {
   dateTime?: DateTimeReport;
   cpuReport?: CPUReport;
-  memory?: MemoryReport;
+  memory?: MemoryReportDTO;
   disk?: DiskReport;
   temperature?: TemperatureReport;
   wiFi?: WiFiReport;
@@ -295,8 +324,14 @@ export interface UserDTO {
   /** @format int32 */
   userId?: number;
   userName?: string | null;
+  isOperator?: boolean;
   isAdmin?: boolean;
   localeCode?: string | null;
+}
+
+export interface UserWithPasswordDTO {
+  user?: UserDTO;
+  password?: string | null;
 }
 
 export interface VariableDTO {
@@ -317,12 +352,22 @@ export enum VariableDirection {
   Output = 2,
 }
 
+export interface VariableDirectionDTO {
+  variableDirection?: VariableDirection;
+  description?: string | null;
+}
+
 /** @format int32 */
 export enum VariableType {
   Unknown = 0,
   Binary = 1,
   Integer = 2,
   FloatingPoint = 3,
+}
+
+export interface VariableTypeDTO {
+  variableType?: VariableType;
+  description?: string | null;
 }
 
 export interface VariableValueDTO {
@@ -337,9 +382,24 @@ export interface VariableValueDTO {
 export interface VariablesLiteralsContainer {
   variable?: string | null;
   variables?: string | null;
+  newVariable?: string | null;
+  editVariable?: string | null;
+  deleteVariable?: string | null;
+  deleteVariableConfirmation?: string | null;
+  variableId?: string | null;
+  variableType?: string | null;
+  variableDirection?: string | null;
+  variableCode?: string | null;
+  variableUnits?: string | null;
   binary?: string | null;
   integer?: string | null;
   fLoatingPoint?: string | null;
+  input?: string | null;
+  output?: string | null;
+  noVariablesToDisplay?: string | null;
+  variableCreated?: string | null;
+  variableUpdated?: string | null;
+  variableDeleted?: string | null;
   localeCode?: string | null;
 }
 

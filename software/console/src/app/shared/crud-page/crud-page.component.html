@@ -1,0 +1,32 @@
+<c-row>
+    <c-col>
+        @if (newItemLiteral) {
+            <c-row>
+                <c-col>
+                    <button cButton color="primary" (click)="doNewItem()" class="mb-3">
+                        <svg cIcon [name]="iconSubset.cilPlus" size="md"></svg>
+                        {{newItemLiteral}}
+                    </button> 
+                </c-col>
+            </c-row>
+        }
+        <c-row>
+            <c-col>
+                <input cFormControl type="text" id="search" name="search" 
+                    [(ngModel)]="searchFilter"
+                    [placeholder]="literals.common?.filter + '...'"
+                    (keyup)="startSearchSub()"
+                >
+            </c-col>
+        </c-row>
+    </c-col>
+</c-row>
+<c-row>
+    <c-col>
+        <c-card class="my-3">
+            <c-card-body>
+                <ng-content />
+            </c-card-body>
+        </c-card>
+    </c-col>
+</c-row>

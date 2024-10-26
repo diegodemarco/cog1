@@ -27,8 +27,9 @@ import {
 } from '@coreui/angular';
 
 import { IconDirective } from '@coreui/icons-angular';
+import { LiteralsContainerDTO } from 'src/app/api-client/data-contracts';
 import { AuthService } from 'src/app/services/auth.service';
-import { LiteralsService } from 'src/app/services/literals.service';
+import { BasicEntitiesService } from 'src/app/services/basic-entities.service';
 import { ViewStatusService } from 'src/app/services/view-status.service';
 
 @Component({
@@ -47,7 +48,7 @@ export class DefaultHeaderComponent extends HeaderComponent {
 
   readonly #colorModeService = inject(ColorModeService);
   readonly colorMode = this.#colorModeService.colorMode;
-  readonly literals: LiteralsService;
+  readonly literals: LiteralsContainerDTO;
   readonly viewStatus: ViewStatusService;
 
   readonly colorModes = [
@@ -62,9 +63,9 @@ export class DefaultHeaderComponent extends HeaderComponent {
   });
 
   constructor(private authService: AuthService, private router: Router, 
-    literals: LiteralsService, viewStatus: ViewStatusService)  {
+    basicEntitiesService: BasicEntitiesService, viewStatus: ViewStatusService)  {
     super();
-    this.literals = literals;
+    this.literals = basicEntitiesService.literals;
     this.viewStatus = viewStatus;
   }
 

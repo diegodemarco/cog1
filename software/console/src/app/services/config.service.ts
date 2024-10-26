@@ -1,7 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
-import { LiteralsService } from './literals.service';
+import { BasicEntitiesService } from './basic-entities.service';
 
 class ConfigData
 {
@@ -22,12 +22,10 @@ export class ConfigService {
       const promise = firstValueFrom(this.http.get<ConfigData>('assets/app.config.json'))
         .then(data => {
           this.apiBasePath = data.apiBasePath;
-          console.log("Config data: ", data);
         })
         .catch(error =>
         {
-          // Nothing to do
-          console.log("Config data missing");
+          // No configuration file, nothing to do
         });
       return promise;
   }

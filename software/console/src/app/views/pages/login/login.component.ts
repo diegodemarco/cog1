@@ -8,8 +8,10 @@ import { ContainerComponent, RowComponent, ColComponent, CardGroupComponent,
 import { BackendService } from '../../../services/backend.service';
 import { AuthService } from '../../../services/auth.service';
 import { FormsModule } from '@angular/forms';
-import { LiteralsService } from 'src/app/services/literals.service';
+import { BasicEntitiesService } from 'src/app/services/basic-entities.service';
 import { Router } from '@angular/router';
+import { LiteralsContainerDTO } from 'src/app/api-client/data-contracts';
+import { ViewStatusService } from 'src/app/services/view-status.service';
 
 @Component({
     selector: 'app-login',
@@ -22,16 +24,17 @@ import { Router } from '@angular/router';
 })
 export class LoginComponent {
 
-  literals: LiteralsService;
   username: string = "";
   password: string = "";
   persist: boolean = false;
   alertVisible: boolean = false;
   alertMessage: string = "";
+  readonly literals: LiteralsContainerDTO;
 
-  constructor(private backend: BackendService, private authService: AuthService, private router: Router, literals: LiteralsService) 
+  constructor(private backend: BackendService, private authService: AuthService, 
+    private router: Router, private basicEntitiesService: BasicEntitiesService) 
   { 
-    this.literals = literals;
+    this.literals = basicEntitiesService.literals;
   }
 
   doLogin()
@@ -46,7 +49,7 @@ export class LoginComponent {
       this.authService.reloadAccessTokenInfo().then(() =>
       {
         // Reload literals (language may have changed)
-        this.literals.load().then(() =>
+        this.basicEntitiesService.load().then(() =>
         {
           // Navigate to the home page
           this.router.navigate(["/"]); 

@@ -26,14 +26,15 @@ import { getStyle, hexToRgba } from '@coreui/utils';
 import { WidgetsBrandComponent } from '../widgets/widgets-brand/widgets-brand.component';
 import { WidgetsDropdownComponent } from '../widgets/widgets-dropdown/widgets-dropdown.component';
 //import { DashboardChartsData, IChartProps } from './dashboard-charts-data';
-import { LiteralsService } from 'src/app/services/literals.service';
+import { BasicEntitiesService } from 'src/app/services/basic-entities.service';
 import { ViewStatusService } from 'src/app/services/view-status.service';
 import { BackendService } from 'src/app/services/backend.service';
 import { DeepPartial } from 'chart.js/dist/types/utils';
-import { VariableType, VariableDTO, VariableDirection } from 'src/app/api-client/data-contracts';
+import { VariableType, VariableDTO, VariableDirection, LiteralsContainerDTO } from 'src/app/api-client/data-contracts';
 import { IconSubset } from 'src/app/icons/icon-subset';
 import { Subscription, timer } from 'rxjs';
 import { ProfileModalComponent } from 'src/app/modals/profile/profile-modal.component';
+import { AuthService } from 'src/app/services/auth.service';
 
 interface VarWithValue extends VariableDTO 
 {
@@ -56,6 +57,12 @@ export class DashboardComponent implements OnInit
   readonly VariableType = VariableType;
   readonly VariableDirection = VariableDirection;
 
+  // Literals
+  readonly literals: LiteralsContainerDTO;
+
+  // Services
+  authService: AuthService;
+
   // Subscriptions
   private cpuTimerSub: Subscription | null = null;
   private statTimerSub: Subscription | null = null;
@@ -75,9 +82,6 @@ export class DashboardComponent implements OnInit
   private cpuChartRef: WritableSignal<any> = signal(undefined);
   public cpuChartOptions!: ChartOptions;
 
-  //public chart: Array<IChartProps> = [];
-  public literals: LiteralsService;
-
   // Stats data
   public cpuPercentage: number | null = null;
   public cpuText: string | null = "...";
@@ -95,16 +99,18 @@ export class DashboardComponent implements OnInit
   // Variable data
   public builtinVariables: VarWithValue[] = [];
 
-  constructor(private backend: BackendService, literals: LiteralsService, viewStatus: ViewStatusService) 
+  constructor(private backend: BackendService, private basicEntitiesService: BasicEntitiesService, 
+    authService: AuthService, private viewStatus: ViewStatusService) 
   {
-    this.literals = literals;
-    viewStatus.setTitle(literals.dashboard.dashboard!);
+    this.literals = basicEntitiesService.literals;
+    this.authService = authService;
     this.updateChartBrandInfo();
     this.cpuChartLabels = [];
     this.cpuChartData = {
       datasets: [],
       labels: this.cpuChartLabels
     };
+    viewStatus.setTitle(this.literals.dashboard!.dashboard!);
   }
 
   ngOnInit(): void {
@@ -146,9 +152,9 @@ export class DashboardComponent implements OnInit
         this.cpuColor = this.makeColor(this.cpuPercentage, 15, 50);
         this.cpuText = this.cpuPercentage.toFixed(2) + "%";
         // RAM
-        this.ramPercentage = 100 - data.data.memory?.freePercentage!;
+        this.ramPercentage = 100 - data.data.memory?.availablePercentage!;
         this.ramColor = this.makeColor(this.ramPercentage, 75, 90);
-        this.ramText = this.formatStorage(data.data.memory?.totalBytes! - data.data.memory?.freeBytes!) 
+        this.ramText = this.formatStorage(data.data.memory?.totalBytes! - data.data.memory?.availableBytes!) 
           + " (" + this.ramPercentage.toFixed(0) + "%)";
         // Storage
         this.storagePercentage = 100 - data.data.disk?.freePercentage!;
@@ -168,8 +174,8 @@ export class DashboardComponent implements OnInit
     this.backend.variables.enumerateVariables()
       .then(data =>
       {
-        data.data.filter((item) => item.variableId! < 1000)
-          .forEach(item =>
+        data.data.filter(item => item.variableId! < 100)
+          .forEach((item) =>
           {
             let x: VarWithValue = {};
             Object.assign(x, item);
@@ -182,7 +188,8 @@ export class DashboardComponent implements OnInit
         data.data.forEach(item =>
         {
           let v = tempList.find(x => x.variableId! == item.variableId!);
-          v!.value = item.value
+          if (v)
+            v!.value = item.value;
         });
         this.builtinVariables = tempList;
       });
@@ -195,9 +202,6 @@ export class DashboardComponent implements OnInit
 
     const colorBorderTranslucent = getStyle('--cui-border-color-translucent');
     const colorBody = getStyle('--cui-body-color');
-
-    console.log("brandInfoBg: ", this.brandInfoBg, "brandInfo: ", this.brandInfo);
-    console.log("colorBorderTranslucent: ", colorBorderTranslucent, "colorBody: ", colorBody);
 
     // Plugins
     const plugins: DeepPartial<PluginOptionsByType<any>> = {
@@ -351,25 +355,19 @@ export class DashboardComponent implements OnInit
 
   getVariableType(type: VariableType): string
   {
-    switch (type)
-    {
-      case VariableType.Binary:
-        return this.literals.variables.binary!;
-      case VariableType.Integer:
-        return this.literals.variables.integer!;
-      case VariableType.FloatingPoint:
-        return this.literals.variables.fLoatingPoint!;
-    }
-    return "";
+    return this.basicEntitiesService.getVariableTypeDescription(type)
   }
 
   setBinaryOutput(variableId: number, turnOn: boolean)
   {
     this.backend.variables.setVariableValue(variableId, turnOn ? 1 : 0)
-      .then(() =>
-      {
+      .then(() => {
         this.updateVariables();
       })
+      .catch(error => {
+        console.log(error);
+        this.viewStatus.showErrorToast(error.error.Message);
+      });
   }
 
 }

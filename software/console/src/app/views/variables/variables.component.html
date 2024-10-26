@@ -1,0 +1,51 @@
+<app-variable-edit-modal />
+<app-crud-page (onNewItem)="doNewVariable()" (onUpdateData)="doUpdateData()" [newItemLiteral]="literals.variables!.newVariable!">
+    @for (v of variables; track v.variableId)
+    {
+        <c-card>
+            <c-card-body>
+            <c-row>
+                <c-col xs="5">
+                <c-row>
+                    <c-col lg="3">
+                    <h5 class="mb-0">{{v.variableId}}</h5>
+                    </c-col>
+                    <c-col lg="9">
+                    {{v.description}}
+                    </c-col>
+                </c-row>
+                </c-col>
+                <c-col xs="4">
+                    <c-row>
+                        <c-col lg="6">
+                            *Binary input*
+                        </c-col>
+                        <c-col lg="6">
+                            {{v.variableCode}}
+                        </c-col>
+                    </c-row>
+                </c-col>
+                <c-col xs="3">
+                    <c-row style="height:100%">
+                        <c-col style="height:100%; display: flex; align-items: center; justify-content: right;">
+                            @if (authService.isAdmin) {
+                                <button cButton size="sm" (click)="doEditVariable(v)">
+                                    <svg cIcon [name]="iconSubset.cilPencil" size="md"></svg>
+                                </button> 
+                                @if (v.isBuiltIn == false) {
+                                    &nbsp;
+                                    <button cButton size="sm" (click)="doDeleteVariable(v)">
+                                        <svg cIcon [name]="iconSubset.cilTrash" size="md"></svg>
+                                    </button> 
+                                }
+                            }
+                        </c-col>
+                    </c-row>
+                </c-col>
+            </c-row>
+            </c-card-body>
+        </c-card>
+    } @empty {
+        {{literals.variables!.noVariablesToDisplay}}
+    }
+</app-crud-page>

@@ -6,7 +6,7 @@
           <c-card class="p-4">
             <c-card-body>
               <form cForm (submit)="doLogin()" (keydown)="doDataChanged()">
-                <h1>{{literals.common.login}}</h1>
+                <h1>{{literals.common!.login}}</h1>
                 <!-- 
                 <p class="text-body-secondary">Sign In to your account</p>
                 -->
@@ -19,7 +19,7 @@
                     name="username" 
                     id="username"
                     autoComplete="username"
-                    [placeholder]="literals.common.username"
+                    [placeholder]="literals.common!.username"
                     [(ngModel)]="username" 
                   />
                 </c-input-group>
@@ -32,7 +32,7 @@
                     id="password"
                     autoComplete="current-password"
                     cFormControl
-                    [placeholder]="literals.common.password"
+                    [placeholder]="literals.common!.password"
                     type="password"
                     [(ngModel)]="password"
                   />
@@ -47,7 +47,7 @@
                       [(ngModel)]="persist"
                     />
                     <label class="form-check-label" for="persist">
-                      {{literals.common.rememberMe}}
+                      {{literals.common!.rememberMe}}
                     </label>
                   </div>
                 </c-input-group>
@@ -59,7 +59,7 @@
                 <c-row>
                   <c-col xs="6">
                     <button cButton class="px-4" color="primary" type="submit">
-                      {{literals.common.login}}
+                      {{literals.common!.login}}
                     </button>
                   </c-col>
                   <!--

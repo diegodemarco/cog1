@@ -7,15 +7,25 @@ npx swagger-typescript-api -p http://192.168.1.220/swagger/current/swagger.json 
 (Get-Content Security.ts) `
 	-replace "securityLoginCreate", "login" `
 	-replace "securityAccesstokenList", "getAccessTokenInfo" `
+	-replace "securityUsersList", "enumerateUsers" `
+	-replace "securityUsersDetail", "getUser" `
+	-replace "securityUsersCreate", "createUser" `
+	-replace "securityUsersUpdate", "editUser" `
+	-replace "securityUsersDelete", "deleteUser" `
+	-replace "securityUsersProfileCreate", "updateUserProfile" `
 	-replace "securityPingList", "ping" `
 	| Set-Content -Encoding utf8 -Path Security.ts
 
 # variables controller
 (Get-Content Variables.ts) `
 	-replace "variablesList", "enumerateVariables" `
+	-replace "variablesDetail", "getVariable" `
+	-replace "variablesCreate", "createVariable" `
+	-replace "variablesUpdate", "editVariable" `
 	-replace "variablesValuesList", "getVariableValues" `
 	-replace "variablesValuesDetail", "getVariableValue" `
 	-replace "variablesValuesCreate", "setVariableValue" `
+	-replace "variablesDelete", "deleteVariable" `
 	-replace "variablesPingList", "ping" `
 	| Set-Content -Encoding utf8 -Path Variables.ts
 
@@ -26,14 +36,9 @@ npx swagger-typescript-api -p http://192.168.1.220/swagger/current/swagger.json 
 	-replace "systemStatsCpuHistory5MinList", "getCpuHistory5Min" `
 	| Set-Content -Encoding utf8 -Path System.ts
 
-# literals controller
-(Get-Content Literals.ts) `
-	-replace "literalsList", "getLiterals" `
+# entities controller
+(Get-Content Entities.ts) `
+	-replace "entitiesBasicList", "getBasicEntities" `
+	-replace "entitiesBasicLiteralsList", "getLiterals" `
 	-replace "literalsPingList", "ping" `
-	| Set-Content -Encoding utf8 -Path Literals.ts
-
-# Users controller
-(Get-Content Users.ts) `
-	-replace "usersProfileCreate", "updateUserProfile" `
-	-replace "usersPingList", "ping" `
-	| Set-Content -Encoding utf8 -Path Users.ts
+	| Set-Content -Encoding utf8 -Path Entities.ts

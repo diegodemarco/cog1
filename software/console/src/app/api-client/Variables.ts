@@ -31,6 +31,66 @@ export class Variables<SecurityDataType = unknown> extends HttpClient<SecurityDa
    * No description
    *
    * @tags Variables
+   * @name createVariable
+   * @request POST:/api/variables
+   */
+  createVariable = (data: VariableDTO, params: RequestParams = {}) =>
+    this.request<VariableDTO, any>({
+      path: `/api/variables`,
+      method: "POST",
+      body: data,
+      type: ContentType.Json,
+      format: "json",
+      ...params,
+    });
+  /**
+   * No description
+   *
+   * @tags Variables
+   * @name editVariable
+   * @request PUT:/api/variables
+   */
+  editVariable = (data: VariableDTO, params: RequestParams = {}) =>
+    this.request<VariableDTO, any>({
+      path: `/api/variables`,
+      method: "PUT",
+      body: data,
+      type: ContentType.Json,
+      format: "json",
+      ...params,
+    });
+  /**
+   * No description
+   *
+   * @tags Variables
+   * @name getVariable
+   * @request GET:/api/variables/{variableId}
+   */
+  getVariable = (variableId: number, params: RequestParams = {}) =>
+    this.request<VariableDTO, any>({
+      path: `/api/variables/${variableId}`,
+      method: "GET",
+      format: "json",
+      ...params,
+    });
+  /**
+   * No description
+   *
+   * @tags Variables
+   * @name deleteVariable
+   * @request DELETE:/api/variables/{variableId}
+   */
+  deleteVariable = (variableId: number, params: RequestParams = {}) =>
+    this.request<any, any>({
+      path: `/api/variables/${variableId}`,
+      method: "DELETE",
+      format: "json",
+      ...params,
+    });
+  /**
+   * No description
+   *
+   * @tags Variables
    * @name getVariableValues
    * @request GET:/api/variables/values
    */

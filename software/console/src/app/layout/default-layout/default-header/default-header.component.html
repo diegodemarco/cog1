@@ -17,8 +17,11 @@
 
     <div #title_container style="width:100%;height:100%">
       <c-header-nav class="d-block d-md-flex" id="titleHeader">
-        <c-container [fluid]="true" class="px-4">
-          <h4 class="cog1-ellipsis" [ngStyle]="{ 'height': '100%', 'width': (title_container.parentElement!.offsetWidth - 244) + 'px' }">{{ viewStatus.title }}</h4>
+        <c-container [fluid]="true" class="px-4" style="display: flex; flex-wrap: nowrap;">
+          <h4 class="cog1-ellipsis" [ngStyle]="{ 'height': '100%', 'max-width': (title_container.parentElement!.offsetWidth - 244) + 'px' }">{{ viewStatus.title }}</h4>
+          <!--
+          <h4 style="height:100%; white-space: nowrap; max-width:90%; overflow: hidden; text-overflow: ellipsis;">{{ viewStatus.title }}3213 321 321 321 25 23543 4534 534 5345 345 345 321</h4>
+          -->
         </c-container>
       </c-header-nav>
     </div>
@@ -90,7 +93,7 @@
     <ul cDropdownMenu class="pt-0 w-auto">
       <li>
         <h6 cDropdownHeader class="bg-body-secondary text-body-secondary fw-semibold py-2 rounded-top">
-          {{literals.common.profile}}
+          {{literals.common!.profile}}
         </h6>
       </li>
       <!--
@@ -134,7 +137,7 @@
       <li>
         <a cDropdownItem (click)="doProfileClick()">
           <svg cIcon class="me-2" name="cilUser"></svg>
-          {{literals.common.profile}}
+          {{literals.common!.profile}}
         </a>
       </li>
       <!--
@@ -177,7 +180,7 @@
       <li>
         <a cDropdownItem routerLink="" (click)="doLogout()">
           <svg cIcon class="me-2" name="cilAccountLogout"></svg>
-          {{literals.common.logout}}
+          {{literals.common!.logout}}
         </a>
       </li>
     </ul>

@@ -9,20 +9,20 @@
  * ---------------------------------------------------------------
  */
 
-import { LiteralsContainerDTO } from "./data-contracts";
+import { BasicEntitiesContainerDTO, LiteralsContainerDTO } from "./data-contracts";
 import { HttpClient, RequestParams } from "./http-client";
 
-export class Literals<SecurityDataType = unknown> extends HttpClient<SecurityDataType> {
+export class Entities<SecurityDataType = unknown> extends HttpClient<SecurityDataType> {
   /**
    * No description
    *
-   * @tags Literals
-   * @name getLiterals
-   * @request GET:/api/literals
+   * @tags Entities
+   * @name getBasicEntities
+   * @request GET:/api/entities/basic
    */
-  getLiterals = (params: RequestParams = {}) =>
-    this.request<LiteralsContainerDTO, any>({
-      path: `/api/literals`,
+  getBasicEntities = (params: RequestParams = {}) =>
+    this.request<BasicEntitiesContainerDTO, any>({
+      path: `/api/entities/basic`,
       method: "GET",
       format: "json",
       ...params,
@@ -30,13 +30,27 @@ export class Literals<SecurityDataType = unknown> extends HttpClient<SecurityDat
   /**
    * No description
    *
-   * @tags Literals
-   * @name ping
-   * @request GET:/api/literals/ping
+   * @tags Entities
+   * @name getLiterals
+   * @request GET:/api/entities/basic/literals
    */
-  ping = (params: RequestParams = {}) =>
+  getLiterals = (params: RequestParams = {}) =>
+    this.request<LiteralsContainerDTO, any>({
+      path: `/api/entities/basic/literals`,
+      method: "GET",
+      format: "json",
+      ...params,
+    });
+  /**
+   * No description
+   *
+   * @tags Entities
+   * @name EntitiesPingList
+   * @request GET:/api/entities/ping
+   */
+  entitiesPingList = (params: RequestParams = {}) =>
     this.request<string, any>({
-      path: `/api/literals/ping`,
+      path: `/api/entities/ping`,
       method: "GET",
       format: "json",
       ...params,

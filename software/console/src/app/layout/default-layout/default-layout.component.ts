@@ -1,26 +1,17 @@
 import { AfterViewInit, Component, ViewChild } from '@angular/core';
 import { RouterLink, RouterOutlet } from '@angular/router';
 import { NgScrollbar } from 'ngx-scrollbar';
-
 import { IconDirective } from '@coreui/icons-angular';
-import {
-  ContainerComponent,
-  INavData,
-  ShadowOnScrollDirective,
-  SidebarBrandComponent,
-  SidebarComponent,
-  SidebarFooterComponent,
-  SidebarHeaderComponent,
-  SidebarNavComponent,
-  SidebarToggleDirective,
-  SidebarTogglerDirective
-} from '@coreui/angular';
-
+import { ContainerComponent, INavData, ShadowOnScrollDirective, SidebarBrandComponent, SidebarComponent,
+         SidebarFooterComponent, SidebarHeaderComponent, SidebarNavComponent, SidebarToggleDirective,
+         SidebarTogglerDirective, ToasterComponent, ToasterPlacement} from '@coreui/angular';
 import { DefaultFooterComponent, DefaultHeaderComponent } from './';
-import { LiteralsService } from 'src/app/services/literals.service';
 import { IconSubset } from 'src/app/icons/icon-subset';
-import { ProfileModalComponent } from 'src/app/modals/profile/profile-modal.component';
 import { ViewStatusService } from 'src/app/services/view-status.service';
+import { ProfileModalComponent } from 'src/app/modals/profile/profile-modal.component';
+import { WarningPromptModalComponent } from 'src/app/modals/profile/warning-prompt-modal.component';
+import { BasicEntitiesService } from 'src/app/services/basic-entities.service';
+import { LiteralsContainerDTO } from 'src/app/api-client/data-contracts';
 
 function isOverflown(element: HTMLElement) {
   return (
@@ -50,25 +41,31 @@ function isOverflown(element: HTMLElement) {
     ContainerComponent,
     RouterOutlet,
     DefaultFooterComponent,
-    ProfileModalComponent
-  ]
+    ProfileModalComponent,
+    WarningPromptModalComponent,
+    ToasterComponent
+]
 })
 export class DefaultLayoutComponent implements AfterViewInit 
 {
   @ViewChild(ProfileModalComponent) profileModal!: ProfileModalComponent;
+  @ViewChild(WarningPromptModalComponent) warningPromptModal!: WarningPromptModalComponent;
+  @ViewChild(ToasterComponent)toaster!: ToasterComponent;
 
-  public literals: LiteralsService;
-  public navItems: INavData[];
+  readonly literals: LiteralsContainerDTO;
+  readonly navItems: INavData[];
+  readonly toasterPlacement = ToasterPlacement;
 
-  constructor(private viewStatus: ViewStatusService, literals: LiteralsService)
+  constructor(private viewStatus: ViewStatusService, basicEntitiesService: BasicEntitiesService)
   {
-    this.literals = literals;
+    this.literals = basicEntitiesService.literals;
     this.navItems = this.getNavItems();
   }
 
   ngAfterViewInit() {
-    console.log("setting profile modal: ", this.profileModal);
     this.viewStatus.setProfileModal(this.profileModal);
+    this.viewStatus.setWarningPromptModal(this.warningPromptModal);
+    this.viewStatus.setToaster(this.toaster);
   }
 
   onScrollbarUpdate($event: any) {
@@ -93,17 +90,17 @@ export class DefaultLayoutComponent implements AfterViewInit
         iconComponent: { name: IconSubset.cilSpeedometer },
       },
       {
-        name: this.literals.variables.variables!,
+        name: this.literals.variables!.variables!,
         url: '/variables',
         iconComponent: { name: IconSubset.cilGraph },
       },
       {
-        name: this.literals.security.security!,
+        name: this.literals.security!.security!,
         url: '/security',
         iconComponent: { name: IconSubset.cilLockLocked },
         children: [
           {
-            name: this.literals.security.users!,
+            name: this.literals.security!.users!,
             url: '/security/users',
             iconComponent: { name: IconSubset.cilGroup }
           }       
@@ -245,6 +242,7 @@ export class DefaultLayoutComponent implements AfterViewInit
           }
         ]
       },
+      /*
       {
         name: 'Forms',
         url: '/forms',
