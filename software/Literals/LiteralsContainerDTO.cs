@@ -7,8 +7,15 @@
         private SecurityLiteralsContainer security;
         private VariablesLiteralsContainer variables;
 
-        public LiteralsContainerDTO() : base() { }
-        public LiteralsContainerDTO(string localeCode) : base(localeCode) { }
+        public LiteralsContainerDTO() : base() 
+        {
+            Common = null;
+        }
+
+        public LiteralsContainerDTO(string localeCode) : base(localeCode) 
+        { 
+            
+        }
 
         public CommonLiteralsContainer Common
         {

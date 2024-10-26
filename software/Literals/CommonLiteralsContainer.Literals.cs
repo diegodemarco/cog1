@@ -633,13 +633,6 @@ namespace cog1.Literals
             public override string PT => "Dashboards";
         }
 
-        public class Descargas : LiteralConstant
-        {
-            public override string EN => "Downloads";
-            public override string ES => "Descargas";
-            public override string PT => "Descarregamento";
-        }
-
         public class TotalRowCount : LiteralConstant
         {
             public override string EN => "Total row count";
@@ -1287,6 +1280,12 @@ namespace cog1.Literals
         {
             public override string EN => "Results";
             public override string ES => "Resultados";
+        }
+
+        public class Success : LiteralConstant
+        {
+            public override string EN => "Success";
+            public override string ES => "Hecho";
         }
 
     }

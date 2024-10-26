@@ -14,6 +14,16 @@ using Microsoft.AspNetCore.Http;
 
 namespace cog1.Middleware
 {
+    public class RequiresAdminAttribute: Attribute
+    {
+
+    }
+
+    public class RequiresOperatorAttribute : Attribute
+    {
+
+    }
+
     public class Cog1AuthenticationOptions : AuthenticationSchemeOptions
     {
     }
@@ -35,20 +45,20 @@ namespace cog1.Middleware
             {
                 if (!Request.Headers.ContainsKey("Authorization"))
                 {
-                    Console.WriteLine("No authorization header");
+                    //Console.WriteLine("No authorization header");
                     return null;
                 }
 
                 string authorizationHeader = Request.Headers["Authorization"];
                 if (string.IsNullOrEmpty(authorizationHeader))
                 {
-                    Console.WriteLine("No authorization value");
+                    //Console.WriteLine("No authorization value");
                     return null;
                 }
 
                 if (!authorizationHeader.StartsWith("bearer ", StringComparison.OrdinalIgnoreCase))
                 {
-                    Console.WriteLine("Authorization does not start with 'bearer'");
+                    //Console.WriteLine("Authorization does not start with 'bearer'");
                     return null;
                 }
 
@@ -58,7 +68,7 @@ namespace cog1.Middleware
 
             if (!Guid.TryParse(accessToken, out Guid result))
             {
-                Console.WriteLine("The token is not a guid");
+                //Console.WriteLine("The token is not a guid");
                 return null;
             }
 
@@ -90,9 +100,16 @@ namespace cog1.Middleware
 
             if (!context.SecurityBusiness.ValidateAccessToken(token.Value, out UserDTO user))
             {
-                Console.WriteLine("ValidateAccessToken() rejected the token");
+                //Console.WriteLine("ValidateAccessToken() rejected the token");
                 throw new ControllerException(context.ErrorCodes.Security.INVALID_ACCESS_TOKEN);
             }
+
+            // Verify permissions
+            var ep = Context.GetEndpoint();
+            if (ep?.Metadata?.GetMetadata<RequiresAdminAttribute>() != null && !user.isAdmin)
+                throw new ControllerException(context.ErrorCodes.Security.MUST_BE_ADMIN);
+            if (ep?.Metadata?.GetMetadata<RequiresOperatorAttribute>() != null && !user.isOperator)
+                throw new ControllerException(context.ErrorCodes.Security.MUST_BE_OPERATOR);
 
             // Claims
             var claims = new List<Claim>();

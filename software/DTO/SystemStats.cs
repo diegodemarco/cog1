@@ -72,27 +72,37 @@ namespace cog1.Telemetry
             return result;
         }
 
-        public static MemoryReport GetMem()
+        public static MemoryReportDTO GetMem()
         {
+            /*
+                           total        used        free      shared  buff/cache   available
+            Mem:      1029558272   360230912   229859328    34856960   551100416   669327360
+            Swap:      514777088     6553600   508223488
+            */
             var lines = OSUtils.GetLines(OSUtils.RunWithOutput("free", "--bytes"));
 
             // Parse the output
             var line = lines.FirstOrDefault(l => l.ToLower().StartsWith("mem:"));
             if (line == null)
-                return new MemoryReport();
+                return new MemoryReportDTO();
 
             var lineParts = line.Split(' ', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
-            if ((lineParts.Length != 7) || !long.TryParse(lineParts[1], out var totalMem) 
-                || !long.TryParse(lineParts[2], out var usedMem) || !long.TryParse(lineParts[3], out var freeMem))
-                return new MemoryReport();
+            if ((lineParts.Length != 7) 
+                || !long.TryParse(lineParts[1], out var totalMem) 
+                || !long.TryParse(lineParts[2], out var usedMem) 
+                || !long.TryParse(lineParts[3], out var freeMem)
+                || !long.TryParse(lineParts[6], out var availMem))
+                return new MemoryReportDTO();
 
             // Done
-            return new MemoryReport()
+            return new MemoryReportDTO()
             {
                 totalBytes = totalMem,
                 usedBytes = usedMem,
                 freeBytes = freeMem,
-                freePercentage = Math.Round(100 * (double)freeMem / (double)totalMem, 2)
+                freePercentage = Math.Round(100 * (double)freeMem / (double)totalMem, 2),
+                availableBytes = availMem,
+                availablePercentage = Math.Round(100 * (double)availMem / (double)totalMem, 2),
             };
         }
 

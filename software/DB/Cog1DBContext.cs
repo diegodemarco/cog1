@@ -240,6 +240,7 @@ namespace Cog1.DB
                             user_name text not null,
                             password text not null,
                             locale_code text not null,
+                            is_operator int not null,
                             is_admin int not null
                         );
                     ");
@@ -249,9 +250,9 @@ namespace Cog1.DB
                     ctx.Execute(
                         @"insert into 
                         users 
-                            (user_id, user_name, password, locale_code, is_admin) 
+                            (user_id, user_name, password, locale_code, is_operator, is_admin) 
                         values 
-                            ('1', 'admin', @password, @locale_code, 1)
+                            ('1', 'admin', @password, @locale_code, 1, 1)
                         ",
                             new()
                             {

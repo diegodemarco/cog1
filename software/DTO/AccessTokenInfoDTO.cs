@@ -1,4 +1,6 @@
-﻿namespace cog1.DTO
+﻿using System.Text.Json.Serialization;
+
+namespace cog1.DTO
 {
     public class AccessTokenInfoDTO
     {

@@ -2,11 +2,12 @@
 using System.Data;
 using cog1.Business;
 using cog1.DTO;
-using System.Threading;
 using System.Linq;
-using cog1.Exceptions;
 using Microsoft.Extensions.Logging;
 using System;
+using Microsoft.AspNetCore.Mvc.ViewFeatures;
+using cog1.Exceptions;
+using static cog1.Literals.CommonLiterals;
 
 namespace cog1.Dao
 {
@@ -27,13 +28,20 @@ namespace cog1.Dao
 
         private UserDTO MakeUser(DataRow r)
         {
-            return new UserDTO
+            var result = new UserDTO
             {
                 userId = (int)r.Field<long>("user_id"),
                 userName = r.Field<string>("user_name"),
                 isAdmin = r.Field<long>("is_admin") > 0,
+                isOperator = r.Field<long>("is_operator") > 0,
                 localeCode = r.Field<string>("locale_code"),
             };
+
+            // Fixes
+            if (result.isAdmin)
+                result.isOperator = true;
+
+            return result;
         }
 
         private void LoadUsers(bool reload = false)
@@ -103,6 +111,82 @@ namespace cog1.Dao
                     userData = user;
             }
             return userData != null;
+        }
+
+        public int CreateUser(UserWithPasswordDTO user)
+        {
+            int result;
+
+            lock (_lock)
+            {
+                // Check duplicate user name
+                if (GetUser(user.user.userName) != null)
+                    throw new ControllerException(Context.ErrorCodes.Users.DUPLICATE_USERNAME);
+
+                // Store
+                result = users.Values.Select(item => item.userId).Max() + 1;
+                if (result < 1001)
+                    result = 1001;
+                Context.Db.Execute(
+                    "insert into users (user_id, user_name, password, is_admin, is_operator, locale_code) " +
+                    "values (@user_id, @user_name, @password, @is_admin, @is_operator, @locale_code)",
+                    new()
+                    {
+                        { "@user_id", result },
+                        { "@user_name", user.user.userName },
+                        { "@password", Utils.HashPassword(result, user.password) },
+                        { "@is_admin", user.user.isAdmin },
+                        { "@is_operator", user.user.isOperator || user.user.isAdmin },
+                        { "@locale_code", user.user.localeCode }
+                    });
+
+                // Reload users
+                LoadUsers(true);
+            }
+            return result;
+        }
+
+        public void EditUser(UserWithPasswordDTO user)
+        {
+            lock (_lock)
+            {
+                // Update user data
+                Context.Db.Execute(
+                    "update users set is_admin = @is_admin, is_operator = @is_operator, locale_code = @locale_code where user_id = @user_id",
+                    new()
+                    {
+                        { "@is_admin", user.user.isAdmin },
+                        { "@is_operator", user.user.isOperator || user.user.isAdmin },
+                        { "@locale_code", user.user.localeCode },
+                        { "@user_id", user.user.userId },
+                    });
+
+                // Change password if provided
+                if (!string.IsNullOrWhiteSpace(user.password))
+                {
+                    Context.Db.Execute(
+                        "update users set password = @password where user_id = @user_id",
+                        new()
+                        {
+                            { "@user_id", user.user.userId },
+                            { "@password", Utils.HashPassword(user.user.userId, user.password) }
+                        });
+                }
+
+                // Reload users
+                LoadUsers(true);
+            }
+        }
+
+        public void DeleteUser(int userId)
+        {
+            Context.Db.Execute(
+                "delete from users where user_id = @user_id",
+                new()
+                {
+                    { "@user_id", userId },
+                });
+            LoadUsers(true);
         }
 
         public void UpdateUserProfile(int userId, string localeCode)

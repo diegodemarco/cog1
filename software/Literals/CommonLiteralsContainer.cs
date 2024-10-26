@@ -187,8 +187,6 @@ namespace cog1.Literals
 
         public virtual string Dashboards { get => new CommonLiterals.Dashboards().ExtractLiteral(LocaleCode); set { } }
 
-        public virtual string Descargas { get => new CommonLiterals.Descargas().ExtractLiteral(LocaleCode); set { } }
-
         public virtual string TotalRowCount { get => new CommonLiterals.TotalRowCount().ExtractLiteral(LocaleCode); set { } }
 
         public virtual string Details { get => new CommonLiterals.Details().ExtractLiteral(LocaleCode); set { } }
@@ -380,6 +378,8 @@ namespace cog1.Literals
         public virtual string Result { get => new CommonLiterals.Result().ExtractLiteral(LocaleCode); set { } }
 
         public virtual string Results { get => new CommonLiterals.Results().ExtractLiteral(LocaleCode); set { } }
+
+        public virtual string Success { get => new CommonLiterals.Success().ExtractLiteral(LocaleCode); set { } }
 
     }
 

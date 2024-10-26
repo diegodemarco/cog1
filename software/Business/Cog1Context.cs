@@ -139,7 +139,9 @@ namespace cog1.Business
                 {
                     userId = 0,
                     userName = string.Empty,
+                    isOperator = false,
                     isAdmin = false,
+                    localeCode = string.Empty
                 };
             }
             return user;

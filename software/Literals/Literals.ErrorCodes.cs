@@ -126,11 +126,11 @@
         public static class User
         {
 
-            public class DUPLICATED_EMAIL : LiteralConstant
+            public class DUPLICATE_USERNAME : LiteralConstant
             {
-                public override string EN => "This e-mail address is already registered, please use a different one";
-                public override string ES => "El e-mail indicado ya está registrado en otra cuenta. Por favor, utilice uno diferente";
-                public override string PT => "O e-mail indicado já está registrado para outra conta. Por favor, use outro diferente";
+                public override string EN => "This user name is already registered, please use a different one";
+                public override string ES => "El nombre de usuario indicado ya está registrado en otra cuenta. Por favor, utilice uno diferente";
+                public override string PT => "O nome de usuário já está registrado para outra conta. Por favor, use outro diferente";
             }
 
             public class INVALID_LOGIN_DETAILS : LiteralConstant
@@ -152,6 +152,12 @@
                 public override string EN => "The specified user name is not registered";
                 public override string ES => "El nombre de usuario indicado no está registrado.";
                 public override string PT => "O nome de usuário indicado não está registrado.";
+            }
+
+            public class CANNOT_DELETE_USER : LiteralConstant
+            {
+                public override string EN => "The specified user cannot be deleted";
+                public override string ES => "El usuario especificado no puede ser eliminado.";
             }
 
             public class INVALID_PASSWORD : LiteralConstant
@@ -208,6 +214,13 @@
         public static class Security
         {
 
+            public class INVALID_ACCESS_TOKEN : LiteralConstant
+            {
+                public override string EN => "Invalid access token";
+                public override string ES => "Token de acceso no válido";
+                public override string PT => "O token de acesso não é válido";
+            }
+
             public class MUST_BE_ADMIN : LiteralConstant
             {
                 public override string EN => "The operation requires admin privileges.";
@@ -215,11 +228,11 @@
                 public override string PT => "A operação requer privilégios de administrador.";
             }
 
-            public class INVALID_ACCESS_TOKEN : LiteralConstant
+            public class MUST_BE_OPERATOR : LiteralConstant
             {
-                public override string EN => "Invalid access token";
-                public override string ES => "Token de acceso no válido";
-                public override string PT => "O token de acesso não é válido";
+                public override string EN => "The operation requires operator privileges.";
+                public override string ES => "La operación require privilegios de operador";
+                public override string PT => "A operação requer privilégios de operador";
             }
 
         }
@@ -228,9 +241,8 @@
         {
             public class INVALID_VARIABLE_ID : LiteralConstant
             {
-                public override string EN => "Invalid variable ID";
-                public override string ES => "ID de variable no válido";
-                public override string PT => "O ID da variável é inválido";
+                public override string EN => "The specified variable ID is not valid";
+                public override string ES => "El ID de variable especificado no es válido";
             }
 
             public class VARIABLE_NOT_WRITABLE : LiteralConstant
@@ -239,6 +251,19 @@
                 public override string ES => "ID de variable no válido";
                 public override string PT => "O ID da variável é inválido";
             }
+
+            public class INVALID_VARIABLE_CODE : LiteralConstant
+            {
+                public override string EN => "The specified variable code is not valid";
+                public override string ES => "El código de variable especificado no es válido";
+            }
+
+            public class DUPLICATE_VARIABLE_CODE : LiteralConstant
+            {
+                public override string EN => "The specified variable code already exists";
+                public override string ES => "El código de variable especificado ya existe";
+            }
+
         }
 
     }

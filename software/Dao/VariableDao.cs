@@ -2,11 +2,11 @@
 using System.Data;
 using cog1.Business;
 using cog1.DTO;
-using System.Threading;
 using System.Linq;
 using cog1.Entities;
 using Microsoft.Extensions.Logging;
 using System;
+using cog1.Exceptions;
 
 namespace cog1.Dao
 {
@@ -94,11 +94,42 @@ namespace cog1.Dao
 
         private List<VariableDTO> _GetVariables()
         {
-            LoadVariables();
             lock (_lock)
             {
+                LoadVariables();
                 return variables.Select(item => item.Value).ToList();      // Clone
             }
+        }
+
+        private void _CreateVariable(VariableDTO v)
+        {
+            Context.Db.Execute(
+                "insert into variables (variable_id, description, variable_code, variable_type, variable_direction, units) " +
+                "values (@variable_id, @description, @variable_code, @variable_type, @variable_direction, @units)",
+                new()
+                {
+                    { "@variable_id", v.variableId },
+                    { "@description", v.description },
+                    { "@variable_code", string.IsNullOrWhiteSpace(v.variableCode) ? DBNull.Value : v.variableCode.Trim() },
+                    { "@variable_type", v.type},
+                    { "@variable_direction", v.direction },
+                    { "@units", string.IsNullOrWhiteSpace(v.units) ? DBNull.Value : v.units.Trim() },
+                });
+        }
+
+        private void _EditVariable(VariableDTO v)
+        {
+            Context.Db.Execute(
+                "update variables set description = @description, variable_code = @variable_code, variable_direction = @variable_direction, units = @units " +
+                "where variable_id = @variable_id",
+                new()
+                {
+                    { "@description", v.description },
+                    { "@variable_code", string.IsNullOrWhiteSpace(v.variableCode) ? DBNull.Value : v.variableCode.Trim() },
+                    { "@variable_direction", v.direction },
+                    { "@units", string.IsNullOrWhiteSpace(v.units) ? DBNull.Value : v.units.Trim() },
+                    { "@variable_id", v.variableId },
+                });
         }
 
         #endregion
@@ -112,20 +143,23 @@ namespace cog1.Dao
 
         public VariableDTO GetVariable(int VariableId)
         {
-            LoadVariables();
             lock (_lock)
             {
+                LoadVariables();
                 if (variables.TryGetValue(VariableId, out VariableDTO Variable))
                     return Variable;
                 return null;
             }
         }
 
-        public VariableDTO GetVariable(string variableCode)
+        public VariableDTO GetVariableByCode(string variableCode)
         {
-            LoadVariables();
             lock (_lock)
             {
+                LoadVariables();
+                if (string.IsNullOrWhiteSpace(variableCode)) 
+                    return null;
+                variableCode = variableCode.Trim();
                 return variables.Values.FirstOrDefault(item => string.Equals(item.variableCode, variableCode, System.StringComparison.OrdinalIgnoreCase));
             }
         }
@@ -136,6 +170,64 @@ namespace cog1.Dao
                 .AsEnumerable()
                 .Select(row => MakeVariableValue(row))
                 .ToList();
+        }
+
+        public VariableDTO CreateVariable(VariableDTO v)
+        {
+            lock (_lock)
+            {
+                LoadVariables(true);
+
+                // Check for duplicate variable code
+                if (!string.IsNullOrWhiteSpace(v.variableCode) && GetVariableByCode(v.variableCode) != null)
+                    throw new ControllerException(Context.ErrorCodes.Variables.DUPLICATE_VARIABLE_CODE);
+
+                // Store
+                v.variableId = variables.Select(item => item.Value.variableId).Max() + 1;
+                if (v.variableId < 1001)
+                    v.variableId = 1001;
+                _CreateVariable(v);
+                LoadVariables(true);
+                return variables[v.variableId];
+            }
+        }
+
+        public VariableDTO EditVariable(VariableDTO v)
+        {
+            lock (_lock)
+            {
+                LoadVariables(true);
+
+                // Check for duplicate variable code
+                if (!string.IsNullOrWhiteSpace(v.variableCode))
+                {
+                    var v2 = GetVariableByCode(v.variableCode);
+                    if (v2 != null && v2.variableId != v.variableId)
+                        throw new ControllerException(Context.ErrorCodes.Variables.DUPLICATE_VARIABLE_CODE);
+                }
+
+                var newVar = variables[v.variableId];
+                newVar.description = v.description;
+                newVar.variableCode = v.variableCode;
+                if (!newVar.isBuiltIn)
+                {
+                    newVar.units = v.units;
+                    newVar.direction = v.direction;
+                }
+                _EditVariable(v);
+                LoadVariables(true);
+                return variables[v.variableId];
+            }
+        }
+
+        public void DeleteVariable(int variableId)
+        {
+            Context.Db.Execute(
+                "delete from variables where variable_id = @variable_id",
+                new()
+                {
+                    { "@variable_id", variableId }
+                });
         }
 
         #endregion
@@ -149,17 +241,7 @@ namespace cog1.Dao
             {
                 if (GetVariable(v.variableId) == null)
                 {
-                    Context.Db.Execute(
-                        "insert into variables (variable_id, description, variable_type, variable_direction, units) " +
-                        "values (@variable_id, @description, @variable_type, @variable_direction, @units)",
-                        new()
-                        {
-                            { "@variable_id", v.variableId },
-                            { "@description", v.description },
-                            { "@variable_type", v.type},
-                            { "@variable_direction", v.direction },
-                            { "@units", string.IsNullOrWhiteSpace(v.units) ? DBNull.Value : v.units },
-                        });
+                    _CreateVariable(v);
                     varsCreated = true;
                     Logger.LogInformation($"Created missing variable {v.variableId}: {v.description}");
                 }

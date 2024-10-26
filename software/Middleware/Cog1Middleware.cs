@@ -53,7 +53,7 @@ namespace cog1.Middleware
             catch (Exception e)
             {
                 ControllerException se = (e is ControllerException) ? (ControllerException)e : new ControllerException(e);
-                LogException(httpContext, se);
+                //LogException(httpContext, se);
                 if (!httpContext.Response.HasStarted)
                 {
                     httpContext.Response.ContentType = "application/json; charset=utf-8";
@@ -64,29 +64,29 @@ namespace cog1.Middleware
             }
         }
 
-        private void LogException(HttpContext httpContext, ControllerException se)
-        {
-            StringBuilder SB = new StringBuilder();
-            if (!string.IsNullOrEmpty(se.ClassName))
-                SB.Append(se.ClassName);
-            if (!string.IsNullOrEmpty(se.Message))
-            {
-                if (SB.Length > 0) SB.Append("; ");
-                SB.Append(se.Message);
-            }
-            if (!string.IsNullOrEmpty(se.FaultCode))
-            {
-                if (SB.Length > 0) SB.Append("; ");
-                SB.Append("FaultCode: " + se.FaultCode);
-            }
-            if (!string.IsNullOrEmpty(se.FaultData))
-            {
-                if (SB.Length > 0) SB.Append("; ");
-                SB.Append("FaultData: " + se.FaultData);
-            }
-            var uri = new Uri(httpContext.Request.GetDisplayUrl()).PathAndQuery;
-            logger.LogError($"{httpContext.Request.Method} {uri} - {SB.ToString().TrimEnd()}");
-        }
+        //private void LogException(HttpContext httpContext, ControllerException se)
+        //{
+        //    StringBuilder SB = new StringBuilder();
+        //    if (!string.IsNullOrEmpty(se.ClassName))
+        //        SB.Append(se.ClassName);
+        //    if (!string.IsNullOrEmpty(se.Message))
+        //    {
+        //        if (SB.Length > 0) SB.Append("; ");
+        //        SB.Append(se.Message);
+        //    }
+        //    if (!string.IsNullOrEmpty(se.FaultCode))
+        //    {
+        //        if (SB.Length > 0) SB.Append("; ");
+        //        SB.Append("FaultCode: " + se.FaultCode);
+        //    }
+        //    if (!string.IsNullOrEmpty(se.FaultData))
+        //    {
+        //        if (SB.Length > 0) SB.Append("; ");
+        //        SB.Append("FaultData: " + se.FaultData);
+        //    }
+        //    var uri = new Uri(httpContext.Request.GetDisplayUrl()).PathAndQuery;
+        //    logger.LogError($"{httpContext.Request.Method} {uri} - {SB.ToString().TrimEnd()}");
+        //}
 
         public class JSonErrorResponse : JsonResult
         {

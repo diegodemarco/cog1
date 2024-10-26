@@ -1,9 +1,11 @@
 ﻿using cog1.Business;
 using cog1.DTO;
 using cog1.Exceptions;
+using cog1.Middleware;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using System.Collections.Generic;
 
 namespace cog1.Controllers
 {
@@ -27,7 +29,7 @@ namespace cog1.Controllers
             return MethodPattern(() =>
             {
                 if (!Context.UserBusiness.ValidateUserCredentials(request.userName, request.password, out var user))
-                    throw new ControllerException(Context.ErrorCodes.User.INVALID_LOGIN_DETAILS);
+                    throw new ControllerException(Context.ErrorCodes.Users.INVALID_LOGIN_DETAILS);
 
                 var token = Context.SecurityBusiness.CreateAccessToken(user.userId);
                 return new LoginResponseDTO()
@@ -50,5 +52,73 @@ namespace cog1.Controllers
             });
         }
 
+        [HttpGet]
+        [Route("users")]
+        public List<UserDTO> EnumerateUsers()
+        {
+            return MethodPattern(() =>
+            {
+                if (Context.User.isAdmin)
+                    // Admins can enumerate all users
+                    return Context.UserBusiness.EnumerateUsers();
+                return new()
+                {
+                    // Everyone else can only enumerate themselves
+                    Context.UserBusiness.GetUser(Context.User.userId)
+                };
+            });
+        }
+
+        [HttpGet]
+        [Route("users/{userId:int}")]
+        public UserDTO GetUser(int userId)
+        {
+            return MethodPattern(() =>
+            {
+                if (Context.User.isAdmin || userId == Context.User.userId)
+                    return Context.UserBusiness.GetUser(userId);
+                throw new ControllerException(Context.ErrorCodes.Security.MUST_BE_ADMIN);
+            });
+        }
+
+        [HttpPost]
+        [RequiresAdmin]
+        [Route("users")]
+        public UserDTO CreateUser([FromBody] UserWithPasswordDTO user)
+        {
+            return MethodPattern(() => Context.UserBusiness.CreateUser(user));
+        }
+
+        [HttpPut]
+        [Route("users")]
+        public UserDTO EditUser([FromBody] UserWithPasswordDTO user)
+        {
+            return MethodPattern(() =>
+            {
+                if (Context.User.isAdmin || user.user.userId == Context.User.userId)
+                    return Context.UserBusiness.EditUser(user);
+                throw new ControllerException(Context.ErrorCodes.Security.MUST_BE_ADMIN);
+            });
+        }
+
+        [HttpDelete]
+        [RequiresAdmin]
+        [Produces<object>]
+        [Route("users/{userId:int}")]
+        public void DeleteUser(int userId)
+        {
+            MethodPattern(() => Context.UserBusiness.DeleteUser(userId));
+        }
+
+        [HttpPost]
+        [Route("users/profile")]
+        public UserDTO UpdateProfile([FromBody] UpdateProfileRequestDTO userProfile)
+        {
+            return MethodPattern(() =>
+            {
+                Context.UserBusiness.UpdateUserProfile(Context.User.userId, userProfile.localeCode);
+                return Context.UserBusiness.GetUser(Context.User.userId);
+            });
+        }
     }
 }

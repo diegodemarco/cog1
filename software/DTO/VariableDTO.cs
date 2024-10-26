@@ -39,6 +39,6 @@ namespace cog1.DTO
         /// of the hardware of the controller, and therefore they cannot
         /// be deleted. Other restrictions may apply.
         /// </summary>
-        public bool isBuiltIn { get; set; }
+        public bool isBuiltIn { get; set; } = false;
     }
 }

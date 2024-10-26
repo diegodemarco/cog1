@@ -1,5 +1,4 @@
-﻿using cog1.Dao;
-using cog1.DTO;
+﻿using cog1.DTO;
 using cog1.Entities;
 using cog1.Exceptions;
 using cog1.Hardware;
@@ -26,6 +25,86 @@ namespace cog1.Business
 
         #endregion
 
+        #region Basic entities
+
+        public List<VariableTypeDTO> EnumerateVariableTypes()
+        {
+            return Enum.GetValues<VariableType>()
+                .Where(item => item != VariableType.Unknown)
+                .Select(item =>
+                    new VariableTypeDTO()
+                    {
+                        variableType = item,
+                        description = GetVariableTypeDescription(item)
+                    }
+                )
+                .ToList();
+        }
+
+        private string GetVariableTypeDescription(VariableType vt)
+        {
+            switch (vt)
+            {
+                case VariableType.Unknown:
+                    return "Unknown";
+                case VariableType.Integer:
+                    return Context.Literals.Variables.Integer;
+                case VariableType.FloatingPoint:
+                    return Context.Literals.Variables.FLoatingPoint;
+                case VariableType.Binary:
+                    return Context.Literals.Variables.Binary;
+                default:
+                    return $"Unknown variable type \"{vt.ToString()}\"";
+            }
+        }
+
+        private bool IsValidVariableType(VariableType vt)
+        {
+            return Enum.GetValues<VariableType>()
+                .Where(item => item != VariableType.Unknown)
+                .ToList()
+                .Contains(vt);
+        }
+
+        public List<VariableDirectionDTO> EnumerateVariableDirections()
+        {
+            return Enum.GetValues<VariableDirection>()
+                .Where(item => item != VariableDirection.Unknown)
+                .Select(item =>
+                    new VariableDirectionDTO()
+                    {
+                        variableDirection = item,
+                        description = GetVariableDirectionDescription(item)
+                    }
+                )
+                .ToList();
+        }
+
+        private string GetVariableDirectionDescription(VariableDirection vd)
+        {
+            switch (vd)
+            {
+                case VariableDirection.Unknown:
+                    return "Unknown";
+                case VariableDirection.Input:
+                    return Context.Literals.Variables.Input;
+                case VariableDirection.Output:
+                    return Context.Literals.Variables.Output;
+                default:
+                    return $"Unknown variable direction \"{vd.ToString()}\"";
+            }
+        }
+
+        private bool IsValidVariableDirection(VariableDirection vd)
+        {
+            return Enum.GetValues<VariableDirection>()
+                .Where(item => item != VariableDirection.Unknown)
+                .ToList()
+                .Contains(vd);
+        }
+
+        #endregion
+
         #region CRUD
 
         public bool TryGetVariable(int VariableId, out VariableDTO Variable)
@@ -38,13 +117,54 @@ namespace cog1.Business
         {
             var result = Context.VariableDao.GetVariable(VariableId);
             if (result == null)
-                throw new ControllerException(Context.ErrorCodes.Variable.INVALID_VARIABLE_ID);
+                throw new ControllerException(Context.ErrorCodes.Variables.INVALID_VARIABLE_ID);
             return result;
         }
 
         public List<VariableDTO> EnumerateVariables()
         {
             return Context.VariableDao.EnumerateVariables();
+        }
+
+        public VariableDTO GetVariableByCode(string variableCode)
+        {
+            var result = Context.VariableDao.GetVariableByCode(variableCode);
+            if (result == null)
+                throw new ControllerException(Context.ErrorCodes.Variables.INVALID_VARIABLE_CODE);
+            return result;
+        }
+
+        private void ValidateVariable(VariableDTO v)
+        {
+            // Validations
+            if (string.IsNullOrWhiteSpace(v.description))
+                throw new ControllerException(Context.ErrorCodes.General.INVALID_MANDATORY_DATA(Context.Literals.Common.Description));
+            if (!IsValidVariableType(v.type))
+                throw new ControllerException(Context.ErrorCodes.General.INVALID_MANDATORY_DATA(Context.Literals.Variables.VariableType));
+            if (!IsValidVariableDirection(v.direction))
+                throw new ControllerException(Context.ErrorCodes.General.INVALID_MANDATORY_DATA(Context.Literals.Variables.VariableDirection));
+        }
+
+        public VariableDTO CreateVariable(VariableDTO v)
+        {
+            v.variableId = 0;
+            ValidateVariable(v);
+            return Context.VariableDao.CreateVariable(v);
+        }
+
+        public VariableDTO EditVariable(VariableDTO v)
+        {
+            // Make sure variable exists, and validate data
+            GetVariable(v.variableId);
+            ValidateVariable(v);
+            return Context.VariableDao.EditVariable(v);
+        }
+
+        public void DeleteVariable(int variableId)
+        {
+            // Make sure variable exists
+            GetVariable(variableId);
+            Context.VariableDao.DeleteVariable(variableId);
         }
 
         #endregion
@@ -91,7 +211,7 @@ namespace cog1.Business
             var result = GetVariableValues()
             .FirstOrDefault(item => item.variableId == variableId);
             if (result == null)
-                throw new ControllerException(Context.ErrorCodes.Variable.INVALID_VARIABLE_ID);
+                throw new ControllerException(Context.ErrorCodes.Variables.INVALID_VARIABLE_ID);
             return result;
         }
 
@@ -101,7 +221,7 @@ namespace cog1.Business
             if (v.isBuiltIn)
             {
                 if (v.direction != VariableDirection.Output)
-                    throw new ControllerException(Context.ErrorCodes.Variable.VARIABLE_NOT_WRITABLE);
+                    throw new ControllerException(Context.ErrorCodes.Variables.VARIABLE_NOT_WRITABLE);
                 switch (variableId)
                 {
                     case 13:
@@ -117,12 +237,12 @@ namespace cog1.Business
                         IOManager.SetDigitalOutput(4, value != 0);
                         break;
                     default:
-                        throw new ControllerException(Context.ErrorCodes.Variable.VARIABLE_NOT_WRITABLE);
+                        throw new ControllerException(Context.ErrorCodes.Variables.VARIABLE_NOT_WRITABLE);
                 }
             }
             else
             {
-                throw new ControllerException(Context.ErrorCodes.Variable.VARIABLE_NOT_WRITABLE);
+                throw new ControllerException(Context.ErrorCodes.Variables.VARIABLE_NOT_WRITABLE);
             }
         }
 

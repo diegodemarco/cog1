@@ -20,6 +20,14 @@ Additional configuration via ssh
   - type "passwd", then your new password (for instance "cog1pass"), and then type it again to verify.
 - Disable user "orangepi"
   - type "usermod -L -e 1 orangepi"
+  - Change tty1 so that it does not use the orangepi user. To do this, edit file "/lib/systemd/system/getty@.service.d/override.conf":
+    - type "vi /lib/systemd/system/getty@.service.d/override.conf"
+    - change "orangepi" to "root"
+	- save and quit
+  - Change the serial terminal so that it does not use the orangepi user. To do this, edit file "/lib/systemd/system/serial-getty@.service.d/override.conf"
+    - type "vi /lib/systemd/system/serial-getty@.service.d/override.conf"
+    - change "orangepi" to "root"
+	- save and quit
 - Apply the latest updates to the OS:
   - type "apt-get update". This will look for updates for all installed software packages. Wait for the process to finish. 
   - type "apt-get upgrade" to apply whatever updates were found.
@@ -40,6 +48,8 @@ Additional configuration via ssh
   - Choose "Save"
   - When asked to reboot, choose "Reboot" so that the changes are applied.
 - Wait for the reboot, and reconnect via ssh.
+- Remove user "orangepi", which we disabled before.
+  - type "userdel orangepi"
 - Mount the cog1-dev folder again.
   - type "cd ~/cog1-dev" 
   - type "./run.sh" to run the cog1 application manually and to check everything is fine.

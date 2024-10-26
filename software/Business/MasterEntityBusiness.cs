@@ -1,5 +1,7 @@
-﻿using cog1.Literals;
+﻿using cog1.DTO;
+using cog1.Literals;
 using Microsoft.Extensions.Logging;
+using System.Collections.Generic;
 
 namespace cog1.Business
 {
@@ -16,11 +18,33 @@ namespace cog1.Business
 
         #region Locales
 
+        public List<LocaleDTO> EnumerateLocales()
+        {
+            return new List<LocaleDTO>
+            {
+                new ()
+                {
+                    localeCode = Locales.English.LocaleCode,
+                    description = "English",
+                },
+                new ()
+                {
+                    localeCode = Locales.Spanish.LocaleCode,
+                    description = "Español",
+                },
+                new ()
+                {
+                    localeCode = Locales.Portuguese.LocaleCode,
+                    description = "Português",
+                }
+            };
+        }
+
         public string GetLocaleFromBrowser()
         {
             if (Context.HttpContext != null)
             {
-                Logger.LogInformation("HttpContext is not null");
+                // Logger.LogInformation("HttpContext is not null");
                 var request = Context.HttpContext.Request;
                 if (request != null)
                 {
@@ -42,12 +66,12 @@ namespace cog1.Business
                 }
                 else
                 {
-                    Logger.LogInformation("Context.HttpContext.Request is null");
+                    // Logger.LogInformation("Context.HttpContext.Request is null");
                 }
             }
             else
             {
-                Logger.LogInformation("HttpContext is null");
+                // Logger.LogInformation("HttpContext is null");
             }
 
             // No match. Return default language.

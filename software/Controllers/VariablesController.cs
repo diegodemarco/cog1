@@ -1,7 +1,9 @@
 ﻿using cog1.Business;
 using cog1.DTO;
 using cog1.Exceptions;
+using cog1.Middleware;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
@@ -33,6 +35,48 @@ namespace cog1.Controllers
         }
 
         [HttpGet]
+        [Route("{variableId:int}")]
+        public VariableDTO GetVariablebyId(int variableId)
+        {
+            return MethodPattern(() =>
+            {
+                return Context.VariableBusiness.GetVariable(variableId);
+            });
+        }
+
+        [HttpPost]
+        [RequiresAdmin]
+        public VariableDTO CreateVariable([FromBody] VariableDTO v)
+        {
+            return MethodPattern(() =>
+            {
+                return Context.VariableBusiness.CreateVariable(v);
+            });
+        }
+
+        [HttpPut]
+        [RequiresAdmin]
+        public VariableDTO EditVariable([FromBody] VariableDTO v)
+        {
+            return MethodPattern(() =>
+            {
+                return Context.VariableBusiness.EditVariable(v);
+            });
+        }
+
+        [HttpDelete]
+        [RequiresAdmin]
+        [Route("{variableId:int}")]
+        [Produces<object>]
+        public void DeleteVariable(int variableId)
+        {
+            MethodPattern(() =>
+            {
+                Context.VariableBusiness.DeleteVariable(variableId);
+            });
+        }
+
+        [HttpGet]
         [Route("values")]
         public List<VariableValueDTO> GetVariableValues()
         {
@@ -52,6 +96,7 @@ namespace cog1.Controllers
         }
 
         [HttpPost]
+        [RequiresOperator]
         [Route("values/{variableId}")]
         public VariableValueDTO SetVariableValue(int variableId, [FromBody] double value)
         {
