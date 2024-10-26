@@ -222,23 +222,8 @@ namespace cog1.Business
             {
                 if (v.direction != VariableDirection.Output)
                     throw new ControllerException(Context.ErrorCodes.Variables.VARIABLE_NOT_WRITABLE);
-                switch (variableId)
-                {
-                    case 13:
-                        IOManager.SetDigitalOutput(1, value != 0);
-                        break;
-                    case 14:
-                        IOManager.SetDigitalOutput(2, value != 0);
-                        break;
-                    case 15:
-                        IOManager.SetDigitalOutput(3, value != 0);
-                        break;
-                    case 16:
-                        IOManager.SetDigitalOutput(4, value != 0);
-                        break;
-                    default:
-                        throw new ControllerException(Context.ErrorCodes.Variables.VARIABLE_NOT_WRITABLE);
-                }
+                if (!IOManager.SetVariableValue(variableId, value))
+                    throw new ControllerException(Context.ErrorCodes.Variables.VARIABLE_NOT_WRITABLE);
             }
             else
             {

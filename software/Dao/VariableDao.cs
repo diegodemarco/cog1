@@ -7,6 +7,7 @@ using cog1.Entities;
 using Microsoft.Extensions.Logging;
 using System;
 using cog1.Exceptions;
+using cog1.Hardware;
 
 namespace cog1.Dao
 {
@@ -29,22 +30,38 @@ namespace cog1.Dao
         {
             return new List<VariableDTO>()
             {
-                new VariableDTO() { variableId =  1, description = "Digital input 1", type = VariableType.Binary, direction = VariableDirection.Input },
-                new VariableDTO() { variableId =  2, description = "Digital input 2", type = VariableType.Binary, direction = VariableDirection.Input },
-                new VariableDTO() { variableId =  3, description = "Digital input 3", type = VariableType.Binary, direction = VariableDirection.Input },
-                new VariableDTO() { variableId =  4, description = "Digital input 4", type = VariableType.Binary, direction = VariableDirection.Input },
-                new VariableDTO() { variableId =  5, description = "Analog voltage input 1", type = VariableType.FloatingPoint, direction = VariableDirection.Input, units = "V"},
-                new VariableDTO() { variableId =  6, description = "Analog voltage input 2", type = VariableType.FloatingPoint, direction = VariableDirection.Input, units = "V"},
-                new VariableDTO() { variableId =  7, description = "Analog voltage input 3", type = VariableType.FloatingPoint, direction = VariableDirection.Input, units = "V"},
-                new VariableDTO() { variableId =  8, description = "Analog voltage input 4", type = VariableType.FloatingPoint, direction = VariableDirection.Input, units = "V"},
-                new VariableDTO() { variableId =  9, description = "Analog current input 1", type = VariableType.FloatingPoint, direction = VariableDirection.Input, units = "mA"},
-                new VariableDTO() { variableId = 10, description = "Analog current input 2", type = VariableType.FloatingPoint, direction = VariableDirection.Input, units = "mA"},
-                new VariableDTO() { variableId = 11, description = "Analog current input 3", type = VariableType.FloatingPoint, direction = VariableDirection.Input, units = "mA"},
-                new VariableDTO() { variableId = 12, description = "Analog current input 4", type = VariableType.FloatingPoint, direction = VariableDirection.Input, units = "mA"},
-                new VariableDTO() { variableId = 13, description = "Digital output 1", type = VariableType.Binary, direction = VariableDirection.Output },
-                new VariableDTO() { variableId = 14, description = "Digital output 2", type = VariableType.Binary, direction = VariableDirection.Output },
-                new VariableDTO() { variableId = 15, description = "Digital output 3", type = VariableType.Binary, direction = VariableDirection.Output },
-                new VariableDTO() { variableId = 16, description = "Digital output 4", type = VariableType.Binary, direction = VariableDirection.Output },
+                new VariableDTO() { variableId = IOManager.DI1_VARIABLE_ID, description = "Digital input 1", 
+                    type = VariableType.Binary, direction = VariableDirection.Input },
+                new VariableDTO() { variableId = IOManager.DI2_VARIABLE_ID, description = "Digital input 2", 
+                    type = VariableType.Binary, direction = VariableDirection.Input },
+                new VariableDTO() { variableId = IOManager.DI3_VARIABLE_ID, description = "Digital input 3", 
+                    type = VariableType.Binary, direction = VariableDirection.Input },
+                new VariableDTO() { variableId = IOManager.DI4_VARIABLE_ID, description = "Digital input 4", 
+                    type = VariableType.Binary, direction = VariableDirection.Input },
+                new VariableDTO() { variableId = IOManager.AV1_VARIABLE_ID, description = "Analog voltage input 1", 
+                    type = VariableType.FloatingPoint, direction = VariableDirection.Input, units = "V"},
+                new VariableDTO() { variableId = IOManager.AV2_VARIABLE_ID, description = "Analog voltage input 2", 
+                    type = VariableType.FloatingPoint, direction = VariableDirection.Input, units = "V"},
+                new VariableDTO() { variableId = IOManager.AV3_VARIABLE_ID, description = "Analog voltage input 3", 
+                    type = VariableType.FloatingPoint, direction = VariableDirection.Input, units = "V"},
+                new VariableDTO() { variableId = IOManager.AV4_VARIABLE_ID, description = "Analog voltage input 4", 
+                    type = VariableType.FloatingPoint, direction = VariableDirection.Input, units = "V"},
+                new VariableDTO() { variableId = IOManager.AC1_VARIABLE_ID, description = "Analog current input 1", 
+                    type = VariableType.FloatingPoint, direction = VariableDirection.Input, units = "mA"},
+                new VariableDTO() { variableId = IOManager.AC2_VARIABLE_ID, description = "Analog current input 2", 
+                    type = VariableType.FloatingPoint, direction = VariableDirection.Input, units = "mA"},
+                new VariableDTO() { variableId = IOManager.AC3_VARIABLE_ID, description = "Analog current input 3", 
+                    type = VariableType.FloatingPoint, direction = VariableDirection.Input, units = "mA"},
+                new VariableDTO() { variableId = IOManager.AC4_VARIABLE_ID, description = "Analog current input 4", 
+                    type = VariableType.FloatingPoint, direction = VariableDirection.Input, units = "mA"},
+                new VariableDTO() { variableId = IOManager.DO1_VARIABLE_ID, description = "Digital output 1", 
+                    type = VariableType.Binary, direction = VariableDirection.Output },
+                new VariableDTO() { variableId = IOManager.DO2_VARIABLE_ID, description = "Digital output 2", 
+                    type = VariableType.Binary, direction = VariableDirection.Output },
+                new VariableDTO() { variableId = IOManager.DO3_VARIABLE_ID, description = "Digital output 3", 
+                    type = VariableType.Binary, direction = VariableDirection.Output },
+                new VariableDTO() { variableId = IOManager.DO4_VARIABLE_ID, description = "Digital output 4", 
+                    type = VariableType.Binary, direction = VariableDirection.Output },
             };
         }
 

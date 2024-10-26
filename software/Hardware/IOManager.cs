@@ -1,10 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading;
-using System.Threading.Tasks;
 using cog1.Display.Menu;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
+using cog1.DTO;
+using Newtonsoft.Json;
 
 namespace cog1.Hardware
 {
@@ -26,6 +27,29 @@ namespace cog1.Hardware
     public static partial class IOManager
     {
         private static object _lock = new object();
+        private static string VARIABLE_VALUES_FILE = Path.Combine(Global.DataDirectory, "variable_values.json");
+        private static new Dictionary<int, VariableValueDTO> variableValues = new();
+
+        // Digital inputs
+        public const int DI1_VARIABLE_ID = 1;
+        public const int DI2_VARIABLE_ID = 2;
+        public const int DI3_VARIABLE_ID = 3;
+        public const int DI4_VARIABLE_ID = 4;
+
+        public const int AV1_VARIABLE_ID = 5;
+        public const int AV2_VARIABLE_ID = 6;
+        public const int AV3_VARIABLE_ID = 7;
+        public const int AV4_VARIABLE_ID = 8;
+
+        public const int AC1_VARIABLE_ID = 9;
+        public const int AC2_VARIABLE_ID = 10;
+        public const int AC3_VARIABLE_ID = 11;
+        public const int AC4_VARIABLE_ID = 12;
+
+        public const int DO1_VARIABLE_ID = 13;
+        public const int DO2_VARIABLE_ID = 14;
+        public const int DO3_VARIABLE_ID = 15;
+        public const int DO4_VARIABLE_ID = 16;
 
         #region Init & deinit
 
@@ -33,6 +57,9 @@ namespace cog1.Hardware
         {
             if (active)
                 return true;
+
+            // Load variable values from disk
+            DeserializeVariableValues();
 
             if (Global.IsDevelopment)
             {
@@ -76,6 +103,14 @@ namespace cog1.Hardware
                 }
             }
 
+            // Update digital outputs based on their last status
+            double? value;
+            _output_shadow[0] = GetVariableValue(DO1_VARIABLE_ID, out value, out _) && value != null && value != 0;
+            _output_shadow[1] = GetVariableValue(DO2_VARIABLE_ID, out value, out _) && value != null && value != 0;
+            _output_shadow[2] = GetVariableValue(DO3_VARIABLE_ID, out value, out _) && value != null && value != 0;
+            _output_shadow[3] = GetVariableValue(DO4_VARIABLE_ID, out value, out _) && value != null && value != 0;
+            InternalUpdateDigitalOutputs();
+
             // Initial hardware reads
             AnalogRead();
 
@@ -116,6 +151,45 @@ namespace cog1.Hardware
                         Console.WriteLine("iolib.so deinit successful");
                     }
                 }
+            }
+        }
+
+        private static bool GetVariableValue(int variable_id, out double? value, out DateTime? lastUpdateUtc)
+        {
+            lock (_lock)
+            {
+                if (variableValues.TryGetValue(variable_id, out var entry))
+                {
+                    value = entry.value;
+                    lastUpdateUtc = entry.lastUpdateUtc;
+                    return true;
+                }
+                value = null;
+                lastUpdateUtc = null;
+                return false;
+            }
+        }
+
+        private static void DeserializeVariableValues()
+        {
+            lock (_lock)
+            {
+                if (File.Exists(VARIABLE_VALUES_FILE))
+                {
+                    variableValues = JsonConvert.DeserializeObject<Dictionary<int, VariableValueDTO>>(File.ReadAllText(VARIABLE_VALUES_FILE));
+                }
+                else
+                {
+                    variableValues = new();
+                }
+            }
+        }
+
+        private static void SerializeVariableValues()
+        {
+            lock (_lock)
+            {
+                File.WriteAllText(VARIABLE_VALUES_FILE, JsonConvert.SerializeObject(variableValues));
             }
         }
 
@@ -275,13 +349,10 @@ namespace cog1.Hardware
             }
         }
 
-        public static bool SetDigitalOutput(int output_number, bool value)
+        private static bool InternalUpdateDigitalOutputs()
         {
-            if (output_number < 1 || output_number > _output_shadow.Length)
-                return false;
             lock (_lock)
             {
-                _output_shadow[output_number - 1] = value;
                 int bitmap = 0;
                 if (_output_shadow[0]) bitmap += 0b00000001;
                 if (_output_shadow[1]) bitmap += 0b10000010;
@@ -290,6 +361,40 @@ namespace cog1.Hardware
                 ioLib.do_control(bitmap);
             }
             return true;
+        }
+
+        public static bool SetVariableValue(int variableId, double value)
+        {
+            lock (_lock)
+            {
+                switch (variableId)
+                {
+                    case DO1_VARIABLE_ID:
+                        _output_shadow[0] = (value != 0);
+                        InternalUpdateDigitalOutputs();
+                        break;
+                    case DO2_VARIABLE_ID:
+                        _output_shadow[1] = (value != 0);
+                        InternalUpdateDigitalOutputs();
+                        break;
+                    case DO3_VARIABLE_ID:
+                        _output_shadow[2] = (value != 0);
+                        InternalUpdateDigitalOutputs();
+                        break;
+                    case DO4_VARIABLE_ID:
+                        _output_shadow[3] = (value != 0);
+                        InternalUpdateDigitalOutputs();
+                        break;
+                }
+                variableValues[variableId] = new VariableValueDTO()
+                {
+                    variableId = variableId,
+                    value = value,
+                    lastUpdateUtc = DateTime.UtcNow
+                };
+                SerializeVariableValues();
+                return true;
+            }
         }
 
         #endregion

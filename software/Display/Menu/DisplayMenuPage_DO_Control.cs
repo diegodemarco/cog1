@@ -47,7 +47,7 @@ namespace cog1.Display.Menu
             {
                 IOManager.ReadDO(out var do1, out var do2, out var do3, out var do4);
                 var doArr = new bool[] { do1, do2, do3, do4 };
-                IOManager.SetDigitalOutput(selected, !doArr[selected - 1]);
+                IOManager.SetVariableValue(selected + IOManager.DO1_VARIABLE_ID - 1, doArr[selected - 1] ? 0 : 1);
                 Update();
                 return DisplayMenuAction.None;
             }
