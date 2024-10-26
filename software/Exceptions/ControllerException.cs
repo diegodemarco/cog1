@@ -12,32 +12,20 @@ namespace cog1.Exceptions
 
         public class JsonControllerException
         {
-            public string Message { get; set; }
-            public string ClassName { get; set; }
-            public string FaultCode { get; set; }
-            public string FaultData { get; set; }
-        }
-
-        public static JsonControllerException ToJson(ErrorCode e, string extraData)
-        {
-            GetExceptionFields(e, extraData, out string className, out string message, out string faultCode, out string faultData);
-            return new JsonControllerException()
-            {
-                ClassName = className,
-                Message = message,
-                FaultCode = faultCode,
-                FaultData = faultData
-            };
+            public string message { get; set; }
+            public string className { get; set; }
+            public string faultCode { get; set; }
+            public string faultData { get; set; }
         }
 
         public JsonControllerException ToJson()
         {
             return new JsonControllerException()
             {
-                ClassName = ClassName,
-                Message = Message,
-                FaultCode = FaultCode,
-                FaultData = FaultData
+                className = ClassName,
+                message = Message,
+                faultCode = FaultCode,
+                faultData = FaultData
             };
         }
 

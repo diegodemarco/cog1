@@ -16,7 +16,7 @@ import { WidgetsDropdownComponent } from '../widgets/widgets-dropdown/widgets-dr
 import { BasicEntitiesService } from '../../services/basic-entities.service';
 import { ViewStatusService } from '../../services/view-status.service';
 import { BackendService } from '../../services/backend.service';
-import { LiteralsContainerDTO, VariableDTO } from '../../api-client/data-contracts';
+import { JsonControllerException, LiteralsContainerDTO, VariableDTO } from '../../api-client/data-contracts';
 
 import { VariableEditModalComponent } from './modals/variable-edit-modal.component';
 import { IconSubset } from 'src/app/icons/icon-subset';
@@ -90,8 +90,8 @@ export class VariablesComponent
             this.doUpdateData();
           })
           .catch(error => {
-            console.log(error);
-            this.viewStatus.showErrorToast(error.error.Message);
+            let e: JsonControllerException = error.error;
+            this.viewStatus.showErrorToast(e.message!);
           });
         })
       .catch(() => { });

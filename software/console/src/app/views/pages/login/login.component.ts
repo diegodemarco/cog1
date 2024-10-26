@@ -10,7 +10,7 @@ import { AuthService } from '../../../services/auth.service';
 import { FormsModule } from '@angular/forms';
 import { BasicEntitiesService } from 'src/app/services/basic-entities.service';
 import { Router } from '@angular/router';
-import { LiteralsContainerDTO } from 'src/app/api-client/data-contracts';
+import { JsonControllerException, LiteralsContainerDTO } from 'src/app/api-client/data-contracts';
 import { ViewStatusService } from 'src/app/services/view-status.service';
 
 @Component({
@@ -58,7 +58,8 @@ export class LoginComponent {
     })
     .catch(error =>
     {
-      this.alertMessage = error.error.Message;
+      let e: JsonControllerException = error.error;
+      this.alertMessage = e.message!;
       this.alertVisible = true;
     });
   }

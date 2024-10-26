@@ -6,7 +6,7 @@ import { RowComponent, ColComponent, TextColorDirective, CardComponent, CardHead
          ButtonDirective, FormSelectDirective, ButtonCloseDirective, ModalBodyComponent,
          ModalComponent, ModalFooterComponent, ModalHeaderComponent, ModalTitleDirective,
          ModalToggleDirective, PopoverDirective, ThemeDirective, TooltipDirective} from '@coreui/angular';
-import { LiteralsContainerDTO, LocaleDTO, UserDTO, UserWithPasswordDTO } from '../../../api-client/data-contracts';
+import { JsonControllerException, LiteralsContainerDTO, LocaleDTO, UserDTO, UserWithPasswordDTO } from '../../../api-client/data-contracts';
 import { BasicEntitiesService } from '../../../services/basic-entities.service';
 import { AuthService } from 'src/app/services/auth.service';
 import { ViewStatusService } from 'src/app/services/view-status.service';
@@ -125,7 +125,8 @@ export class UserEditModalComponent {
             }
         })
         .catch(error => {
-          this.viewState.showErrorToast(error.error.Message);
+          let e: JsonControllerException = error.error;
+          this.viewState.showErrorToast(e.message!);
         });
     }
     else {
@@ -139,7 +140,8 @@ export class UserEditModalComponent {
           }
         })
         .catch(error => {
-          this.viewState.showErrorToast(error.error.Message);
+          let e: JsonControllerException = error.error;
+          this.viewState.showErrorToast(e.message!);
         });
     }
   }

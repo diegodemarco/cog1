@@ -5,17 +5,17 @@ using System.Net;
 namespace cog1.Exceptions
 {
 
-    public class BaseErrorCodes
+    public class ErrorCodesContainer
     {
         protected string _LocaleCode;
 
-        public BaseErrorCodes(string localeCode)
+        public ErrorCodesContainer(string localeCode)
         {
             _LocaleCode = localeCode;
         }
     }
 
-    public class GeneralErrorCodes : BaseErrorCodes         // Range 100,000 - 100,999
+    public class GeneralErrorCodes : ErrorCodesContainer         // Range 100,000 - 100,999
     {
         public GeneralErrorCodes(string localeCode) : base(localeCode) { }
 
@@ -82,7 +82,7 @@ namespace cog1.Exceptions
                 ), HttpStatusCode.BadRequest);
     }
 
-    public class UsersErrorCodes : BaseErrorCodes                // Range 1000 - 1999
+    public class UsersErrorCodes : ErrorCodesContainer                // Range 1000 - 1999
     {
         public UsersErrorCodes(string localeCode) : base(localeCode) { }
 
@@ -117,7 +117,7 @@ namespace cog1.Exceptions
             => new ErrorCode(1014, _LocaleCode, new Literals.ErrorCodes.User.PASSWORD_RESET_EXPIRED_OR_INVALID_TOKEN());
     }
 
-    public class SecurityErrorCodes : BaseErrorCodes                // Range 1000 - 1999
+    public class SecurityErrorCodes : ErrorCodesContainer                // Range 1000 - 1999
     {
         public SecurityErrorCodes(string localeCode) : base(localeCode) { }
 
@@ -129,7 +129,7 @@ namespace cog1.Exceptions
             => new ErrorCode(1002, _LocaleCode, new Literals.ErrorCodes.Security.MUST_BE_OPERATOR(), HttpStatusCode.Unauthorized);
     }
 
-    public class VariablesErrorCodes : BaseErrorCodes                // Range 2000-2999
+    public class VariablesErrorCodes : ErrorCodesContainer                // Range 2000-2999
     {
         public VariablesErrorCodes(string localeCode) : base(localeCode) { }
 

@@ -9,7 +9,7 @@
  * ---------------------------------------------------------------
  */
 
-import { SystemStatsReport } from "./data-contracts";
+import { JsonControllerException, SystemStatsReport } from "./data-contracts";
 import { HttpClient, RequestParams } from "./http-client";
 
 export class System<SecurityDataType = unknown> extends HttpClient<SecurityDataType> {
@@ -21,7 +21,7 @@ export class System<SecurityDataType = unknown> extends HttpClient<SecurityDataT
    * @request GET:/api/system/stats
    */
   getSystemStats = (params: RequestParams = {}) =>
-    this.request<SystemStatsReport, any>({
+    this.request<SystemStatsReport, JsonControllerException>({
       path: `/api/system/stats`,
       method: "GET",
       format: "json",
@@ -35,7 +35,7 @@ export class System<SecurityDataType = unknown> extends HttpClient<SecurityDataT
    * @request GET:/api/system/stats/cpu/history-5min
    */
   getCpuHistory5Min = (params: RequestParams = {}) =>
-    this.request<number[], any>({
+    this.request<number[], JsonControllerException>({
       path: `/api/system/stats/cpu/history-5min`,
       method: "GET",
       format: "json",
@@ -49,7 +49,7 @@ export class System<SecurityDataType = unknown> extends HttpClient<SecurityDataT
    * @request GET:/api/system/ping
    */
   ping = (params: RequestParams = {}) =>
-    this.request<string, any>({
+    this.request<string, JsonControllerException>({
       path: `/api/system/ping`,
       method: "GET",
       format: "json",

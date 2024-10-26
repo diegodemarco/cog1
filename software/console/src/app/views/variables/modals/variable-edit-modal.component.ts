@@ -5,7 +5,7 @@ import { RowComponent, ColComponent, TextColorDirective, CardComponent, CardHead
          ButtonDirective, FormSelectDirective, ButtonCloseDirective, ModalBodyComponent,
          ModalComponent, ModalFooterComponent, ModalHeaderComponent, ModalTitleDirective,
          ModalToggleDirective, PopoverDirective, ThemeDirective, TooltipDirective } from '@coreui/angular';
-import { LiteralsContainerDTO, VariableDirection, VariableDirectionDTO, VariableDTO, VariableType,
+import { JsonControllerException, LiteralsContainerDTO, VariableDirection, VariableDirectionDTO, VariableDTO, VariableType,
          VariableTypeDTO } from '../../../api-client/data-contracts';
 import { BackendService } from '../../../services/backend.service';
 import { BasicEntitiesService } from '../../../services/basic-entities.service';
@@ -104,7 +104,8 @@ export class VariableEditModalComponent {
           }
         })
         .catch(error => {
-          this.viewStatus.showErrorToast(error.error.Message);
+          let e: JsonControllerException = error.error;
+          this.viewStatus.showErrorToast(e.message!);
         });
     }
     else {
@@ -118,7 +119,8 @@ export class VariableEditModalComponent {
           }
         })
         .catch(error => {
-          this.viewStatus.showErrorToast(error.error.Message);
+          let e: JsonControllerException = error.error;
+          this.viewStatus.showErrorToast(e.message!);
         });
     }
   }

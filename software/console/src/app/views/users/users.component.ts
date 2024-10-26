@@ -6,7 +6,7 @@ import { IconDirective } from '@coreui/icons-angular';
 import { BasicEntitiesService } from '../../services/basic-entities.service';
 import { ViewStatusService } from '../../services/view-status.service';
 import { BackendService } from '../../services/backend.service';
-import { LiteralsContainerDTO, UserDTO } from '../../api-client/data-contracts';
+import { JsonControllerException, LiteralsContainerDTO, UserDTO } from '../../api-client/data-contracts';
 import { CrudPageComponent } from '../../shared/crud-page/crud-page.component';
 import { UserEditModalComponent } from './modals/user-edit-modal.component';
 import { Utils } from 'src/app/utils';
@@ -79,7 +79,8 @@ export class DashboardComponent
           })
       })
       .catch(error => {
-        this.viewStatus.showErrorToast(error.error.Message);
+        let e: JsonControllerException = error.error;
+        this.viewStatus.showErrorToast(e.message!);
       });
   }
 

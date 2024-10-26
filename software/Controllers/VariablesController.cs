@@ -67,7 +67,6 @@ namespace cog1.Controllers
         [HttpDelete]
         [RequiresAdmin]
         [Route("{variableId:int}")]
-        [Produces<object>]
         public void DeleteVariable(int variableId)
         {
             MethodPattern(() =>

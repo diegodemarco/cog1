@@ -103,7 +103,6 @@ namespace cog1.Controllers
 
         [HttpDelete]
         [RequiresAdmin]
-        [Produces<object>]
         [Route("users/{userId:int}")]
         public void DeleteUser(int userId)
         {

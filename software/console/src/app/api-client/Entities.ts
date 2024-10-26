@@ -9,7 +9,7 @@
  * ---------------------------------------------------------------
  */
 
-import { BasicEntitiesContainerDTO, LiteralsContainerDTO } from "./data-contracts";
+import { BasicEntitiesContainerDTO, JsonControllerException } from "./data-contracts";
 import { HttpClient, RequestParams } from "./http-client";
 
 export class Entities<SecurityDataType = unknown> extends HttpClient<SecurityDataType> {
@@ -21,22 +21,8 @@ export class Entities<SecurityDataType = unknown> extends HttpClient<SecurityDat
    * @request GET:/api/entities/basic
    */
   getBasicEntities = (params: RequestParams = {}) =>
-    this.request<BasicEntitiesContainerDTO, any>({
+    this.request<BasicEntitiesContainerDTO, JsonControllerException>({
       path: `/api/entities/basic`,
-      method: "GET",
-      format: "json",
-      ...params,
-    });
-  /**
-   * No description
-   *
-   * @tags Entities
-   * @name getLiterals
-   * @request GET:/api/entities/basic/literals
-   */
-  getLiterals = (params: RequestParams = {}) =>
-    this.request<LiteralsContainerDTO, any>({
-      path: `/api/entities/basic/literals`,
       method: "GET",
       format: "json",
       ...params,
@@ -49,7 +35,7 @@ export class Entities<SecurityDataType = unknown> extends HttpClient<SecurityDat
    * @request GET:/api/entities/ping
    */
   entitiesPingList = (params: RequestParams = {}) =>
-    this.request<string, any>({
+    this.request<string, JsonControllerException>({
       path: `/api/entities/ping`,
       method: "GET",
       format: "json",

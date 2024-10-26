@@ -11,6 +11,7 @@
 
 import {
   AccessTokenInfoDTO,
+  JsonControllerException,
   LoginRequestDTO,
   LoginResponseDTO,
   UpdateProfileRequestDTO,
@@ -28,7 +29,7 @@ export class Security<SecurityDataType = unknown> extends HttpClient<SecurityDat
    * @request POST:/api/security/login
    */
   login = (data: LoginRequestDTO, params: RequestParams = {}) =>
-    this.request<LoginResponseDTO, any>({
+    this.request<LoginResponseDTO, JsonControllerException>({
       path: `/api/security/login`,
       method: "POST",
       body: data,
@@ -44,7 +45,7 @@ export class Security<SecurityDataType = unknown> extends HttpClient<SecurityDat
    * @request GET:/api/security/access-token
    */
   getAccessTokenInfo = (params: RequestParams = {}) =>
-    this.request<AccessTokenInfoDTO, any>({
+    this.request<AccessTokenInfoDTO, JsonControllerException>({
       path: `/api/security/access-token`,
       method: "GET",
       format: "json",
@@ -58,7 +59,7 @@ export class Security<SecurityDataType = unknown> extends HttpClient<SecurityDat
    * @request GET:/api/security/users
    */
   enumerateUsers = (params: RequestParams = {}) =>
-    this.request<UserDTO[], any>({
+    this.request<UserDTO[], JsonControllerException>({
       path: `/api/security/users`,
       method: "GET",
       format: "json",
@@ -72,7 +73,7 @@ export class Security<SecurityDataType = unknown> extends HttpClient<SecurityDat
    * @request POST:/api/security/users
    */
   createUser = (data: UserWithPasswordDTO, params: RequestParams = {}) =>
-    this.request<UserDTO, any>({
+    this.request<UserDTO, JsonControllerException>({
       path: `/api/security/users`,
       method: "POST",
       body: data,
@@ -88,7 +89,7 @@ export class Security<SecurityDataType = unknown> extends HttpClient<SecurityDat
    * @request PUT:/api/security/users
    */
   editUser = (data: UserWithPasswordDTO, params: RequestParams = {}) =>
-    this.request<UserDTO, any>({
+    this.request<UserDTO, JsonControllerException>({
       path: `/api/security/users`,
       method: "PUT",
       body: data,
@@ -104,7 +105,7 @@ export class Security<SecurityDataType = unknown> extends HttpClient<SecurityDat
    * @request GET:/api/security/users/{userId}
    */
   getUser = (userId: number, params: RequestParams = {}) =>
-    this.request<UserDTO, any>({
+    this.request<UserDTO, JsonControllerException>({
       path: `/api/security/users/${userId}`,
       method: "GET",
       format: "json",
@@ -118,7 +119,7 @@ export class Security<SecurityDataType = unknown> extends HttpClient<SecurityDat
    * @request DELETE:/api/security/users/{userId}
    */
   deleteUser = (userId: number, params: RequestParams = {}) =>
-    this.request<any, any>({
+    this.request<any, JsonControllerException>({
       path: `/api/security/users/${userId}`,
       method: "DELETE",
       format: "json",
@@ -132,7 +133,7 @@ export class Security<SecurityDataType = unknown> extends HttpClient<SecurityDat
    * @request POST:/api/security/users/profile
    */
   updateUserProfile = (data: UpdateProfileRequestDTO, params: RequestParams = {}) =>
-    this.request<UserDTO, any>({
+    this.request<UserDTO, JsonControllerException>({
       path: `/api/security/users/profile`,
       method: "POST",
       body: data,
@@ -148,7 +149,7 @@ export class Security<SecurityDataType = unknown> extends HttpClient<SecurityDat
    * @request GET:/api/security/ping
    */
   ping = (params: RequestParams = {}) =>
-    this.request<string, any>({
+    this.request<string, JsonControllerException>({
       path: `/api/security/ping`,
       method: "GET",
       format: "json",

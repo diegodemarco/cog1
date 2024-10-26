@@ -235,6 +235,13 @@ export interface DiskReport {
   freePercentage?: number;
 }
 
+export interface JsonControllerException {
+  message?: string | null;
+  className?: string | null;
+  faultCode?: string | null;
+  faultData?: string | null;
+}
+
 export interface LiteralsContainerDTO {
   common?: CommonLiteralsContainer;
   dashboard?: DashboardLiteralsContainer;

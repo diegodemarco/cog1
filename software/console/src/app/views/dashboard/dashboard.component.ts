@@ -30,7 +30,7 @@ import { BasicEntitiesService } from 'src/app/services/basic-entities.service';
 import { ViewStatusService } from 'src/app/services/view-status.service';
 import { BackendService } from 'src/app/services/backend.service';
 import { DeepPartial } from 'chart.js/dist/types/utils';
-import { VariableType, VariableDTO, VariableDirection, LiteralsContainerDTO } from 'src/app/api-client/data-contracts';
+import { VariableType, VariableDTO, VariableDirection, LiteralsContainerDTO, JsonControllerException } from 'src/app/api-client/data-contracts';
 import { IconSubset } from 'src/app/icons/icon-subset';
 import { Subscription, timer } from 'rxjs';
 import { ProfileModalComponent } from 'src/app/modals/profile/profile-modal.component';
@@ -366,7 +366,8 @@ export class DashboardComponent implements OnInit
       })
       .catch(error => {
         console.log(error);
-        this.viewStatus.showErrorToast(error.error.Message);
+        let e: JsonControllerException = error.error;
+        this.viewStatus.showErrorToast(e.message!);
       });
   }
 
