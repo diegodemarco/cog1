@@ -20,7 +20,7 @@ namespace cog1.BackgroundServices
     /// <param name="scopeFactory">
     /// Scope factory used to create new scopes as needed,
     /// mostly to instantiate contexts to work on startup fixes and periodic
-    /// housekeeping tasks>
+    /// housekeeping tasks
     /// </param>
     public class HousekeepingService(ILogger<HousekeepingService> logger, IServiceScopeFactory scopeFactory) : BackgroundService
     {

@@ -91,12 +91,19 @@ export class DefaultLayoutComponent implements AfterViewInit
       },
       {
         name: this.literals.variables!.variables!,
-        url: '/variables',
+        url: '',
         iconComponent: { name: IconSubset.cilGraph },
+        children: [
+          {
+            name: this.literals.variables!.variables!,
+            url: '/variables',
+            iconComponent: { name: IconSubset.cilGraph },
+          }
+        ]
       },
       {
         name: this.literals.security!.security!,
-        url: '/security',
+        url: '',
         iconComponent: { name: IconSubset.cilLockLocked },
         children: [
           {

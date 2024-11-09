@@ -48,16 +48,22 @@ namespace cog1.Literals
             public override string ES => "Tipo";
         }
 
+        public class VariableSource : LiteralConstant
+        {
+            public override string EN => "Source";
+            public override string ES => "Origen";
+        }
+
         public class VariableId : LiteralConstant
         {
             public override string EN => "ID";
             public override string ES => "ID";
         }
 
-        public class VariableDirection : LiteralConstant
+        public class VariableAccessType : LiteralConstant
         {
-            public override string EN => "Direction";
-            public override string ES => "Dirección";
+            public override string EN => "Access type";
+            public override string ES => "Tipo de acceso";
         }
 
         public class VariableCode : LiteralConstant
@@ -70,6 +76,12 @@ namespace cog1.Literals
         {
             public override string EN => "Units";
             public override string ES => "Unidades";
+        }
+
+        public class Pollnterval : LiteralConstant
+        {
+            public override string EN => "Refresh interval";
+            public override string ES => "Intervalo de refresco";
         }
 
         public class Binary : LiteralConstant
@@ -90,16 +102,22 @@ namespace cog1.Literals
             public override string ES => "Punto flotante";
         }
 
-        public class Input : LiteralConstant
+        public class Readonly : LiteralConstant
         {
-            public override string EN => "Input";
-            public override string ES => "Entrada";
+            public override string EN => "Read only";
+            public override string ES => "Sólo lectura";
         }
 
-        public class Output : LiteralConstant
+        public class ReadWrite : LiteralConstant
         {
-            public override string EN => "Output";
-            public override string ES => "Salida";
+            public override string EN => "Read/write";
+            public override string ES => "Lectura/escritura";
+        }
+
+        public class ReadWriteAction : LiteralConstant
+        {
+            public override string EN => "Read/write with action";
+            public override string ES => "Lectura/escritura con acción";
         }
 
         public class NoVariablesToDisplay: LiteralConstant
@@ -124,6 +142,30 @@ namespace cog1.Literals
         {
             public override string EN => "The variable has been deleted";
             public override string ES => "La variable ha sido eliminada";
+        }
+
+        public class BuiltIn : LiteralConstant
+        {
+            public override string EN => "Built-in";
+            public override string ES => "Incorporada";
+        }
+
+        public class Calculated  : LiteralConstant
+        {
+            public override string EN => "Calculated";
+            public override string ES => "Calculada";
+        }
+
+        public class Modbus : LiteralConstant
+        {
+            public override string EN => "Modbus";
+            public override string ES => "Modbus";
+        }
+
+        public class External : LiteralConstant
+        {
+            public override string EN => "External";
+            public override string ES => "Externa";
         }
 
     }

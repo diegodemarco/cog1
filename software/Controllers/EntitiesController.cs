@@ -30,7 +30,10 @@ namespace cog1.Controllers
                     literals = Context.Literals,
                     locales = Context.MasterEntityBusiness.EnumerateLocales(),
                     variableTypes = Context.VariableBusiness.EnumerateVariableTypes(),
-                    variableDirections = Context.VariableBusiness.EnumerateVariableDirections(),
+                    variableAccessTypes = Context.VariableBusiness.EnumerateVariableAccessTypes(),
+                    variableSources = Context.VariableBusiness.EnumerateVariableSources(),
+                    modbusRegisterTypes = Context.VariableBusiness.EnumerateModbusRegisterTypes(),
+                    modbusDataTypes = Context.VariableBusiness.EnumerateModbusDataTypes(),
                 };
             });
         }

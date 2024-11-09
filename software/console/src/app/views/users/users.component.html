@@ -1,5 +1,5 @@
 <app-user-edit-modal />
-<app-crud-page (onNewItem)="doNewUser()" (onUpdateData)="doUpdateData()" [newItemLiteral]="literals.security!.newUser">
+<app-crud-page (onNewItem)="doNewUser()" (onUpdateData)="doUpdateData()" [newItemLiteral]="newItemLiteral">
     @for (u of users; track u.userId)
     {
         <c-card>

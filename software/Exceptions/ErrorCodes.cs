@@ -82,20 +82,32 @@ namespace cog1.Exceptions
                 ), HttpStatusCode.BadRequest);
     }
 
-    public class UsersErrorCodes : ErrorCodesContainer                // Range 1000 - 1999
+    public class SecurityErrorCodes : ErrorCodesContainer                // Range 1000 - 1999
+    {
+        public SecurityErrorCodes(string localeCode) : base(localeCode) { }
+
+        public ErrorCode INVALID_ACCESS_TOKEN
+            => new ErrorCode(1000, _LocaleCode, new Literals.ErrorCodes.Security.INVALID_ACCESS_TOKEN(), HttpStatusCode.Unauthorized);
+        public ErrorCode MUST_BE_ADMIN
+            => new ErrorCode(1001, _LocaleCode, new Literals.ErrorCodes.Security.MUST_BE_ADMIN(), HttpStatusCode.Unauthorized);
+        public ErrorCode MUST_BE_OPERATOR
+            => new ErrorCode(1002, _LocaleCode, new Literals.ErrorCodes.Security.MUST_BE_OPERATOR(), HttpStatusCode.Unauthorized);
+    }
+
+    public class UsersErrorCodes : ErrorCodesContainer                // Range 2000 - 2999
     {
         public UsersErrorCodes(string localeCode) : base(localeCode) { }
 
         public ErrorCode DUPLICATE_USERNAME
-            => new ErrorCode(1000, _LocaleCode, new Literals.ErrorCodes.User.DUPLICATE_USERNAME(), HttpStatusCode.Conflict);
+            => new ErrorCode(2000, _LocaleCode, new Literals.ErrorCodes.User.DUPLICATE_USERNAME(), HttpStatusCode.Conflict);
         public ErrorCode INVALID_LOGIN_DETAILS
-            => new ErrorCode(1001, _LocaleCode, new Literals.ErrorCodes.User.INVALID_LOGIN_DETAILS(), HttpStatusCode.Unauthorized);
+            => new ErrorCode(2001, _LocaleCode, new Literals.ErrorCodes.User.INVALID_LOGIN_DETAILS(), HttpStatusCode.Unauthorized);
         public ErrorCode UNKNOWN_USER_ID
-            => new ErrorCode(1002, _LocaleCode, new Literals.ErrorCodes.User.UNKNOWN_USER_ID(), HttpStatusCode.NotFound);
+            => new ErrorCode(2002, _LocaleCode, new Literals.ErrorCodes.User.UNKNOWN_USER_ID(), HttpStatusCode.NotFound);
         public ErrorCode UNKNOWN_USER_NAME
-            => new ErrorCode(1003, _LocaleCode, new Literals.ErrorCodes.User.UNKNOWN_USER_NAME(), HttpStatusCode.NotFound);
+            => new ErrorCode(2003, _LocaleCode, new Literals.ErrorCodes.User.UNKNOWN_USER_NAME(), HttpStatusCode.NotFound);
         public ErrorCode CANNOT_DELETE_USER
-            => new ErrorCode(1004, _LocaleCode, new Literals.ErrorCodes.User.CANNOT_DELETE_USER(), HttpStatusCode.BadRequest);
+            => new ErrorCode(2004, _LocaleCode, new Literals.ErrorCodes.User.CANNOT_DELETE_USER(), HttpStatusCode.BadRequest);
         public ErrorCode INVALID_PASSWORD(int minLength, bool useLowerCase, bool useUpperCase, bool useNumbers, bool useSymbols)
         {
             var msg = new Literals.ErrorCodes.User.INVALID_PASSWORD().ExtractLiteral(_LocaleCode);
@@ -109,38 +121,39 @@ namespace cog1.Exceptions
                 msg += Environment.NewLine + "- " + new Literals.ErrorCodes.User.PASSWORD_NUMBERS_REQUIRED().ExtractLiteral(_LocaleCode);
             if (useSymbols)
                 msg += Environment.NewLine + "- " + new Literals.ErrorCodes.User.PASSWORD_SYMBOLS_REQUIRED().ExtractLiteral(_LocaleCode);
-            return new ErrorCode(1006, msg, HttpStatusCode.BadRequest);
+            return new ErrorCode(2006, msg, HttpStatusCode.BadRequest);
         }
         public ErrorCode NEW_PASSWORD_NOT_CHANGED
-            => new ErrorCode(1009, _LocaleCode, new Literals.ErrorCodes.User.NEW_PASSWORD_NOT_CHANGED(), HttpStatusCode.BadRequest);
+            => new ErrorCode(2009, _LocaleCode, new Literals.ErrorCodes.User.NEW_PASSWORD_NOT_CHANGED(), HttpStatusCode.BadRequest);
         public ErrorCode PASSWORD_RESET_EXPIRED_OR_INVALID_TOKEN
-            => new ErrorCode(1014, _LocaleCode, new Literals.ErrorCodes.User.PASSWORD_RESET_EXPIRED_OR_INVALID_TOKEN());
+            => new ErrorCode(2014, _LocaleCode, new Literals.ErrorCodes.User.PASSWORD_RESET_EXPIRED_OR_INVALID_TOKEN());
     }
 
-    public class SecurityErrorCodes : ErrorCodesContainer                // Range 1000 - 1999
-    {
-        public SecurityErrorCodes(string localeCode) : base(localeCode) { }
-
-        public ErrorCode INVALID_ACCESS_TOKEN
-            => new ErrorCode(1000, _LocaleCode, new Literals.ErrorCodes.Security.INVALID_ACCESS_TOKEN(), HttpStatusCode.Unauthorized);
-        public ErrorCode MUST_BE_ADMIN
-            => new ErrorCode(1001, _LocaleCode, new Literals.ErrorCodes.Security.MUST_BE_ADMIN(), HttpStatusCode.Unauthorized);
-        public ErrorCode MUST_BE_OPERATOR
-            => new ErrorCode(1002, _LocaleCode, new Literals.ErrorCodes.Security.MUST_BE_OPERATOR(), HttpStatusCode.Unauthorized);
-    }
-
-    public class VariablesErrorCodes : ErrorCodesContainer                // Range 2000-2999
+    public class VariablesErrorCodes : ErrorCodesContainer                // Range 3000-2999
     {
         public VariablesErrorCodes(string localeCode) : base(localeCode) { }
 
         public ErrorCode INVALID_VARIABLE_ID
-            => new ErrorCode(2000, _LocaleCode, new Literals.ErrorCodes.Variable.INVALID_VARIABLE_ID(), HttpStatusCode.NotFound);
+            => new ErrorCode(3000, _LocaleCode, new Literals.ErrorCodes.Variable.INVALID_VARIABLE_ID(), HttpStatusCode.NotFound);
         public ErrorCode VARIABLE_NOT_WRITABLE
-            => new ErrorCode(2001, _LocaleCode, new Literals.ErrorCodes.Variable.VARIABLE_NOT_WRITABLE(), HttpStatusCode.BadRequest);
+            => new ErrorCode(3001, _LocaleCode, new Literals.ErrorCodes.Variable.VARIABLE_NOT_WRITABLE(), HttpStatusCode.BadRequest);
         public ErrorCode INVALID_VARIABLE_CODE
-            => new ErrorCode(2002, _LocaleCode, new Literals.ErrorCodes.Variable.INVALID_VARIABLE_CODE(), HttpStatusCode.NotFound);
+            => new ErrorCode(3002, _LocaleCode, new Literals.ErrorCodes.Variable.INVALID_VARIABLE_CODE(), HttpStatusCode.NotFound);
         public ErrorCode DUPLICATE_VARIABLE_CODE
-            => new ErrorCode(2003, _LocaleCode, new Literals.ErrorCodes.Variable.DUPLICATE_VARIABLE_CODE(), HttpStatusCode.Conflict);
+            => new ErrorCode(3003, _LocaleCode, new Literals.ErrorCodes.Variable.DUPLICATE_VARIABLE_CODE(), HttpStatusCode.Conflict);
+    }
+
+    public class ModbusErrorCodes : ErrorCodesContainer                // Range 4000-4999
+    {
+        public ModbusErrorCodes(string localeCode) : base(localeCode) { }
+
+        public ErrorCode INVALID_REGISTER_ID
+            => new ErrorCode(4000, _LocaleCode, new Literals.ErrorCodes.Modbus.INVALID_REGISTER_ID(), HttpStatusCode.NotFound);
+        public ErrorCode INVALID_DATA_TYPE_FOR_REGISTER_TYPE
+            => new ErrorCode(4001, _LocaleCode, new Literals.ErrorCodes.Modbus.INVALID_DATA_TYPE_FOR_REGISTER_TYPE(), HttpStatusCode.NotFound);
+
+        public ErrorCode COULD_NOT_WRITE_REGISTER(string errorMessage)
+            => new ErrorCode(4002, new Literals.ErrorCodes.Modbus.COULD_NOT_WRITE_REGISTER().Format(_LocaleCode, errorMessage), HttpStatusCode.NotFound);
     }
 
     /// <summary>
@@ -160,6 +173,7 @@ namespace cog1.Exceptions
         public UsersErrorCodes Users { get => new UsersErrorCodes(localeCode); }
         public SecurityErrorCodes Security { get => new SecurityErrorCodes(localeCode); }
         public VariablesErrorCodes Variables { get => new VariablesErrorCodes(localeCode); }
+        public ModbusErrorCodes Modbus { get => new ModbusErrorCodes(localeCode); }
 
     }
 }

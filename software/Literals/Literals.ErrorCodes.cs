@@ -248,8 +248,7 @@
             public class VARIABLE_NOT_WRITABLE : LiteralConstant
             {
                 public override string EN => "The specified variable is not writable";
-                public override string ES => "ID de variable no válido";
-                public override string PT => "O ID da variável é inválido";
+                public override string ES => "No es posible escribir la variable indicada";
             }
 
             public class INVALID_VARIABLE_CODE : LiteralConstant
@@ -262,6 +261,28 @@
             {
                 public override string EN => "The specified variable code already exists";
                 public override string ES => "El código de variable especificado ya existe";
+            }
+
+        }
+
+        public static class Modbus
+        {
+            public class INVALID_REGISTER_ID : LiteralConstant
+            {
+                public override string EN => "The specified register ID is not valid";
+                public override string ES => "El ID de registro especificado no es válido";
+            }
+
+            public class INVALID_DATA_TYPE_FOR_REGISTER_TYPE : LiteralConstant
+            {
+                public override string EN => "The specified data type is not allowed for the given register type";
+                public override string ES => "El tipo de datos especificado no es válido para el tipo de registro indicado";
+            }
+
+            public class COULD_NOT_WRITE_REGISTER : LiteralConstant
+            {
+                public override string EN => "Could not write Modbus register: {0}";
+                public override string ES => "No se pudo escribir al registro Modbus: {0}";
             }
 
         }

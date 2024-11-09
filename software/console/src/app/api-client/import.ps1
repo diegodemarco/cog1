@@ -40,5 +40,5 @@ npx swagger-typescript-api -p http://192.168.1.220/swagger/current/swagger.json 
 (Get-Content Entities.ts) `
 	-replace "entitiesBasicList", "getBasicEntities" `
 	-replace "entitiesBasicLiteralsList", "getLiterals" `
-	-replace "literalsPingList", "ping" `
+	-replace "entitiesPingList", "ping" `
 	| Set-Content -Encoding utf8 -Path Entities.ts

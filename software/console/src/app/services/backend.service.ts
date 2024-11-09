@@ -22,10 +22,10 @@ export class BackendService
      }
   };
 
-  security: Security = new Security( this.apiConfig );
-  variables: Variables = new Variables( this.apiConfig );
-  system: System = new  System( this.apiConfig );
-  entities: Entities = new Entities( this.apiConfig );
+  public security: Security = new Security( this.apiConfig );
+  public variables: Variables = new Variables( this.apiConfig );
+  public system: System = new  System( this.apiConfig );
+  public entities: Entities = new Entities( this.apiConfig );
 
   constructor (private config: ConfigService) {}
 

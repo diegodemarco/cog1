@@ -55,5 +55,13 @@ Additional configuration via ssh
   - type "./run.sh" to run the cog1 application manually and to check everything is fine.
   - Stop by pressing ctrl+c
   - Type "./up.sh". This will install cog1 locally and start it as a service.
+- Optional: configure fsck to check the root file system on every boot.
+  - edit file "/boot/boot.cmd":
+    - type "vi /boot/boot.cmd"
+	- edit the line that starts with "setenv bootargs"
+	- at the end of that line, add the following: "fsck.mode=force fsck.repair=yes" (leave a space before this and whatever existed before).
+	- go to the end of the file, and you will see a comment that indicates the command to run in order to compile this file.
+	- for example, in my image, this command is "mkimage -C none -A arm -T script -d /boot/boot.cmd /boot/boot.scr"
+	- copy the command, save the file, quit, and run that command.
 - At this point, you can reboot by typing "reboot now". On the OLED display, you should see the cog1 logo, and then the screensaver with the current time.
 - That's it, you're good to go.

@@ -17,7 +17,10 @@ export interface BasicEntitiesContainerDTO {
   literals?: LiteralsContainerDTO;
   locales?: LocaleDTO[] | null;
   variableTypes?: VariableTypeDTO[] | null;
-  variableDirections?: VariableDirectionDTO[] | null;
+  variableAccessTypes?: VariableAccessTypeDTO[] | null;
+  variableSources?: VariableSourceDTO[] | null;
+  modbusRegisterTypes?: ModbusRegisterTypeDTO[] | null;
+  modbusDataTypes?: ModbusDataTypeDTO[] | null;
 }
 
 export interface CPUReport {
@@ -247,6 +250,7 @@ export interface LiteralsContainerDTO {
   dashboard?: DashboardLiteralsContainer;
   security?: SecurityLiteralsContainer;
   variables?: VariablesLiteralsContainer;
+  modbus?: ModbusLiteralsContainer;
   localeCode?: string | null;
 }
 
@@ -277,6 +281,70 @@ export interface MemoryReportDTO {
   freePercentage?: number;
   /** @format double */
   availablePercentage?: number;
+}
+
+/** @format int32 */
+export enum ModbusDataType {
+  Unknown = 0,
+  Boolean = 1,
+  UInt16 = 2,
+  UInt32 = 3,
+  Int16 = 4,
+  Int32 = 5,
+  Float32 = 6,
+}
+
+export interface ModbusDataTypeDTO {
+  modbusDataType?: ModbusDataType;
+  description?: string | null;
+}
+
+export interface ModbusLiteralsContainer {
+  coil?: string | null;
+  discreteInput?: string | null;
+  holdingRegister?: string | null;
+  inputRegister?: string | null;
+  dataTypeBoolean?: string | null;
+  tcpHost?: string | null;
+  slaveId?: string | null;
+  registerAddress?: string | null;
+  registerType?: string | null;
+  dataType?: string | null;
+  registers?: string | null;
+  newRegister?: string | null;
+  editRegister?: string | null;
+  deleteRegister?: string | null;
+  deleteRegisterConfirmation?: string | null;
+  registerCreated?: string | null;
+  registerUpdated?: string | null;
+  registerDeleted?: string | null;
+  noRegistersToDisplay?: string | null;
+  localeCode?: string | null;
+}
+
+export interface ModbusRegisterDTO {
+  description?: string | null;
+  tcpHost?: string | null;
+  /** @format int32 */
+  slaveId?: number;
+  /** @format int32 */
+  registerAddress?: number;
+  registerType?: ModbusRegisterType;
+  dataType?: ModbusDataType;
+}
+
+/** @format int32 */
+export enum ModbusRegisterType {
+  Unknown = 0,
+  Coil = 1,
+  DiscreteInput = 2,
+  HoldingRegister = 3,
+  InputRegister = 4,
+}
+
+export interface ModbusRegisterTypeDTO {
+  modbusRegisterType?: ModbusRegisterType;
+  description?: string | null;
 }
 
 export interface SecurityLiteralsContainer {
@@ -341,6 +409,19 @@ export interface UserWithPasswordDTO {
   password?: string | null;
 }
 
+/** @format int32 */
+export enum VariableAccessType {
+  Unknown = 0,
+  Readonly = 1,
+  ReadWrite = 2,
+  ReadWriteAction = 3,
+}
+
+export interface VariableAccessTypeDTO {
+  accessType?: VariableAccessType;
+  description?: string | null;
+}
+
 export interface VariableDTO {
   /** @format int32 */
   variableId?: number;
@@ -348,19 +429,24 @@ export interface VariableDTO {
   description?: string | null;
   units?: string | null;
   type?: VariableType;
-  direction?: VariableDirection;
-  isBuiltIn?: boolean;
+  accessType?: VariableAccessType;
+  source?: VariableSource;
+  /** @format int32 */
+  pollIntervalMs?: number;
+  modbusRegister?: ModbusRegisterDTO;
 }
 
 /** @format int32 */
-export enum VariableDirection {
+export enum VariableSource {
   Unknown = 0,
-  Input = 1,
-  Output = 2,
+  BuiltIn = 1,
+  Calculated = 2,
+  External = 3,
+  Modbus = 4,
 }
 
-export interface VariableDirectionDTO {
-  variableDirection?: VariableDirection;
+export interface VariableSourceDTO {
+  variableSource?: VariableSource;
   description?: string | null;
 }
 
@@ -395,18 +481,25 @@ export interface VariablesLiteralsContainer {
   deleteVariableConfirmation?: string | null;
   variableId?: string | null;
   variableType?: string | null;
-  variableDirection?: string | null;
+  variableSource?: string | null;
+  variableAccessType?: string | null;
   variableCode?: string | null;
   variableUnits?: string | null;
+  pollInterval?: string | null;
   binary?: string | null;
   integer?: string | null;
   fLoatingPoint?: string | null;
-  input?: string | null;
-  output?: string | null;
+  readonly?: string | null;
+  readWrite?: string | null;
+  readWriteAction?: string | null;
   noVariablesToDisplay?: string | null;
   variableCreated?: string | null;
   variableUpdated?: string | null;
   variableDeleted?: string | null;
+  builtIn?: string | null;
+  calculated?: string | null;
+  modbus?: string | null;
+  external?: string | null;
   localeCode?: string | null;
 }
 

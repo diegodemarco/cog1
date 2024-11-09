@@ -31,10 +31,10 @@ export class Entities<SecurityDataType = unknown> extends HttpClient<SecurityDat
    * No description
    *
    * @tags Entities
-   * @name EntitiesPingList
+   * @name ping
    * @request GET:/api/entities/ping
    */
-  entitiesPingList = (params: RequestParams = {}) =>
+  ping = (params: RequestParams = {}) =>
     this.request<string, JsonControllerException>({
       path: `/api/entities/ping`,
       method: "GET",

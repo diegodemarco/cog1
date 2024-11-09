@@ -6,39 +6,124 @@
     </c-modal-header>
     <c-modal-body>
 
-      @if (currentVariable.variableId!) {
-        <label for="variableId">{{literals.variables!.variableId}}</label>
-        <input cFormControl type="text" id="variableId" name="variableId" class="mb-3" [value]="currentVariable.variableId" disabled>
-      }
+      <c-tabs [(activeItemKey)]="activeTab" >
+        
+        <c-tabs-list variant="tabs">
+          <button cTab itemKey="var">{{literals.variables?.variable}}</button>
+          <button cTab itemKey="modbus" [disabled]="currentVariable.source != variableSource.Modbus">{{literals.variables?.modbus}}</button>
+        </c-tabs-list>
 
-      <label for="description">{{literals.common!.description}}</label>
-      <input cFormControl type="text" id="description" name="description" class="mb-3" [(ngModel)]="currentVariable.description">
+        <c-tabs-content>
+          <c-tab-panel class="p-3" itemKey="var">
+            @if (currentVariable.variableId!) {
+              <label for="variableId">{{literals.variables!.variableId}}</label>
+              <input cFormControl type="text" id="variableId" name="variableId" class="mb-3" [value]="currentVariable.variableId" disabled>
+            }
+  
+            <label for="description">{{literals.common!.description}}</label>
+            <input cFormControl type="text" id="description" name="description" class="mb-3" [(ngModel)]="currentVariable.description">
+  
+            <label for="variableCode">{{literals.variables!.variableCode}}</label>
+            <input cFormControl type="text" id="variableCode" name="variableCode" class="mb-3" [(ngModel)]="currentVariable.variableCode">
+  
+            <label for="variableSource">{{literals.variables!.variableSource}}</label>
+            <select cFormControl type="text" id="variableSource" name="variableSource" cSelect class="mb-3"
+              [(ngModel)]="currentVariable!.source"
+              [disabled]="currentVariable.variableId! > 0"
+              (ngModelChange)="updateEnabledFields()"
+              >
+              @for (vs of variableSources; track vs.variableSource)
+              {
+                <option [ngValue]="vs.variableSource">{{vs.description}}</option>
+              }
+            </select>
+  
+            <label for="variableType">{{literals.variables!.variableType}}</label>
+            <select cFormControl type="text" id="variableType" name="variableType" cSelect class="mb-3"
+              [(ngModel)]="currentVariable!.type"
+              [disabled]="currentVariable.variableId! > 0"
+              >
+              @for (d of variableTypes; track d.variableType) 
+              {
+                <option [ngValue]="d.variableType">{{d.description}}</option>
+              }
+            </select>
+  
+            <label for="accessType">{{literals.variables!.variableAccessType}}</label>
+            <select cFormControl type="text" id="accessType" name="accessType" cSelect class="mb-3"
+              [(ngModel)]="currentVariable!.accessType"
+              [disabled]="!accessTypeEnabled"
+              >
+              @for (at of variableAccessTypes; track at.accessType)
+              {
+                <option [ngValue]="at.accessType">{{at.description}}</option>
+              }
+            </select>
+  
+            <label for="pollInterval">{{literals.variables!.pollInterval}}</label>
+            <select cFormControl type="text" id="pollInterval" name="pollInterval" cSelect class="mb-3"
+              [(ngModel)]="currentVariable!.pollIntervalMs"
+              [disabled]="!pollIntervalEnabled"
+              >
+              <option [ngValue]="0">Auto</option>
+              <option [ngValue]="100">100 ms</option>
+              <option [ngValue]="500">500 ms</option>
+              <option [ngValue]="1000">1 s</option>
+              <option [ngValue]="2000">2 s</option>
+              <option [ngValue]="5000">5 s</option>
+              <option [ngValue]="15000">15 s</option>
+              <option [ngValue]="30000">30 s</option>
+              <option [ngValue]="60000">1 min</option>
+              <option [ngValue]="120000">2 min</option>
+              <option [ngValue]="300000">5 min</option>
+              <option [ngValue]="600000">10 min</option>
+            </select>
+          </c-tab-panel>
 
-      <label for="variableCode">{{literals.variables!.variableCode}}</label>
-      <input cFormControl type="text" id="variableCode" name="variableCode" class="mb-3" [(ngModel)]="currentVariable.variableCode">
+          <c-tab-panel class="p-3" itemKey="modbus">
+            <label for="tcpHost">{{literals.modbus!.tcpHost}}</label>
+            <input cFormControl type="text" id="tcpHost" name="tcpHost" class="mb-3" [(ngModel)]="currentVariable.modbusRegister!.tcpHost">
+      
+            <label for="slaveId">{{literals.modbus!.slaveId}}</label>
+            <select cFormControl type="text" id="slaveId" name="slaveId" cSelect class="mb-3"
+              [(ngModel)]="currentVariable!.modbusRegister!.slaveId"
+              >
+              @for (sid of slaveIds; track sid)
+              {
+                <option [ngValue]="sid">{{sid}}</option>
+              }
+            </select>
+      
+            <label for="registerAddress">{{literals.modbus!.registerAddress}}</label>
+            <input cFormControl type="number" id="registerAddress" name="registerAddress" class="mb-3" [(ngModel)]="currentVariable!.modbusRegister!.registerAddress">
+      
+            <label for="registerType">{{literals.modbus!.registerType}}</label>
+            <select cFormControl type="text" id="registerType" name="registerType" cSelect class="mb-3"
+              [(ngModel)]="currentVariable!.modbusRegister!.registerType"
+              (ngModelChange)="updateEnabledFields()"
+              >
+              @for (rt of modbusRegisterTypes; track rt.modbusRegisterType)
+              {
+                <option [ngValue]="rt.modbusRegisterType">{{rt.description}}</option>
+              }
+            </select>
+      
+            <label for="dataType">{{literals.modbus!.dataType}}</label>
+            <select cFormControl type="text" id="dataType" name="dataType" cSelect class="mb-3"
+              [(ngModel)]="currentVariable!.modbusRegister!.dataType"
+              >
+              @for (dt of modbusDataTypes; track dt.modbusDataType) 
+              {
+                <option [ngValue]="dt.modbusDataType">{{dt.description}}</option>
+              }
+            </select>
 
-      <label for="variableType">{{literals.variables!.variableType}}</label>
-      <select cFormControl type="text" id="variableType" name="variableType" cSelect class="mb-3"
-        [(ngModel)]="currentVariable!.type"
-        [disabled]="currentVariable.isBuiltIn!"
-        >
-        @for (d of variableTypes; track d.variableType) 
-        {
-          <option [value]="d.variableType">{{d.description}}</option>
-        }
-      </select>
+          </c-tab-panel>
 
-      <label for="variableDirection">{{literals.variables!.variableDirection}}</label>
-      <select cFormControl type="text" id="variableDirection" name="variableDirection" cSelect class="mb-3"
-        [(ngModel)]="currentVariable!.direction"
-        [disabled]="currentVariable.isBuiltIn!"
-        >
-        @for (d of variableDirections; track d.variableDirection) 
-        {
-          <option [value]="d.variableDirection">{{d.description}}</option>
-        }
+        </c-tabs-content>
 
-      </select>
+      </c-tabs>
+
     </c-modal-body>
     <c-modal-footer>
       <button type="submit" cButton color="primary">{{literals.common!.buttonOk}}</button>

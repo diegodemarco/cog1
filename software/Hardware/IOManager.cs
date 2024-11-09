@@ -1,10 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
+using System.Threading.Tasks;
 using cog1.Display.Menu;
 using cog1.DTO;
+using cog1.Entities;
 using Newtonsoft.Json;
 
 namespace cog1.Hardware
@@ -27,8 +30,11 @@ namespace cog1.Hardware
     public static partial class IOManager
     {
         private static object _lock = new object();
+        private static bool persistNeeded = false;
         private static string VARIABLE_VALUES_FILE = Path.Combine(Global.DataDirectory, "variable_values.json");
-        private static new Dictionary<int, VariableValueDTO> variableValues = new();
+        private static Dictionary<int, VariableValueDTO> variableValues = new();
+
+        #region Variable IDs
 
         // Digital inputs
         public const int DI1_VARIABLE_ID = 1;
@@ -50,6 +56,8 @@ namespace cog1.Hardware
         public const int DO2_VARIABLE_ID = 14;
         public const int DO3_VARIABLE_ID = 15;
         public const int DO4_VARIABLE_ID = 16;
+
+        #endregion
 
         #region Init & deinit
 
@@ -103,23 +111,31 @@ namespace cog1.Hardware
                 }
             }
 
-            // Update digital outputs based on their last status
-            double? value;
-            _output_shadow[0] = GetVariableValue(DO1_VARIABLE_ID, out value, out _) && value != null && value != 0;
-            _output_shadow[1] = GetVariableValue(DO2_VARIABLE_ID, out value, out _) && value != null && value != 0;
-            _output_shadow[2] = GetVariableValue(DO3_VARIABLE_ID, out value, out _) && value != null && value != 0;
-            _output_shadow[3] = GetVariableValue(DO4_VARIABLE_ID, out value, out _) && value != null && value != 0;
+            // Update digital outputs based on their startup configuration
+            UpdateOutputOnStartup(Config.DO1StartupType, DO1_VARIABLE_ID, ref _output_shadow[0]);
+            UpdateOutputOnStartup(Config.DO2StartupType, DO2_VARIABLE_ID, ref _output_shadow[1]);
+            UpdateOutputOnStartup(Config.DO3StartupType, DO3_VARIABLE_ID, ref _output_shadow[2]);
+            UpdateOutputOnStartup(Config.DO4StartupType, DO4_VARIABLE_ID, ref _output_shadow[3]);
             InternalUpdateDigitalOutputs();
 
-            // Initial hardware reads
+            // Update the state of digital inputs by forcing a read from the hardware
+            InternalUpdateDigitalInputs();
+
+            // Force an initial read of the ADC inputs
             AnalogRead();
 
-            // We're good
+            // Launch data persistence task
+            Task.Run(DataPersistTask);
+
+            // Done
             return true;
         }
 
         public static void Deinit()
         {
+            // Persist data before shutting down
+            PersistData();
+
             if (!Global.IsDevelopment)
             {
                 lock (_lock)
@@ -185,14 +201,6 @@ namespace cog1.Hardware
             }
         }
 
-        private static void SerializeVariableValues()
-        {
-            lock (_lock)
-            {
-                File.WriteAllText(VARIABLE_VALUES_FILE, JsonConvert.SerializeObject(variableValues));
-            }
-        }
-
         #endregion
 
         #region General properties
@@ -244,6 +252,8 @@ namespace cog1.Hardware
             [DllImport("cog1_io.so")]
             public static extern int adc_read(ref int c1, ref int c2, ref int c3, ref int c4, ref int c5, ref int c6, ref int c7, ref int c8);
             [DllImport("cog1_io.so")]
+            public static extern int di_read(ref int bitmap);
+            [DllImport("cog1_io.so")]
             public static extern int display_init();
             [DllImport("cog1_io.so")]
             public static extern void display_clear();
@@ -278,14 +288,46 @@ namespace cog1.Hardware
             {
                 lock (_lock)
                 {
-                    if ((eventBitmap & IO_EVENT_DI1_ACTIVE) != 0) _input_shadow[0] = true;
-                    if ((eventBitmap & IO_EVENT_DI1_INACTIVE) != 0) _input_shadow[0] = false;
-                    if ((eventBitmap & IO_EVENT_DI2_ACTIVE) != 0) _input_shadow[1] = true;
-                    if ((eventBitmap & IO_EVENT_DI2_INACTIVE) != 0) _input_shadow[1] = false;
-                    if ((eventBitmap & IO_EVENT_DI3_ACTIVE) != 0) _input_shadow[2] = true;
-                    if ((eventBitmap & IO_EVENT_DI3_INACTIVE) != 0) _input_shadow[2] = false;
-                    if ((eventBitmap & IO_EVENT_DI4_ACTIVE) != 0) _input_shadow[3] = true;
-                    if ((eventBitmap & IO_EVENT_DI4_INACTIVE) != 0) _input_shadow[3] = false;
+                    if ((eventBitmap & IO_EVENT_DI1_ACTIVE) != 0)
+                    {
+                        _input_shadow[0] = true;
+                        SetVariableValue(DI1_VARIABLE_ID, 1);
+                    }
+                    if ((eventBitmap & IO_EVENT_DI1_INACTIVE) != 0)
+                    {
+                        _input_shadow[0] = false;
+                        SetVariableValue(DI1_VARIABLE_ID, 0);
+                    }
+                    if ((eventBitmap & IO_EVENT_DI2_ACTIVE) != 0)
+                    {
+                        _input_shadow[1] = true;
+                        SetVariableValue(DI2_VARIABLE_ID, 1);
+                    }
+                    if ((eventBitmap & IO_EVENT_DI2_INACTIVE) != 0)
+                    {
+                        _input_shadow[1] = false;
+                        SetVariableValue(DI2_VARIABLE_ID, 0);
+                    }
+                    if ((eventBitmap & IO_EVENT_DI3_ACTIVE) != 0)
+                    {
+                        _input_shadow[2] = true;
+                        SetVariableValue(DI3_VARIABLE_ID, 1);
+                    }
+                    if ((eventBitmap & IO_EVENT_DI3_INACTIVE) != 0)
+                    {
+                        _input_shadow[2] = false;
+                        SetVariableValue(DI3_VARIABLE_ID, 0);
+                    }
+                    if ((eventBitmap & IO_EVENT_DI4_ACTIVE) != 0)
+                    {
+                        _input_shadow[3] = true;
+                        SetVariableValue(DI4_VARIABLE_ID, 1);
+                    }
+                    if ((eventBitmap & IO_EVENT_DI4_INACTIVE) != 0)
+                    {
+                        _input_shadow[3] = false;
+                        SetVariableValue(DI4_VARIABLE_ID, 0);
+                    }
                 }
             }
 
@@ -332,6 +374,33 @@ namespace cog1.Hardware
             }
         }
 
+        private static void InternalUpdateDigitalInputs()
+        {
+            if (Global.IsDevelopment)
+                return;
+
+            lock (_lock)
+            {
+                // Read inputs
+                int value = 0;
+                ioLib.di_read(ref value);
+
+                // Update shadow values
+                _input_shadow[0] = (value & 1) > 0;
+                _input_shadow[1] = (value & 2) > 0;
+                _input_shadow[2] = (value & 4) > 0;
+                _input_shadow[3] = (value & 8) > 0;
+
+                // Update the respective variables
+                EnsureVariableValue(DI1_VARIABLE_ID, _input_shadow[0] ? 1 : 0);
+                EnsureVariableValue(DI2_VARIABLE_ID, _input_shadow[1] ? 1 : 0);
+                EnsureVariableValue(DI3_VARIABLE_ID, _input_shadow[2] ? 1 : 0);
+                EnsureVariableValue(DI4_VARIABLE_ID, _input_shadow[3] ? 1 : 0);
+
+                Console.WriteLine($"Synchronized digital inputs to [{_input_shadow[0]}, {_input_shadow[1]}, {_input_shadow[2]}, {_input_shadow[3]}]");
+            }
+        }
+
         #endregion
 
         #region Digital outputs
@@ -349,8 +418,33 @@ namespace cog1.Hardware
             }
         }
 
-        private static bool InternalUpdateDigitalOutputs()
+        private static void UpdateOutputOnStartup(OutputStartupType startType, int variableId, ref bool shadowValue)
         {
+            switch (startType)
+            {
+                case OutputStartupType.On:
+                    // On
+                    shadowValue = true;
+                    break;
+
+                case OutputStartupType.Restore:
+                    // Restore
+                    shadowValue = GetVariableValue(variableId, out var value, out _) && value != null && value != 0;
+                    break;
+
+                default:
+                    // Off
+                    shadowValue = false;
+                    break;
+            }
+            EnsureVariableValue(variableId, shadowValue ? 1 : 0);
+        }
+
+        private static void InternalUpdateDigitalOutputs()
+        {
+            if (Global.IsDevelopment)
+                return;
+
             lock (_lock)
             {
                 int bitmap = 0;
@@ -359,41 +453,6 @@ namespace cog1.Hardware
                 if (_output_shadow[2]) bitmap += 0b10000100;
                 if (_output_shadow[3]) bitmap += 0b10001000;
                 ioLib.do_control(bitmap);
-            }
-            return true;
-        }
-
-        public static bool SetVariableValue(int variableId, double value)
-        {
-            lock (_lock)
-            {
-                switch (variableId)
-                {
-                    case DO1_VARIABLE_ID:
-                        _output_shadow[0] = (value != 0);
-                        InternalUpdateDigitalOutputs();
-                        break;
-                    case DO2_VARIABLE_ID:
-                        _output_shadow[1] = (value != 0);
-                        InternalUpdateDigitalOutputs();
-                        break;
-                    case DO3_VARIABLE_ID:
-                        _output_shadow[2] = (value != 0);
-                        InternalUpdateDigitalOutputs();
-                        break;
-                    case DO4_VARIABLE_ID:
-                        _output_shadow[3] = (value != 0);
-                        InternalUpdateDigitalOutputs();
-                        break;
-                }
-                variableValues[variableId] = new VariableValueDTO()
-                {
-                    variableId = variableId,
-                    value = value,
-                    lastUpdateUtc = DateTime.UtcNow
-                };
-                SerializeVariableValues();
-                return true;
             }
         }
 
@@ -505,6 +564,110 @@ namespace cog1.Hardware
             {
                 Thread.Sleep(1000);
                 AnalogRead();
+            }
+        }
+
+        #endregion
+
+        #region Variable values
+
+        public static bool SetVariableValue(int variableId, double value)
+        {
+            lock (_lock)
+            {
+                switch (variableId)
+                {
+                    case DO1_VARIABLE_ID:
+                        _output_shadow[0] = (value != 0);
+                        InternalUpdateDigitalOutputs();
+                        break;
+                    case DO2_VARIABLE_ID:
+                        _output_shadow[1] = (value != 0);
+                        InternalUpdateDigitalOutputs();
+                        break;
+                    case DO3_VARIABLE_ID:
+                        _output_shadow[2] = (value != 0);
+                        InternalUpdateDigitalOutputs();
+                        break;
+                    case DO4_VARIABLE_ID:
+                        _output_shadow[3] = (value != 0);
+                        InternalUpdateDigitalOutputs();
+                        break;
+                }
+                variableValues[variableId] = new VariableValueDTO()
+                {
+                    variableId = variableId,
+                    value = value,
+                    lastUpdateUtc = DateTime.UtcNow
+                };
+                PersistNeeded();
+                return true;
+            }
+        }
+
+        public static Dictionary<int, VariableValueDTO> GetVariableValues()
+        {
+            lock (_lock)
+            {
+                return variableValues.Values.ToDictionary(item => item.variableId);
+            }
+        }
+
+        private static double? GetVariableValue(int variableId)
+        {
+            lock (_lock)
+            {
+                if (variableValues.TryGetValue(variableId, out var v))
+                    return v.value;
+                return null;
+            }
+        }
+
+        private static void EnsureVariableValue(int variableId, double value)
+        {
+            if (GetVariableValue(variableId) != value)
+                SetVariableValue(variableId, value);
+        }
+
+        #endregion
+
+        #region Data persistence
+
+        private static void PersistNeeded()
+        {
+            lock (_lock)
+            {
+                persistNeeded = true;
+            }
+        }
+
+        private static void PersistData()
+        {
+            lock (_lock)
+            {
+                if (persistNeeded) 
+                {
+                    File.WriteAllText(VARIABLE_VALUES_FILE, JsonConvert.SerializeObject(variableValues));
+                    Console.WriteLine("Persisted variable data");
+                    persistNeeded = false;
+                }
+            }
+        }
+
+        private static void DataPersistTask()
+        {
+            for (; ; )
+            {
+                try
+                {
+                    Thread.Sleep(60000);        // Persist every 60 seconds
+                    PersistData();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("DataPersisTask error: ", ex.ToString());
+                    Thread.Sleep(1000);
+                }
             }
         }
 

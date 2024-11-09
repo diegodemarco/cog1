@@ -162,7 +162,7 @@
                 <c-col xs="2">
                   <c-row style="height:100%">
                     <c-col style="height:100%; display: flex; align-items: center; justify-content: right;">
-                      @if (v.type! == VariableType.Binary) 
+                      @if (v.type! == variableType.Binary) 
                       {
                         <div class="form-check form-switch">
                           <input 
@@ -172,13 +172,13 @@
                             [id]="'binSwitch_' + v.variableId?.toString()"
                             aria-label="Switch" 
                             [checked]="v.value" 
-                            [disabled]="(v.direction != VariableDirection.Output) || (!authService.isOperator)"
+                            [disabled]="(v.accessType == variableAccessType.Readonly) || (!authService.isOperator)"
                             (change)="setBinaryOutput(v.variableId!, (v.value == 0))">
                         </div>
                       }
-                      @if (v.type! == VariableType.Integer || v.type! == VariableType.FloatingPoint) 
+                      @if (v.type! == variableType.Integer || v.type! == variableType.FloatingPoint) 
                       {
-                        <span>{{v.value?.toFixed(v.type! == VariableType.Integer ? 0 : 2)}}</span>
+                        <span>{{v.value?.toFixed(v.type! == variableType.Integer ? 0 : 2)}}</span>
                         <span style="margin-left: 3px; margin-right: 8px;">{{v.units}}</span>
                       }
                     </c-col>

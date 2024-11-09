@@ -159,9 +159,9 @@ void *_di_poll_thread(void *args)
 			// Read events to reset the wait state of the respective lines
 			for (int i = 0; i < gpiod_line_bulk_num_lines(&event_lines); i++)
 				gpiod_line_event_read(gpiod_line_bulk_get_line(&event_lines, i), &dummy_event);
-			
+
 			int flags = 0;
-			
+
 			// Read pin values
 			if (gpiod_line_get_value_bulk(&_h_io_line_bulk_di, values) == 0)
 			{
@@ -169,7 +169,7 @@ void *_di_poll_thread(void *args)
 				if (values[0] != prev_a || values[1] != prev_b || values[2] != prev_sw) 
 				{
 					//printf("Encoder: A=%d, B=%d, SW=%d\n", values[0], values[1], values[2]);
-					
+
 					// Add ISR events if the knob was turned
 					if (values[0] && values[1])
 					{
@@ -194,7 +194,7 @@ void *_di_poll_thread(void *args)
 				if (values[3] != prev_di1 || values[4] != prev_di2 || values[5] != prev_di3 || values[6] != prev_di4)
 				{
 					//printf("DI: 1=%d, 2=%d, 3=%d, 4=%d\n", values[3], values[4], values[5], values[6]);
-					
+
 					if (values[3] != prev_di1)
 						flags |= (values[3] ? IO_EVENT_DI1_ACTIVE : IO_EVENT_DI1_INACTIVE);
 					if (values[4] != prev_di2)
@@ -203,7 +203,7 @@ void *_di_poll_thread(void *args)
 						flags |= (values[5] ? IO_EVENT_DI3_ACTIVE : IO_EVENT_DI3_INACTIVE);
 					if (values[6] != prev_di4)
 						flags |= (values[6] ? IO_EVENT_DI4_ACTIVE : IO_EVENT_DI4_INACTIVE);
-					
+
 					prev_di1 = values[3];
 					prev_di2 = values[4];
 					prev_di3 = values[5];
@@ -221,6 +221,21 @@ void *_di_poll_thread(void *args)
 			
 		}
 	}
+}
+
+int di_read(int *bitmap)
+{
+	*bitmap = 0;
+	int values[IRQ_PIN_COUNT];
+	if (gpiod_line_get_value_bulk(&_h_io_line_bulk_di, values) != 0)
+		return -1;
+
+	if (values[3]) *bitmap |= 1;
+	if (values[4]) *bitmap |= 2;
+	if (values[5]) *bitmap |= 4;
+	if (values[6]) *bitmap |= 8;
+
+	return true;
 }
 
 int _di_init()

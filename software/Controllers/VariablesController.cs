@@ -24,7 +24,7 @@ namespace cog1.Controllers
         }
 
         [HttpGet]
-        public List<VariableDTO> GetVariables()
+        public List<VariableDTO> EnumerateVariables()
         {
             return MethodPattern(() =>
             {
@@ -36,7 +36,7 @@ namespace cog1.Controllers
 
         [HttpGet]
         [Route("{variableId:int}")]
-        public VariableDTO GetVariablebyId(int variableId)
+        public VariableDTO GetVariableById(int variableId)
         {
             return MethodPattern(() =>
             {

@@ -1,48 +1,35 @@
-import { NgStyle } from '@angular/common';
-import { RouterLink } from '@angular/router';
-import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, ViewChild } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { ButtonDirective, ButtonGroupComponent, CardBodyComponent, CardComponent,
-  CardFooterComponent, CardHeaderComponent, ColComponent, DropdownComponent,
-  DropdownDividerDirective, DropdownHeaderDirective, DropdownItemDirective,
-  DropdownMenuDirective, DropdownToggleDirective, FormCheckLabelDirective,
-  FormControlDirective,
-  GutterDirective, ProgressBarDirective, ProgressComponent, RowComponent,
-  TableDirective, TextColorDirective } from '@coreui/angular';
+import { ButtonDirective, CardBodyComponent, CardComponent, ColComponent,
+         RowComponent, TextColorDirective } from '@coreui/angular';
 import { IconDirective } from '@coreui/icons-angular';
-import { WidgetsBrandComponent } from '../widgets/widgets-brand/widgets-brand.component';
-import { WidgetsDropdownComponent } from '../widgets/widgets-dropdown/widgets-dropdown.component';
-
 import { BasicEntitiesService } from '../../services/basic-entities.service';
 import { ViewStatusService } from '../../services/view-status.service';
 import { BackendService } from '../../services/backend.service';
-import { JsonControllerException, LiteralsContainerDTO, VariableDTO } from '../../api-client/data-contracts';
-
+import { JsonControllerException, LiteralsContainerDTO, VariableDTO, VariableSource } from '../../api-client/data-contracts';
 import { VariableEditModalComponent } from './modals/variable-edit-modal.component';
 import { IconSubset } from 'src/app/icons/icon-subset';
 import { CrudPageComponent } from '../../shared/crud-page/crud-page.component'
 import { Utils } from '../../utils';
 import { AuthService } from 'src/app/services/auth.service';
 
-
 @Component({
   templateUrl: 'variables.component.html',
   styleUrls: ['variables.component.scss'],
   standalone: true,
-  imports: [WidgetsDropdownComponent, TextColorDirective, CardComponent, CardBodyComponent, RowComponent,
-    ColComponent, ButtonDirective, IconDirective, ReactiveFormsModule, ButtonGroupComponent,
-    FormCheckLabelDirective, NgStyle, CardFooterComponent, GutterDirective,
-    ProgressBarDirective, ProgressComponent, WidgetsBrandComponent, CardHeaderComponent, TableDirective,
-    DropdownComponent, ButtonDirective, DropdownToggleDirective, DropdownMenuDirective,
-    DropdownHeaderDirective, DropdownItemDirective, RouterLink, DropdownDividerDirective,
-    FormControlDirective, VariableEditModalComponent, FormsModule, CrudPageComponent]
+  imports: [TextColorDirective, CardComponent, CardBodyComponent, RowComponent, ColComponent,
+    ButtonDirective, IconDirective, ReactiveFormsModule, ButtonDirective, 
+    VariableEditModalComponent, FormsModule, CrudPageComponent]
 })
 export class VariablesComponent
 {
   // Template data
   readonly iconSubset = IconSubset;
+  readonly variableSource = VariableSource;
   readonly literals: LiteralsContainerDTO;
   readonly authService: AuthService;
+  readonly newItemLiteral: string = '';
+  readonly basicEntitiesService: BasicEntitiesService;
 
   public variables: VariableDTO[] = [];
   @ViewChild(VariableEditModalComponent) editModal!: VariableEditModalComponent;
@@ -53,7 +40,10 @@ export class VariablesComponent
   {
     this.literals = basicEntitiesService.literals;
     this.authService = authService;
+    this.basicEntitiesService = basicEntitiesService;
     viewStatus.setTitle(this.literals.variables!.variables!);
+    if (authService.isAdmin)
+      this.newItemLiteral = this.literals.variables!.newVariable!
   }
 
   doNewVariable()

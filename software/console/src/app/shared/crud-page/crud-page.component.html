@@ -12,11 +12,17 @@
         }
         <c-row>
             <c-col>
-                <input cFormControl type="text" id="search" name="search" 
-                    [(ngModel)]="searchFilter"
-                    [placeholder]="literals.common?.filter + '...'"
-                    (keyup)="startSearchSub()"
-                >
+                <div style="width:100%; overflow: hidden">
+                    <input cFormControl type="text" id="search" name="search" 
+                        [(ngModel)]="searchFilter"
+                        [placeholder]="literals.common?.filter + '...'"
+                        (keyup)="startSearchSub()"
+                        style="display:inline; width:calc(100% - 40px);"
+                    >
+                    <button cButton color="secondary" class="mb-1" style="width:40px" (click)="doClearSearch()">
+                        <svg cIcon [name]="iconSubset.cilTrash" size="sm"></svg>
+                    </button> 
+                </div>
             </c-col>
         </c-row>
     </c-col>

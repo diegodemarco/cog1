@@ -75,4 +75,10 @@ export class CrudPageComponent implements OnInit, OnDestroy
     this.onNewItem.emit();
   }
 
+  doClearSearch()
+  {
+    this.searchFilter = "";
+    this.onUpdateData.emit();
+  }
+
 }

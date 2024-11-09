@@ -29,6 +29,7 @@ export class DashboardComponent
   readonly iconSubset = IconSubset;
   readonly basicEntitiesService: BasicEntitiesService;
   readonly authService: AuthService;
+  readonly newItemLiteral: string = '';
   @ViewChild(CrudPageComponent) crudPage!: CrudPageComponent;
   @ViewChild(UserEditModalComponent) editModal!: UserEditModalComponent;
 
@@ -42,6 +43,8 @@ export class DashboardComponent
     this.literals = basicEntitiesService.literals;
     this.authService = authService;
     viewStatus.setTitle(this.literals.security!.users!);
+    if (authService.isAdmin)
+      this.newItemLiteral = this.literals.security!.newUser!
   }
 
   doNewUser()

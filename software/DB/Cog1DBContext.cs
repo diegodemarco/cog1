@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.IO;
-using System.Threading;
 
 namespace Cog1.DB
 {
@@ -277,10 +276,16 @@ namespace Cog1.DB
                             description text not null,
                             variable_code text null,
                             variable_type integer not null,
-                            variable_direction integer not null,
+                            variable_source integer not null,
+                            access_type integer not null,
                             units text null,
-                            value real null,
-                            utc_last_updated text null
+                            poll_interval_ms integer not null,
+
+                            modbus_tcp_host text null,
+                            modbus_slave_id int null,
+                            modbus_register_type int null,
+                            modbus_register_address int null,
+                            modbus_data_type int null
                         );
                     ");
                     Console.WriteLine("Done");

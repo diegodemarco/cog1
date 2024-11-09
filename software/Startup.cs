@@ -15,7 +15,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Any;
-using Microsoft.OpenApi.Extensions;
 using Microsoft.OpenApi.Models;
 using Newtonsoft.Json;
 using Swashbuckle.AspNetCore.SwaggerGen;
@@ -89,6 +88,9 @@ namespace cog1
             services.AddHostedService<WiFiManager.WiFiMonitorService>();
             services.AddHostedService<DisplayMenu.MenuLoopService>();
             services.AddHostedService<HousekeepingService>();
+            services.AddHostedService<VariablePollingService>();
+            services.AddHostedService<ModbusService>();
+            services.AddHostedService<ModbusRtuService>();
 
             // Add API controllers
             services.AddControllers();

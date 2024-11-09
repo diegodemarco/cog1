@@ -6,6 +6,7 @@
         private DashboardLiteralsContainer dashboard;
         private SecurityLiteralsContainer security;
         private VariablesLiteralsContainer variables;
+        private ModbusLiteralsContainer modbus;
 
         public LiteralsContainerDTO() : base() 
         {
@@ -57,6 +58,17 @@
                 if (variables == null)
                     variables = new VariablesLiteralsContainer(LocaleCode);
                 return variables;
+            }
+            set { }
+        }
+
+        public ModbusLiteralsContainer Modbus
+        {
+            get
+            {
+                if (modbus == null)
+                    modbus = new ModbusLiteralsContainer(LocaleCode);
+                return modbus;
             }
             set { }
         }

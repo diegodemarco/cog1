@@ -4,8 +4,11 @@ import { RowComponent, ColComponent, TextColorDirective, CardComponent, CardHead
          CardBodyComponent, FormDirective, FormLabelDirective, FormControlDirective,
          ButtonDirective, FormSelectDirective, ButtonCloseDirective, ModalBodyComponent,
          ModalComponent, ModalFooterComponent, ModalHeaderComponent, ModalTitleDirective,
-         ModalToggleDirective, PopoverDirective, ThemeDirective, TooltipDirective } from '@coreui/angular';
-import { JsonControllerException, LiteralsContainerDTO, VariableDirection, VariableDirectionDTO, VariableDTO, VariableType,
+         ModalToggleDirective, PopoverDirective, ThemeDirective, TooltipDirective,
+         TabDirective, TabsComponent, TabsListComponent, TabsContentComponent,
+         TabPanelComponent} from '@coreui/angular';
+import { JsonControllerException, LiteralsContainerDTO, ModbusDataType, ModbusDataTypeDTO, ModbusRegisterType, ModbusRegisterTypeDTO,
+         VariableAccessType, VariableAccessTypeDTO, VariableDTO, VariableSource, VariableSourceDTO, VariableType,
          VariableTypeDTO } from '../../../api-client/data-contracts';
 import { BackendService } from '../../../services/backend.service';
 import { BasicEntitiesService } from '../../../services/basic-entities.service';
@@ -15,50 +18,70 @@ import { ViewStatusService } from '../../../services/view-status.service';
   selector: 'app-variable-edit-modal',
   standalone: true,
   imports: [
-    FormsModule, RowComponent, ColComponent, TextColorDirective, CardComponent, CardHeaderComponent,
-    CardBodyComponent, ModalComponent, ModalHeaderComponent, ModalTitleDirective, ThemeDirective,
-    ButtonCloseDirective, ModalBodyComponent, ModalFooterComponent, ButtonDirective, ModalToggleDirective,
-    PopoverDirective, TooltipDirective, FormDirective, FormLabelDirective, FormControlDirective,
-    FormSelectDirective
+    FormsModule, ModalComponent, ModalHeaderComponent, ModalTitleDirective, ThemeDirective,
+    ButtonCloseDirective, ModalBodyComponent, ModalFooterComponent, ButtonDirective,
+    FormDirective, FormControlDirective, FormSelectDirective, TabDirective, TabsComponent, 
+    TabsListComponent, TabsContentComponent, TabPanelComponent
   ],
   templateUrl: './variable-edit-modal.component.html',
   styleUrl: './variable-edit-modal.component.scss'
 })
 export class VariableEditModalComponent {
 
+  // Template data
+  readonly variableSource = VariableSource;
+  readonly literals: LiteralsContainerDTO;
+  readonly variableAccessTypes: VariableAccessTypeDTO[];
+  readonly variableTypes: VariableTypeDTO[];
+  readonly modbusRegisterTypes: ModbusRegisterTypeDTO[];
+  readonly modbusDataTypes: ModbusDataTypeDTO[];
+  readonly slaveIds: number[];
+  variableSources: VariableSourceDTO[];
   modalTitle: string = '';
+  activeTab: string = "var";
   visible: boolean = false;
+  currentVariable: VariableDTO = {};
+  pollIntervalEnabled: boolean = false;
+  accessTypeEnabled: boolean = false;
 
   private emptyVariable: VariableDTO =
   {
     variableId: 0,
     description: "",
     variableCode: "",
-    direction: VariableDirection.Input,
-    isBuiltIn: false,
+    accessType: VariableAccessType.Readonly,
+    pollIntervalMs: 60000,
+    source: VariableSource.External,
     type: VariableType.FloatingPoint,
-    units: ""
+    units: "",
+    modbusRegister: {
+      tcpHost: '',
+      slaveId: 1,
+      registerType: ModbusRegisterType.Coil,
+      dataType: ModbusDataType.Boolean,
+      registerAddress: 1
+    }
   };
 
   private promiseResolve?: () => void;
   private promiseReject?: () => void;
-
-  currentVariable: VariableDTO = {};
-
-  readonly literals: LiteralsContainerDTO;
-  readonly variableDirections: VariableDirectionDTO[];
-  readonly variableTypes: VariableTypeDTO[];
 
   @HostListener('window:keydown.escape')
   keyEvent() {
     if (this.visible) this.dismiss();
   }
 
-  constructor(private backend: BackendService, basicEntitiesService: BasicEntitiesService, private viewStatus: ViewStatusService
+  constructor(private backend: BackendService, private basicEntitiesService: BasicEntitiesService, 
+    private viewStatus: ViewStatusService
   ) {
     this.literals = basicEntitiesService.literals;
-    this.variableDirections = basicEntitiesService.variableDirections;
+    this.variableAccessTypes = basicEntitiesService.variableAccessTypes;
     this.variableTypes = basicEntitiesService.variableTypes;
+    this.modbusRegisterTypes = basicEntitiesService.modbusRegisterTypes;
+    this.modbusDataTypes = basicEntitiesService.modbusDataTypes;
+    this.variableSources = basicEntitiesService.variableSources;
+    this.slaveIds = [];
+    for (let i = 1; i <= 247; i++) this.slaveIds.push(i);
     Object.assign(this.currentVariable!, this.emptyVariable);
   }
 
@@ -66,12 +89,23 @@ export class VariableEditModalComponent {
   {
     if (v) {
       this.modalTitle = this.literals.variables!.editVariable!;
+      this.variableSources = this.basicEntitiesService.variableSources;
       Object.assign(this.currentVariable, v);
+      if (!this.currentVariable.modbusRegister) {
+        this.currentVariable.modbusRegister = {};
+        Object.assign(this.currentVariable.modbusRegister, this.emptyVariable.modbusRegister);
+      }
     }
     else {
       this.modalTitle = this.literals.variables!.newVariable!;
+      this.variableSources = this.basicEntitiesService.variableSources
+        .filter(item => item.variableSource! != VariableSource.BuiltIn);
       Object.assign(this.currentVariable, this.emptyVariable);
+      this.currentVariable.modbusRegister = {};
+      Object.assign(this.currentVariable.modbusRegister, this.emptyVariable.modbusRegister);
     }
+    this.activeTab = "var";
+    this.updateEnabledFields();
     this.visible = true;
     return new Promise((resolve, reject) => { 
       this.promiseResolve = resolve;
@@ -89,6 +123,29 @@ export class VariableEditModalComponent {
         this.promiseReject = undefined;
       }
     }
+  }
+
+  updateEnabledFields() {
+
+    // Access type
+    this.accessTypeEnabled = true;
+    if (this.currentVariable.source == VariableSource.BuiltIn) {
+      this.accessTypeEnabled = false;
+    }
+    else if (this.currentVariable.source == VariableSource.Calculated) {
+      this.currentVariable.accessType = VariableAccessType.Readonly;
+      this.accessTypeEnabled = false;
+    }
+
+    // Poll interval
+    this.pollIntervalEnabled = true;
+    if (this.currentVariable.source == VariableSource.External) {
+      this.pollIntervalEnabled = false;
+    }
+    else if (this.currentVariable.source == VariableSource.BuiltIn) {
+      this.pollIntervalEnabled = (this.currentVariable.type != VariableType.Binary)
+    }
+    if (!this.pollIntervalEnabled) this.currentVariable.pollIntervalMs = 0;
   }
 
   public saveChanges()

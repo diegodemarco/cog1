@@ -1,9 +1,9 @@
 ﻿namespace cog1.Entities
 {
     /// <summary>
-    /// Represents the direction of a variable.
+    /// Represents the type of access of a variable.
     /// </summary>
-    public enum VariableDirection
+    public enum VariableAccessType
     {
         /// <summary>
         /// Indicates that the direction of the variable is unknown.
@@ -11,18 +11,20 @@
         Unknown = 0,
 
         /// <summary>
-        /// Indicates that the variable is read from an input. Input
-        /// variables are treated as read/write inside the gateway, 
-        /// but are they are not allowed to be changed externally.
+        /// Indicates that the variable can only be read.
         /// </summary>
-        Input = 1,
+        Readonly = 1,
 
         /// <summary>
-        /// Indicates that the variable can be read and written to,
-        /// both from inside and outside of the gateway. Writing to
-        /// an output variable may trigger an external action such as
-        /// writing to a bus.
+        /// Indicates that the variable can be read and written to.
         /// </summary>
-        Output = 2,
+        ReadWrite = 2,
+
+        /// <summary>
+        /// Indicates that the variable can be read and written to, but
+        /// writing to the variable triggers an action such as a write
+        /// operation on a Modbus register, a script, etc.
+        /// </summary>
+        ReadWriteAction = 3,
     }
 }

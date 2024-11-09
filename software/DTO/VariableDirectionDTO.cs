@@ -2,9 +2,9 @@
 
 namespace cog1.DTO
 {
-    public class VariableDirectionDTO
+    public class VariableAccessTypeDTO
     {
-        public VariableDirection variableDirection { get; set; }
+        public VariableAccessType accessType { get; set; }
         public string description { get; set; }
     }
 }

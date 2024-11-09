@@ -50,5 +50,19 @@ namespace cog1
             return DateTime.Parse(dt, CultureInfo.InvariantCulture);
         }
 
+        public static string BytesToHex(byte[] bytes, string separator = "")
+        {
+            if (bytes == null || bytes.Length < 1)
+                return "";
+            return BytesToHex(bytes, bytes.Length, separator);
+        }
+
+        public static string BytesToHex(byte[] bytes, int len, string separator = "")
+        {
+            if (bytes == null || bytes.Length < 1)
+                return "";
+            return BitConverter.ToString(bytes, 0, len).Replace("-", separator);
+        }
+
     }
 }

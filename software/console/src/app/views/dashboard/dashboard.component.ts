@@ -2,35 +2,20 @@ import { DOCUMENT, NgStyle } from '@angular/common';
 import { Component, DestroyRef, effect, inject, OnInit, Renderer2, signal, WritableSignal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { ChartData, ChartDataset, ChartOptions, PluginOptionsByType, ScaleOptions, TooltipLabelStyle } from 'chart.js';
-import {
-  AvatarComponent,
-  ButtonDirective,
-  ButtonGroupComponent,
-  CardBodyComponent,
-  CardComponent,
-  CardFooterComponent,
-  CardHeaderComponent,
-  ColComponent,
-  FormCheckLabelDirective,
-  GutterDirective,
-  ProgressBarDirective,
-  ProgressComponent,
-  RowComponent,
-  TableDirective,
-  TextColorDirective
-} from '@coreui/angular';
+import { AvatarComponent, ButtonDirective, ButtonGroupComponent, CardBodyComponent, CardComponent,
+         CardFooterComponent, CardHeaderComponent, ColComponent, FormCheckLabelDirective,
+         GutterDirective, ProgressBarDirective, ProgressComponent, RowComponent, TableDirective,
+         TextColorDirective } from '@coreui/angular';
 import { ChartjsComponent } from '@coreui/angular-chartjs';
 import { IconDirective } from '@coreui/icons-angular';
 import { getStyle, hexToRgba } from '@coreui/utils';
-
 import { WidgetsBrandComponent } from '../widgets/widgets-brand/widgets-brand.component';
 import { WidgetsDropdownComponent } from '../widgets/widgets-dropdown/widgets-dropdown.component';
-//import { DashboardChartsData, IChartProps } from './dashboard-charts-data';
 import { BasicEntitiesService } from 'src/app/services/basic-entities.service';
 import { ViewStatusService } from 'src/app/services/view-status.service';
 import { BackendService } from 'src/app/services/backend.service';
 import { DeepPartial } from 'chart.js/dist/types/utils';
-import { VariableType, VariableDTO, VariableDirection, LiteralsContainerDTO, JsonControllerException } from 'src/app/api-client/data-contracts';
+import { VariableType, VariableDTO, VariableAccessType, LiteralsContainerDTO, JsonControllerException } from 'src/app/api-client/data-contracts';
 import { IconSubset } from 'src/app/icons/icon-subset';
 import { Subscription, timer } from 'rxjs';
 import { ProfileModalComponent } from 'src/app/modals/profile/profile-modal.component';
@@ -45,17 +30,15 @@ interface VarWithValue extends VariableDTO
   templateUrl: 'dashboard.component.html',
   styleUrls: ['dashboard.component.scss'],
   standalone: true,
-  imports: [WidgetsDropdownComponent, TextColorDirective, CardComponent, CardBodyComponent, RowComponent, 
-    ColComponent, ButtonDirective, IconDirective, ReactiveFormsModule, ButtonGroupComponent,
-    FormCheckLabelDirective, ChartjsComponent, NgStyle, CardFooterComponent, GutterDirective,
-    ProgressBarDirective, ProgressComponent, WidgetsBrandComponent, CardHeaderComponent, TableDirective, AvatarComponent,
-    ProfileModalComponent]
+  imports: [TextColorDirective, CardComponent, CardBodyComponent, RowComponent, 
+    ColComponent, IconDirective, ReactiveFormsModule, ChartjsComponent, NgStyle, 
+    ProgressBarDirective, ProgressComponent ]
 })
 export class DashboardComponent implements OnInit 
 {
   // Enums
-  readonly VariableType = VariableType;
-  readonly VariableDirection = VariableDirection;
+  readonly variableType = VariableType;
+  readonly variableAccessType = VariableAccessType;
 
   // Literals
   readonly literals: LiteralsContainerDTO;
@@ -121,7 +104,7 @@ export class DashboardComponent implements OnInit
 
     // Timers
     this.cpuTimerSub  = timer(0,  5000).subscribe(() => this.updateCpuHistory());   // Every 5 seconds
-    this.statTimerSub = timer(0, 30000).subscribe(() => this.updateSystemStats());  // Every 1 minute
+    this.statTimerSub = timer(0, 30000).subscribe(() => this.updateSystemStats());  // Every 30 seconds
     this.varTimerSub  = timer(0,  2000).subscribe(() => this.updateVariables());    // Every 2 seconds
   }
 
@@ -174,7 +157,8 @@ export class DashboardComponent implements OnInit
     this.backend.variables.enumerateVariables()
       .then(data =>
       {
-        data.data.filter(item => item.variableId! < 100)
+        data.data
+          //.filter(item => item.variableId! < 100)
           .forEach((item) =>
           {
             let x: VarWithValue = {};

@@ -100,7 +100,8 @@ import {
   cilGroup,
   cilGraph,
   cilWarning,
-  cilPlus
+  cilPlus,
+  cilIndustry
 } from '@coreui/icons';
 
 import { signet } from './signet';
@@ -208,7 +209,8 @@ export const iconSubset = {
   cilGroup,
   cilGraph,
   cilWarning,
-  cilPlus
+  cilPlus,
+  cilIndustry
 };
 
 export enum IconSubset {
@@ -315,6 +317,7 @@ export enum IconSubset {
   cilGroup = 'cilGroup',
   cilGraph = 'cilGraph',
   cilWarning = 'cilWarning',
-  cilPlus = 'cilPlus'
+  cilPlus = 'cilPlus',
+  cilIndustry = 'cilIndustry'
 }
 

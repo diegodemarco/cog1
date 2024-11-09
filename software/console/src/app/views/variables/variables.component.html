@@ -1,5 +1,5 @@
 <app-variable-edit-modal />
-<app-crud-page (onNewItem)="doNewVariable()" (onUpdateData)="doUpdateData()" [newItemLiteral]="literals.variables!.newVariable!">
+<app-crud-page (onNewItem)="doNewVariable()" (onUpdateData)="doUpdateData()" [newItemLiteral]="newItemLiteral">
     @for (v of variables; track v.variableId)
     {
         <c-card>
@@ -18,10 +18,10 @@
                 <c-col xs="4">
                     <c-row>
                         <c-col lg="6">
-                            *Binary input*
+                            {{basicEntitiesService.getVariableTypeDescription(v.type!)}}
                         </c-col>
                         <c-col lg="6">
-                            {{v.variableCode}}
+                            {{basicEntitiesService.getVariableAccessTypeDescription(v.accessType!)}}
                         </c-col>
                     </c-row>
                 </c-col>
@@ -32,7 +32,7 @@
                                 <button cButton size="sm" (click)="doEditVariable(v)">
                                     <svg cIcon [name]="iconSubset.cilPencil" size="md"></svg>
                                 </button> 
-                                @if (v.isBuiltIn == false) {
+                                @if (v.source != variableSource.BuiltIn) {
                                     &nbsp;
                                     <button cButton size="sm" (click)="doDeleteVariable(v)">
                                         <svg cIcon [name]="iconSubset.cilTrash" size="md"></svg>

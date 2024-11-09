@@ -1,10 +1,13 @@
-﻿using cog1.DTO;
+﻿using cog1.BackgroundServices;
+using cog1.DTO;
 using cog1.Entities;
 using cog1.Exceptions;
 using cog1.Hardware;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 
 namespace cog1.Business
@@ -22,6 +25,13 @@ namespace cog1.Business
 
         #region private
 
+        private static Dictionary<ModbusRegisterType, HashSet<ModbusDataType>> registerTypeDataTypes = new()
+        {
+            { ModbusRegisterType.Coil, new() { ModbusDataType.Boolean } },
+            { ModbusRegisterType.DiscreteInput, new() { ModbusDataType.Boolean } },
+            { ModbusRegisterType.HoldingRegister, new() { ModbusDataType.UInt16, ModbusDataType.Int16, ModbusDataType.UInt32, ModbusDataType.Int32, ModbusDataType.Float32 } },
+            { ModbusRegisterType.InputRegister, new() { ModbusDataType.UInt16, ModbusDataType.Int16, ModbusDataType.UInt32, ModbusDataType.Int32, ModbusDataType.Float32 } },
+        };
 
         #endregion
 
@@ -54,7 +64,7 @@ namespace cog1.Business
                 case VariableType.Binary:
                     return Context.Literals.Variables.Binary;
                 default:
-                    return $"Unknown variable type \"{vt.ToString()}\"";
+                    return $"Unknown variable type \"{vt}\"";
             }
         }
 
@@ -62,68 +72,216 @@ namespace cog1.Business
         {
             return Enum.GetValues<VariableType>()
                 .Where(item => item != VariableType.Unknown)
-                .ToList()
-                .Contains(vt);
+                .Any(item => item == vt);
         }
 
-        public List<VariableDirectionDTO> EnumerateVariableDirections()
+        public List<VariableAccessTypeDTO> EnumerateVariableAccessTypes()
         {
-            return Enum.GetValues<VariableDirection>()
-                .Where(item => item != VariableDirection.Unknown)
+            return Enum.GetValues<VariableAccessType>()
+                .Where(item => item != VariableAccessType.Unknown)
                 .Select(item =>
-                    new VariableDirectionDTO()
+                    new VariableAccessTypeDTO()
                     {
-                        variableDirection = item,
-                        description = GetVariableDirectionDescription(item)
+                        accessType = item,
+                        description = GetVariableAccessTypeDescription(item)
                     }
                 )
                 .ToList();
         }
 
-        private string GetVariableDirectionDescription(VariableDirection vd)
+        private string GetVariableAccessTypeDescription(VariableAccessType vd)
         {
             switch (vd)
             {
-                case VariableDirection.Unknown:
+                case VariableAccessType.Unknown:
                     return "Unknown";
-                case VariableDirection.Input:
-                    return Context.Literals.Variables.Input;
-                case VariableDirection.Output:
-                    return Context.Literals.Variables.Output;
+                case VariableAccessType.Readonly:
+                    return Context.Literals.Variables.Readonly;
+                case VariableAccessType.ReadWrite:
+                    return Context.Literals.Variables.ReadWrite;
+                case VariableAccessType.ReadWriteAction:
+                    return Context.Literals.Variables.ReadWriteAction;
                 default:
-                    return $"Unknown variable direction \"{vd.ToString()}\"";
+                    return $"Unknown variable access type \"{vd.ToString()}\"";
             }
         }
 
-        private bool IsValidVariableDirection(VariableDirection vd)
+        private bool IsValidVariableAccessType(VariableAccessType vd)
         {
-            return Enum.GetValues<VariableDirection>()
-                .Where(item => item != VariableDirection.Unknown)
+            return Enum.GetValues<VariableAccessType>()
+                .Where(item => item != VariableAccessType.Unknown)
+                .Any(item => item == vd);
+        }
+
+        public List<VariableSourceDTO> EnumerateVariableSources()
+        {
+            return Enum.GetValues<VariableSource>()
+                .Where(item => item != VariableSource.Unknown)
+                .Select(item =>
+                    new VariableSourceDTO()
+                    {
+                        variableSource = item,
+                        description = GetVariableSourceDescription(item)
+                    }
+                )
+                .ToList();
+        }
+
+        private string GetVariableSourceDescription(VariableSource vd)
+        {
+            switch (vd)
+            {
+                case VariableSource.Unknown:
+                    return "Unknown";
+                case VariableSource.BuiltIn:
+                    return Context.Literals.Variables.BuiltIn;
+                case VariableSource.Calculated:
+                    return Context.Literals.Variables.Calculated;
+                case VariableSource.External:
+                    return Context.Literals.Variables.External;
+                case VariableSource.Modbus:
+                    return Context.Literals.Variables.Modbus;
+                default:
+                    return $"Unknown variable Source type \"{vd.ToString()}\"";
+            }
+        }
+
+        private bool IsValidVariableSource(VariableSource vd)
+        {
+            return Enum.GetValues<VariableSource>()
+                .Where(item => item != VariableSource.Unknown)
+                .Any(item => item == vd);
+        }
+
+        #endregion
+
+        #region Basic entities - Modbus
+
+        public List<ModbusRegisterTypeDTO> EnumerateModbusRegisterTypes()
+        {
+            return Enum.GetValues<ModbusRegisterType>()
+                .Where(item => item != ModbusRegisterType.Unknown)
+                .Select(item =>
+                    new ModbusRegisterTypeDTO()
+                    {
+                        modbusRegisterType = item,
+                        description = GetModbusRegisterTypeDescription(item)
+                    }
+                )
+                .ToList();
+        }
+
+        private string GetModbusRegisterTypeDescription(ModbusRegisterType rt)
+        {
+            return rt switch
+            {
+                ModbusRegisterType.Unknown => "Unknown",
+                ModbusRegisterType.Coil => Context.Literals.Modbus.Coil,
+                ModbusRegisterType.DiscreteInput => Context.Literals.Modbus.DiscreteInput,
+                ModbusRegisterType.HoldingRegister => Context.Literals.Modbus.HoldingRegister,
+                ModbusRegisterType.InputRegister => Context.Literals.Modbus.InputRegister,
+                _ => $"Unknown modbus register type \"{rt.ToString()}\"",
+            };
+        }
+
+        private bool IsValidModbusRegisterType(ModbusRegisterType rt)
+        {
+            return Enum.GetValues<ModbusRegisterType>()
+                .Where(item => item != ModbusRegisterType.Unknown)
+                .Any(item => item == rt);
+        }
+
+        public List<ModbusDataTypeDTO> EnumerateModbusDataTypes()
+        {
+            return Enum.GetValues<ModbusDataType>()
+                .Where(item => item != ModbusDataType.Unknown)
+                .Select(item =>
+                    new ModbusDataTypeDTO()
+                    {
+                        modbusDataType = item,
+                        description = GetModbusDataTypeDescription(item)
+                    }
+                )
+                .ToList();
+        }
+
+        private string GetModbusDataTypeDescription(ModbusDataType vd)
+        {
+            return vd switch
+            {
+                ModbusDataType.Unknown => "Unknown",
+                ModbusDataType.Boolean => Context.Literals.Modbus.DataTypeBoolean,
+                ModbusDataType.UInt16 => "UInt-16",
+                ModbusDataType.UInt32 => "UInt-32",
+                ModbusDataType.Int16 => "Int-16",
+                ModbusDataType.Int32 => "Int-32",
+                ModbusDataType.Float32 => "Float-32",
+                _ => $"Unknown Modbus data type \"{vd.ToString()}\"",
+            };
+        }
+
+        private bool IsValidModbusDataType(ModbusDataType vd)
+        {
+            return Enum.GetValues<ModbusDataType>()
+                .Where(item => item != ModbusDataType.Unknown)
                 .ToList()
                 .Contains(vd);
+        }
+
+        private bool IsValidModbusTcpHost(ref string host)
+        {
+            if (string.IsNullOrWhiteSpace(host))
+            {
+                host = string.Empty;
+                return true;
+            }
+            var parts = host.Split(':');
+            if (parts.Length > 2)
+                return false;
+            if (parts.Length > 1)
+            {
+                if (!UInt16.TryParse(parts[1], out _))
+                    return false;
+                host = parts[0].Trim() + ":" + parts[1].Trim();
+            }
+            else
+            {
+                host = parts[0].Trim();
+            }
+            return true;
+        }
+
+        private bool IsValidModbusSlaveId(int slaveId)
+        {
+            return (slaveId >= 1 && slaveId <= 247);
+        }
+
+        private bool IsValidModbusRegisterAddress(int registerAddress)
+        {
+            return (registerAddress >= 1 && registerAddress <= 65535);
         }
 
         #endregion
 
         #region CRUD
 
-        public bool TryGetVariable(int VariableId, out VariableDTO Variable)
-        {
-            Variable = Context.VariableDao.GetVariable(VariableId);
-            return Variable != null;
-        }
-
-        public VariableDTO GetVariable(int VariableId)
-        {
-            var result = Context.VariableDao.GetVariable(VariableId);
-            if (result == null)
-                throw new ControllerException(Context.ErrorCodes.Variables.INVALID_VARIABLE_ID);
-            return result;
-        }
-
         public List<VariableDTO> EnumerateVariables()
         {
             return Context.VariableDao.EnumerateVariables();
+        }
+
+        public bool TryGetVariable(int variableId, out VariableDTO variable)
+        {
+            variable = Context.VariableDao.GetVariable(variableId);
+            return variable != null;
+        }
+
+        public VariableDTO GetVariable(int variableId)
+        {
+            var result = Context.VariableDao.GetVariable(variableId);
+            if (result == null)
+                throw new ControllerException(Context.ErrorCodes.Variables.INVALID_VARIABLE_ID);
+            return result;
         }
 
         public VariableDTO GetVariableByCode(string variableCode)
@@ -136,18 +294,71 @@ namespace cog1.Business
 
         private void ValidateVariable(VariableDTO v)
         {
+            // Fixes
+            if (v.source == VariableSource.External)
+                v.pollIntervalMs = 0;
+
             // Validations
             if (string.IsNullOrWhiteSpace(v.description))
                 throw new ControllerException(Context.ErrorCodes.General.INVALID_MANDATORY_DATA(Context.Literals.Common.Description));
             if (!IsValidVariableType(v.type))
                 throw new ControllerException(Context.ErrorCodes.General.INVALID_MANDATORY_DATA(Context.Literals.Variables.VariableType));
-            if (!IsValidVariableDirection(v.direction))
-                throw new ControllerException(Context.ErrorCodes.General.INVALID_MANDATORY_DATA(Context.Literals.Variables.VariableDirection));
+            if (!IsValidVariableAccessType(v.accessType))
+                throw new ControllerException(Context.ErrorCodes.General.INVALID_MANDATORY_DATA(Context.Literals.Variables.VariableAccessType));
+            if (!IsValidVariableSource(v.source))
+                throw new ControllerException(Context.ErrorCodes.General.INVALID_MANDATORY_DATA(Context.Literals.Variables.VariableSource));
+            if (v.source == VariableSource.Calculated || v.source == VariableSource.Modbus)
+            {
+                if (v.pollIntervalMs < 1)
+                    throw new ControllerException(Context.ErrorCodes.General.INVALID_MANDATORY_DATA(Context.Literals.Variables.PollInterval));
+            }
+
+            // Modbus-specific validations
+            if (v.source == VariableSource.Modbus)
+            {
+                // General
+                if (v.modbusRegister == null)
+                    throw new ControllerException(Context.ErrorCodes.General.INVALID_MANDATORY_DATA("modbusRegister"));
+
+                // TCP host
+                var host = v.modbusRegister.tcpHost;
+                if (!IsValidModbusTcpHost(ref host))
+                    throw new ControllerException(Context.ErrorCodes.General.INVALID_MANDATORY_DATA(Context.Literals.Modbus.DataType));
+                v.modbusRegister.tcpHost = host;
+
+                // Slave ID
+                if (!IsValidModbusSlaveId(v.modbusRegister.slaveId))
+                    throw new ControllerException(Context.ErrorCodes.General.INVALID_MANDATORY_DATA(Context.Literals.Variables.Modbus + " - " + Context.Literals.Modbus.SlaveId));
+
+                // Register address
+                if (!IsValidModbusRegisterAddress(v.modbusRegister.registerAddress))
+                    throw new ControllerException(Context.ErrorCodes.General.INVALID_MANDATORY_DATA(Context.Literals.Variables.Modbus + " - " + Context.Literals.Modbus.RegisterAddress));
+
+                // Register type
+                if (!IsValidModbusRegisterType(v.modbusRegister.registerType))
+                    throw new ControllerException(Context.ErrorCodes.General.INVALID_MANDATORY_DATA(Context.Literals.Variables.Modbus + " - " + Context.Literals.Modbus.RegisterType));
+
+                // Data type
+                if (!IsValidModbusDataType(v.modbusRegister.dataType))
+                    throw new ControllerException(Context.ErrorCodes.General.INVALID_MANDATORY_DATA(Context.Literals.Modbus.DataType));
+
+                // Verify the validity of the combination of the register type and the variable type
+                //if (!registerTypeDataTypes[v.modbusRegister.registerType].Contains(v.modbusRegister.dataType))
+                //    throw new ControllerException(Context.ErrorCodes.Modbus.INVALID_DATA_TYPE_FOR_REGISTER_TYPE);
+
+                // Verify the validity of the combination of the register type and the data type
+                if (!registerTypeDataTypes[v.modbusRegister.registerType].Contains(v.modbusRegister.dataType))
+                    throw new ControllerException(Context.ErrorCodes.Modbus.INVALID_DATA_TYPE_FOR_REGISTER_TYPE);
+            }
         }
 
         public VariableDTO CreateVariable(VariableDTO v)
         {
+            // Fixes
             v.variableId = 0;
+            // Validations
+            if (v.source == VariableSource.BuiltIn)
+                throw new ControllerException(Context.ErrorCodes.General.INVALID_PARAMETER_VALUE(Context.Literals.Variables.VariableSource, v.source.ToString()));
             ValidateVariable(v);
             return Context.VariableDao.CreateVariable(v);
         }
@@ -173,37 +384,7 @@ namespace cog1.Business
 
         public List<VariableValueDTO> GetVariableValues()
         {
-            var result = Context.VariableDao.GetVariableValues();
-
-            // Update with current values for built-in variables
-            IOManager.ReadDI(out var di1, out var di2, out var di3, out var di4);
-            IOManager.ReadDO(out var do1, out var do2, out var do3, out var do4);
-            IOManager.Read010V(out var anv1, out var anv2, out var anv3, out var anv4);
-            IOManager.Read020mA(out var ana1, out var ana2, out var ana3, out var ana4);
-            foreach (var v in result)
-            {
-                switch (v.variableId)
-                {
-                    case  1: v.value = di1 ? 1 : 0; break;
-                    case  2: v.value = di2 ? 1 : 0; break;
-                    case  3: v.value = di3 ? 1 : 0; break;
-                    case  4: v.value = di4 ? 1 : 0; break;
-                    case  5: v.value = anv1; break;
-                    case  6: v.value = anv2; break;
-                    case  7: v.value = anv3; break;
-                    case  8: v.value = anv4; break;
-                    case  9: v.value = ana1; break;
-                    case 10: v.value = ana2; break;
-                    case 11: v.value = ana3; break;
-                    case 12: v.value = ana4; break;
-                    case 13: v.value = do1 ? 1 : 0; break;
-                    case 14: v.value = do2 ? 1 : 0; break;
-                    case 15: v.value = do3 ? 1 : 0; break;
-                    case 16: v.value = do4 ? 1 : 0; break;
-                }
-            }
-
-            return result;
+            return Context.VariableDao.GetVariableValues();
         }
 
         public VariableValueDTO GetVariableValue(int variableId)
@@ -218,18 +399,38 @@ namespace cog1.Business
         public void SetVariableValue(int variableId, double value)
         {
             var v = GetVariable(variableId);
-            if (v.isBuiltIn)
+            if (v.source == VariableSource.BuiltIn)
             {
-                if (v.direction != VariableDirection.Output)
+
+                // Built-in variables
+                if (v.accessType != VariableAccessType.ReadWrite && v.accessType != VariableAccessType.ReadWriteAction)
                     throw new ControllerException(Context.ErrorCodes.Variables.VARIABLE_NOT_WRITABLE);
+
                 if (!IOManager.SetVariableValue(variableId, value))
                     throw new ControllerException(Context.ErrorCodes.Variables.VARIABLE_NOT_WRITABLE);
+
+            }
+            else if (v.source == VariableSource.Modbus)
+            {
+
+                // Modbus variables
+                Console.WriteLine($"Writing register of var {v.variableId} with value {value}");
+                if (!ModbusService.WriteRegister(v, value, out string errorMessage))
+                    throw new ControllerException(Context.ErrorCodes.Modbus.COULD_NOT_WRITE_REGISTER(errorMessage));
+
             }
             else
             {
+
+                // Unsupported variable sources
                 throw new ControllerException(Context.ErrorCodes.Variables.VARIABLE_NOT_WRITABLE);
+
             }
         }
+
+        #endregion
+
+        #region Modbus
 
         #endregion
 
