@@ -1959,7 +1959,7 @@
 		(dnp no)
 		(uuid "87b76805-b57f-47c3-83f5-f16549f81685")
 		(property "Reference" "R13"
-			(at 138.43 103.124 0)
+			(at 146.558 105.918 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1967,8 +1967,8 @@
 				(justify left)
 			)
 		)
-		(property "Value" "10K"
-			(at 138.43 105.156 0)
+		(property "Value" "10K (Do not mount)"
+			(at 146.558 107.95 0)
 			(effects
 				(font
 					(size 1.27 1.27)
