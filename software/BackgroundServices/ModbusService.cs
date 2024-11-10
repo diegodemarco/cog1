@@ -127,20 +127,30 @@ namespace cog1.BackgroundServices
         {
             lock (_lock)
             {
-                var item = modbusQueue.Find(item => item.state == ModbusQueueItemState.Pending && func(item));
-                if (item == null)
+                if (modbusQueue.Count > 0)
                 {
-                    modbusRegister = null;
-                    isRead = true;
-                    value = 0;
-                    return 0;
+                    // Write operations take precedence
+                    var item = modbusQueue.Find(item => item.state == ModbusQueueItemState.Pending && item.operationType == ModbusOperationType.Write && func(item));
+
+                    // If no operation was found, search again without restrictions
+                    if (item == null)
+                        item = modbusQueue.Find(item => item.state == ModbusQueueItemState.Pending && func(item));
+
+                    if (item != null)
+                    {
+                        item.state = ModbusQueueItemState.Processing;
+                        modbusRegister = item.modbusRegister;
+                        isRead = (item.operationType == ModbusOperationType.Read);
+                        value = item.value;
+                        return item.operationId;
+                    }
                 }
 
-                item.state = ModbusQueueItemState.Processing;
-                modbusRegister = item.modbusRegister;
-                isRead = (item.operationType == ModbusOperationType.Read);
-                value = item.value;
-                return item.operationId;
+                // No louck
+                modbusRegister = null;
+                isRead = true;
+                value = 0;
+                return 0;
             }
 
         }
@@ -235,6 +245,7 @@ namespace cog1.BackgroundServices
         {
             lock (_lock)
             {
+                // It's not necessary to queue another read operation if there is already one in the queue
                 if (modbusQueue.Any(item => item.operationType == ModbusOperationType.Read && item.variableId == v.variableId))
                     return 0;
 
