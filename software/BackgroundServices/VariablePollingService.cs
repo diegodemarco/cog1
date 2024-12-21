@@ -5,6 +5,7 @@ using cog1.Hardware;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -84,7 +85,12 @@ namespace cog1.BackgroundServices
                 // Nothing changed
                 return;
 
-            // Update existing variables, and add missing ones
+            // Remove deleted variable values from the IO manager
+            IOManager.UpdateVariableList(vars.Select(item => item.variableId).ToHashSet());
+
+            // Update existing variables, and add missing ones, considering
+            // only those that have a poll interval, i.e. those that need to be
+            // polled to update their values.
             foreach (var v in vars.Where(item => item.pollIntervalMs > 0))
             {
                 var currentVar = variableDefs.Find(item => item.variableId == v.variableId);
@@ -108,6 +114,7 @@ namespace cog1.BackgroundServices
                     currentVar.accessType = v.accessType;
                     currentVar.pollIntervalMs = v.pollIntervalMs;
                     currentVar.nextPoll = stopWatch.ElapsedMilliseconds + v.pollIntervalMs;
+                    currentVar.modbusRegister = v.modbusRegister;
                 }
 
             }

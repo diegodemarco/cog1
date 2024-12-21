@@ -12,14 +12,15 @@ namespace cog1.Modbus
         private SerialPort serialPort;
         private Stopwatch sw = Stopwatch.StartNew();
 
-        public ModbusRtuServer(string portName, int baudRate)
+        public ModbusRtuServer(string portName, int baudRate, int dataBits, StopBits stopBits, Parity parity)
         {
             serialPort = new SerialPort(portName)
             {
                 BaudRate = baudRate,
-                DataBits = 8,
-                StopBits = StopBits.One,
-                Parity = Parity.None,
+                DataBits = dataBits,
+                StopBits = stopBits,
+                Parity = parity,
+                //
                 DiscardNull = false,
                 DtrEnable = false,
                 RtsEnable = false,
@@ -41,7 +42,6 @@ namespace cog1.Modbus
                 throw;
             }
         }
-
 
         #region Data exchange
 
@@ -158,6 +158,24 @@ namespace cog1.Modbus
                 case FUNCTION_WRITE_SINGLE_COIL:
                     // Read the rest of the frame
                     if (!ReadChars(buffer, ref index, 2 + 2 + 2))        // Register address + register value + checksum
+                    {
+                        Console.WriteLine($"Timeout => [{Utils.BytesToHex(buffer, index)}]");
+                        return false;
+                    }
+                    return StripChecksum(buffer, index, out responseData);
+
+                case FUNCTION_WRITE_SINGLE_HOLDING_REGISTER:
+                    // Read the rest of the frame
+                    if (!ReadChars(buffer, ref index, 2 + 2 + 2))        // Register address + register value + checksum
+                    {
+                        Console.WriteLine($"Timeout => [{Utils.BytesToHex(buffer, index)}]");
+                        return false;
+                    }
+                    return StripChecksum(buffer, index, out responseData);
+
+                case FUNCTION_WRITE_MULTIPLE_HOLDING_REGISTERS:
+                    // Read the rest of the frame
+                    if (!ReadChars(buffer, ref index, 2 + 2 + 2))        // Register address + register count + checksum
                     {
                         Console.WriteLine($"Timeout => [{Utils.BytesToHex(buffer, index)}]");
                         return false;
@@ -334,9 +352,9 @@ namespace cog1.Modbus
             return ReadHoldingRegisterFloat32(null, slaveAddress, registerAddress, out value);
         }
 
-        public bool WriteHoldingRegisterFloat(byte slaveAddress, UInt16 registerAddress, Single value)
+        public bool WriteHoldingRegisterFloat32(byte slaveAddress, UInt16 registerAddress, Single value)
         {
-            return base.WriteHoldingRegisterFloat(null, slaveAddress, registerAddress, value);
+            return base.WriteHoldingRegisterFloat32(null, slaveAddress, registerAddress, value);
         }
 
         #endregion

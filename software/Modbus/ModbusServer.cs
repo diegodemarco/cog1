@@ -102,6 +102,33 @@ namespace cog1.Modbus
 
         #region Generic register read/write
 
+        private bool CheckBasicResponseAspects(byte[] rspData, UInt16 slaveAddress, byte function)
+        {
+            // Ensure response is from the expected slave
+            if (rspData[0] != slaveAddress)
+            {
+                SetErrorInfo($"Unexpected response from slave {rspData[0]} instead of {slaveAddress}");
+                return false;
+            }
+
+            // Ensure response is for the expected function code
+            if ((rspData[1] & 0b01111111) != function)
+            {
+                SetErrorInfo($"Unexpected response function {rspData[1]} instead of {function}");
+                return false;
+            }
+
+            // Check for slave-reported errors
+            if ((rspData[1] & 128) != 0)
+            {
+                SetErrorInfo(rspData[2]);
+                return false;
+            }
+
+            // All good
+            return true;
+        }
+
         protected bool ReadRegisters(object conn, byte slaveAddress, byte function, UInt16 registerAddress, UInt16 registerCount, byte expectedBytes, out byte[] data)
         {
             var registerAddressData = FromUInt16((UInt16)(registerAddress - 1));        // Register IDs are zero-based
@@ -126,26 +153,9 @@ namespace cog1.Modbus
                 return false;
             }
 
-            // Ensure response is from the expected slave
-            if (rspData[0] != slaveAddress)
+            // Do basic checks on the received response
+            if (!CheckBasicResponseAspects(rspData, slaveAddress, function))
             {
-                SetErrorInfo($"Unexpected response from slave {rspData[0]} instead of {slaveAddress}");
-                data = Array.Empty<byte>();
-                return false;
-            }
-
-            // Ensure response is for the expected function code
-            if ((rspData[1] & 0b01111111) != function)
-            {
-                SetErrorInfo($"Unexpected response function {rspData[1]} instead of {function}");
-                data = Array.Empty<byte>();
-                return false;
-            }
-
-            // Check for slave-reported errors
-            if ((rspData[1] & 128) != 0)
-            {
-                SetErrorInfo(rspData[2]);
                 data = Array.Empty<byte>();
                 return false;
             }
@@ -190,26 +200,9 @@ namespace cog1.Modbus
                 return false;
             }
 
-            // Ensure response is from the expected slave
-            if (rspData[0] != slaveAddress)
-            {
-                SetErrorInfo($"Unexpected response from slave {rspData[0]} instead of {slaveAddress}");
+            // Do basic checks on the received response
+            if (!CheckBasicResponseAspects(rspData, slaveAddress, function))
                 return false;
-            }
-
-            // Ensure response is for the expected function code
-            if ((rspData[1] & 0b01111111) != function)
-            {
-                SetErrorInfo($"Unexpected response function {rspData[1]} instead of {function}");
-                return false;
-            }
-
-            // Check for slave-reported errors
-            if ((rspData[1] & 128) != 0)
-            {
-                SetErrorInfo(rspData[2]);
-                return false;
-            }
 
             // Done
             return true;
@@ -217,7 +210,37 @@ namespace cog1.Modbus
 
         protected bool WriteMultipleRegisters(object conn, byte slaveAddress, byte function, UInt16 registerAddress, UInt16 registerCount, byte[] data)
         {
-            return false;
+            //SetErrorInfo("Modbus WriteMultipleRegisters: not implemented");
+            var registerAddressData = FromUInt16((UInt16)(registerAddress - 1));        // Register IDs are zero-based
+            var registerCountData = FromUInt16(registerCount);
+
+            // Prepare output payload
+            byte[] reqData = new byte[1 + 1 + 2 + 2 + 1 + data.Length];       // slave + function + registerAddress + registerCount + dataByteCount + data
+            byte i = 0;
+            reqData[i++] = slaveAddress;
+            reqData[i++] = function;
+            reqData[i++] = registerAddressData[0];
+            reqData[i++] = registerAddressData[1];
+            reqData[i++] = registerCountData[0];
+            reqData[i++] = registerCountData[1];
+            reqData[i++] = (byte)data.Length;
+            foreach(var b in data)
+                reqData[i++] = b;
+
+            // Exchange data
+            byte[] rspData;
+            if (!ExchangeData(conn, reqData, out rspData))
+            {
+                // Error info must have been set by ExchangeData()
+                return false;
+            }
+
+            // Do basic checks on the received response
+            if (!CheckBasicResponseAspects(rspData, slaveAddress, function))
+                return false;
+
+            // Done
+            return true;
         }
 
         #endregion
@@ -334,7 +357,7 @@ namespace cog1.Modbus
             return false;
         }
 
-        protected bool WriteHoldingRegisterFloat(object conn, byte slaveAddress, UInt16 registerAddress, Single value)
+        protected bool WriteHoldingRegisterFloat32(object conn, byte slaveAddress, UInt16 registerAddress, Single value)
         {
             return WriteMultipleRegisters(conn, slaveAddress, FUNCTION_WRITE_MULTIPLE_HOLDING_REGISTERS, registerAddress, 2, FromFloat32(value));
         }

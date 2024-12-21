@@ -53,8 +53,13 @@ namespace cog1.BackgroundServices
         {
             if (rtuServer == null)
             {
-                rtuServer = new ModbusRtuServer(Config.ModbusSerialPort, Config.ModbusBaudRate);
-                logger.LogInformation($"Successfully started RTU server on {Config.ModbusSerialPort} at {Config.ModbusBaudRate} bauds");
+                rtuServer = new ModbusRtuServer(
+                    Config.ModbusRtuSerialPort, 
+                    Config.ModbusRtuBaudRate,
+                    Config.ModbusRtuDataBits,
+                    Config.ModbusRtuStopBits,
+                    Config.ModbusRtuParity);
+                logger.LogInformation($"Successfully started RTU server on {Config.ModbusRtuSerialPort} at {Config.ModbusRtuBaudRate} bauds");
             }
         }
 
@@ -65,25 +70,121 @@ namespace cog1.BackgroundServices
                 EnsureServer();
 
                 bool result;
+                bool boolValue;
+                Int16 int16Value;
+                UInt16 uint16Value;
+                Int32 int32Value;
+                UInt32 uint32Value;
+                Single float32Value;
                 double value = 0;
                 string errorMessage = "Unspecified error";
                 switch (register.registerType)
                 {
                     case ModbusRegisterType.Coil:
-                        result = rtuServer.ReadCoil((byte)register.slaveId, (UInt16)register.registerAddress, out var coilValue);
+                        result = rtuServer.ReadCoil((byte)register.slaveId, (UInt16)register.registerAddress, out boolValue);
                         if (result)
-                            value = (coilValue) ? 1 : 0;
+                            value = (boolValue) ? 1 : 0;
                         errorMessage = rtuServer.ErrorMessage;
                         break;
                     case ModbusRegisterType.DiscreteInput:
-                        result = rtuServer.ReadDiscreteInput((byte)register.slaveId, (UInt16)register.registerAddress, out var discreteValue);
+                        result = rtuServer.ReadDiscreteInput((byte)register.slaveId, (UInt16)register.registerAddress, out boolValue);
                         if (result)
-                            value = (discreteValue) ? 1 : 0;
+                            value = (boolValue) ? 1 : 0;
                         errorMessage = rtuServer.ErrorMessage;
+                        break;
+                    case ModbusRegisterType.HoldingRegister:
+                        switch (register.dataType)
+                        {
+                            case ModbusDataType.Boolean:
+                                result = rtuServer.ReadHoldingRegisterUInt16((byte)register.slaveId, (UInt16)register.registerAddress, out uint16Value);
+                                if (result)
+                                    value = (uint16Value == 0) ? 0 : 1;
+                                errorMessage = rtuServer.ErrorMessage;
+                                break;
+                            case ModbusDataType.UInt16:
+                                result = rtuServer.ReadHoldingRegisterUInt16((byte)register.slaveId, (UInt16)register.registerAddress, out uint16Value);
+                                if (result)
+                                    value = uint16Value;
+                                errorMessage = rtuServer.ErrorMessage;
+                                break;
+                            case ModbusDataType.Int16:
+                                result = rtuServer.ReadHoldingRegisterInt16((byte)register.slaveId, (UInt16)register.registerAddress, out int16Value);
+                                if (result)
+                                    value = int16Value;
+                                errorMessage = rtuServer.ErrorMessage;
+                                break;
+                            case ModbusDataType.UInt32:
+                                result = rtuServer.ReadHoldingRegisterUInt32((byte)register.slaveId, (UInt16)register.registerAddress, out uint32Value);
+                                if (result)
+                                    value = uint32Value;
+                                errorMessage = rtuServer.ErrorMessage;
+                                break;
+                            case ModbusDataType.Int32:
+                                result = rtuServer.ReadHoldingRegisterInt32((byte)register.slaveId, (UInt16)register.registerAddress, out int32Value);
+                                if (result)
+                                    value = int32Value;
+                                errorMessage = rtuServer.ErrorMessage;
+                                break;
+                            case ModbusDataType.Float32:
+                                result = rtuServer.ReadHoldingRegisterFloat32((byte)register.slaveId, (UInt16)register.registerAddress, out float32Value);
+                                if (result)
+                                    value = float32Value;
+                                errorMessage = rtuServer.ErrorMessage;
+                                break;
+                            default:
+                                result = false;
+                                errorMessage = $"Modbus read: unsupported holding register data type: {register.dataType}";
+                                break;
+                        }
+                        break;
+                    case ModbusRegisterType.InputRegister:
+                        switch (register.dataType)
+                        {
+                            case ModbusDataType.Boolean:
+                                result = rtuServer.ReadInputRegisterUInt16((byte)register.slaveId, (UInt16)register.registerAddress, out uint16Value);
+                                if (result)
+                                    value = (uint16Value == 0) ? 0 : 1;
+                                errorMessage = rtuServer.ErrorMessage;
+                                break;
+                            case ModbusDataType.UInt16:
+                                result = rtuServer.ReadInputRegisterUInt16((byte)register.slaveId, (UInt16)register.registerAddress, out uint16Value);
+                                if (result)
+                                    value = uint16Value;
+                                errorMessage = rtuServer.ErrorMessage;
+                                break;
+                            case ModbusDataType.Int16:
+                                result = rtuServer.ReadInputRegisterInt16((byte)register.slaveId, (UInt16)register.registerAddress, out int16Value);
+                                if (result)
+                                    value = int16Value;
+                                errorMessage = rtuServer.ErrorMessage;
+                                break;
+                            case ModbusDataType.UInt32:
+                                result = rtuServer.ReadInputRegisterUInt32((byte)register.slaveId, (UInt16)register.registerAddress, out uint32Value);
+                                if (result)
+                                    value = uint32Value;
+                                errorMessage = rtuServer.ErrorMessage;
+                                break;
+                            case ModbusDataType.Int32:
+                                result = rtuServer.ReadInputRegisterInt32((byte)register.slaveId, (UInt16)register.registerAddress, out int32Value);
+                                if (result)
+                                    value = int32Value;
+                                errorMessage = rtuServer.ErrorMessage;
+                                break;
+                            case ModbusDataType.Float32:
+                                result = rtuServer.ReadInputRegisterFloat32((byte)register.slaveId, (UInt16)register.registerAddress, out float32Value);
+                                if (result)
+                                    value = float32Value;
+                                errorMessage = rtuServer.ErrorMessage;
+                                break;
+                            default:
+                                result = false;
+                                errorMessage = $"Modbus read: unsupported input register data type: {register.dataType}";
+                                break;
+                        }
                         break;
                     default:
                         result = false;
-                        errorMessage = $"Unsupported register type {register.registerType}";
+                        errorMessage = $"Modbus read: unsupported register type {register.registerType}";
                         break;
                 }
                 if (result)
@@ -116,13 +217,42 @@ namespace cog1.BackgroundServices
                         result = rtuServer.WriteCoil((byte)register.slaveId, (UInt16)register.registerAddress, value != 0);
                         errorMessage = rtuServer.ErrorMessage;
                         break;
-                    //case ModbusRegisterType.DiscreteInput:
-                    //    result = rtuServer.WriteDiscreteInput((byte)register.slaveId, (UInt16)register.registerAddress, out var discreteValue);
-                    //    errorMessage = rtuServer.ErrorMessage;
-                    //    break;
+                    case ModbusRegisterType.HoldingRegister:
+                        switch (register.dataType)
+                        {
+                            case ModbusDataType.Boolean:
+                                result = rtuServer.WriteHoldingRegisterUInt16((byte)register.slaveId, (UInt16)register.registerAddress, (value == 0) ? (UInt16)0 : (UInt16)1);
+                                errorMessage = rtuServer.ErrorMessage;
+                                break;
+                            case ModbusDataType.UInt16:
+                                result = rtuServer.WriteHoldingRegisterUInt16((byte)register.slaveId, (UInt16)register.registerAddress, Convert.ToUInt16(value));
+                                errorMessage = rtuServer.ErrorMessage;
+                                break;
+                            case ModbusDataType.Int16:
+                                result = rtuServer.WriteHoldingRegisterInt16((byte)register.slaveId, (UInt16)register.registerAddress, Convert.ToInt16(value));
+                                errorMessage = rtuServer.ErrorMessage;
+                                break;
+                            case ModbusDataType.UInt32:
+                                result = rtuServer.WriteHoldingRegisterUInt32((byte)register.slaveId, (UInt16)register.registerAddress, Convert.ToUInt32(value));
+                                errorMessage = rtuServer.ErrorMessage;
+                                break;
+                            case ModbusDataType.Int32:
+                                result = rtuServer.WriteHoldingRegisterInt32((byte)register.slaveId, (UInt16)register.registerAddress, Convert.ToInt32(value));
+                                errorMessage = rtuServer.ErrorMessage;
+                                break;
+                            case ModbusDataType.Float32:
+                                result = rtuServer.WriteHoldingRegisterFloat32((byte)register.slaveId, (UInt16)register.registerAddress, Convert.ToUInt32(value));
+                                errorMessage = rtuServer.ErrorMessage;
+                                break;
+                            default:
+                                result = false;
+                                errorMessage = $"Modbus write: unsupported holding register data type: {register.dataType}";
+                                break;
+                        }
+                        break;
                     default:
                         result = false;
-                        errorMessage = $"Unsupported register type {register.registerType}";
+                        errorMessage = $"Modbus write: unsupported register type {register.registerType}";
                         break;
                 }
                 if (result)

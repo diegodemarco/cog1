@@ -28,9 +28,8 @@ namespace cog1.Dao
         }
 
         private static object _lock = new object();
-        private static long variablesSignature = 0;
+        private static long variablesSignature = 1;
         private static Dictionary<int, VariableDTO> variables = null;
-        private static Random random = new();
 
         public VariableDao(Cog1Context context, ILogger logger) : base(context, logger)
         {
@@ -129,7 +128,7 @@ namespace cog1.Dao
                         .ToDictionary(item => item.variableId);
 
                     // Update signature to signal the change
-                    variablesSignature = random.NextInt64();
+                    variablesSignature++;
                 }
             }
         }

@@ -1,6 +1,7 @@
 ﻿using cog1.Entities;
 using Newtonsoft.Json;
 using System.IO;
+using System.IO.Ports;
 
 namespace cog1
 {
@@ -23,9 +24,12 @@ namespace cog1
 
         private class JsonConfig_Modbus
         {
-            public string serialPort = "/dev/ttyS5";
-            public int baudRate = 9600;
+            public string rtuSerialPort = "/dev/ttyS5";
+            public int rtuBaudRate = 9600;
             public bool rtuEnabled = true;
+            public int rtuDataBits = 8;
+            public StopBits rtuStopBits = StopBits.One;
+            public Parity rtuParity = Parity.None;
         }
 
         private class JsonConfig
@@ -48,9 +52,12 @@ namespace cog1
         public static OutputStartupType DO4StartupType { get => _config.outputs.startup.do4; set { _config.outputs.startup.do4 = value; StoreConfig(); } }
 
         // Modbus RTU
-        public static string ModbusSerialPort { get => _config.modbus.serialPort; set { _config.modbus.serialPort = value; StoreConfig(); } }
-        public static int ModbusBaudRate { get => _config.modbus.baudRate; set { _config.modbus.baudRate = value; StoreConfig(); } }
         public static bool ModbusRtuEnabled { get => _config.modbus.rtuEnabled; set { _config.modbus.rtuEnabled = value; StoreConfig(); } }
+        public static string ModbusRtuSerialPort { get => _config.modbus.rtuSerialPort; set { _config.modbus.rtuSerialPort = value; StoreConfig(); } }
+        public static int ModbusRtuBaudRate { get => _config.modbus.rtuBaudRate; set { _config.modbus.rtuBaudRate = value; StoreConfig(); } }
+        public static int ModbusRtuDataBits { get => _config.modbus.rtuDataBits; set { _config.modbus.rtuDataBits = value; StoreConfig(); } }
+        public static StopBits ModbusRtuStopBits { get => _config.modbus.rtuStopBits; set { _config.modbus.rtuStopBits = value; StoreConfig(); } }
+        public static Parity ModbusRtuParity { get => _config.modbus.rtuParity; set { _config.modbus.rtuParity = value; StoreConfig(); } }
 
         private static void LoadConfig()
         {

@@ -3,7 +3,6 @@ using cog1.DTO;
 using cog1.Entities;
 using cog1.Exceptions;
 using cog1.Hardware;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;

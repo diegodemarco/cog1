@@ -27,7 +27,7 @@ namespace cog1.BackgroundServices
     /// </param>
     public class ModbusService(ILogger<ModbusService> logger) : BackgroundService
     {
-        private static Random random = new Random();
+        private static long lastId = 1;
         private static object _lock = new();
         private static List<ModbusQueueEntry> modbusQueue = new();
 
@@ -48,7 +48,7 @@ namespace cog1.BackgroundServices
 
         private class ModbusQueueEntry
         {
-            public readonly long operationId = random.NextInt64();
+            public readonly long operationId = lastId++;
             public ModbusOperationType operationType = ModbusOperationType.Read;
             public ModbusQueueItemState state = ModbusQueueItemState.Pending;
             public int variableId;
@@ -118,9 +118,7 @@ namespace cog1.BackgroundServices
 
             // Update variable value in the IO Manager
             foreach (var item in varsToUpdate)
-            {
                 IOManager.SetVariableValue(item.Key, item.Value);
-            }
         }
 
         private static long DequeueOperation(Func<ModbusQueueEntry, bool> func, out ModbusRegisterDTO modbusRegister, out bool isRead, out double value)
@@ -224,6 +222,7 @@ namespace cog1.BackgroundServices
                 {
                     item.state = ModbusQueueItemState.Error;
                     item.errorMessage = error;
+                    Console.WriteLine($"Modbus operation id {operationId} finished with error: {error}");
                 }
             }
             CheckCompletedItems();
@@ -285,16 +284,19 @@ namespace cog1.BackgroundServices
             // Queue the write operation
             var op = QueueWrite(v, value);
 
-            Console.WriteLine($"Queued Modbus write operation");
+            // Console.WriteLine($"Queued Modbus write operation");
 
             // Wait for completion
             if (!WaitForOperation(op, out var success, out _, out errorMessage))
                 return false;
 
-            Console.WriteLine(success? "Modbus write operation successful" : "Modbus write operation failed");
+            //Console.WriteLine(success ? "Modbus write operation successful" : "Modbus write operation failed");
 
             // Update the variable value
-            IOManager.SetVariableValue(v.variableId, value);
+            if (success)
+                IOManager.SetVariableValue(v.variableId, value);
+
+            // Done
             return success;
         }
 

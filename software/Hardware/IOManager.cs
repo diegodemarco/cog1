@@ -629,6 +629,16 @@ namespace cog1.Hardware
                 SetVariableValue(variableId, value);
         }
 
+        public static void UpdateVariableList(HashSet<int> varIds)
+        {
+            lock (_lock)
+            {
+                var idsToRemove = variableValues.Select(item => item.Key).Where(item => !varIds.Contains(item));
+                foreach (var item in idsToRemove)
+                    variableValues.Remove(item);
+            }
+        }
+
         #endregion
 
         #region Data persistence
