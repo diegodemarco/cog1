@@ -1,3 +1,4 @@
+<app-variable-set-modal />
 <c-row>
   <c-col sm="8">
     <c-card class="my-3">
@@ -130,7 +131,7 @@
             <h4 style="display: inline" class="card-title">{{literals.variables!.variables}}</h4>
           </c-col>
         </c-row>
-        @for (v of builtinVariables; track v.variableId)
+        @for (v of variables; track v.variableId)
         {
           <c-card>
             <c-card-body>
@@ -164,22 +165,36 @@
                     <c-col style="height:100%; display: flex; align-items: center; justify-content: right;">
                       @if (v.type! == variableType.Binary) 
                       {
-                        <div class="form-check form-switch">
-                          <input 
-                            class="form-check-input" 
-                            type="checkbox"
-                            role="switch" 
-                            [id]="'binSwitch_' + v.variableId?.toString()"
-                            aria-label="Switch" 
-                            [checked]="v.value" 
-                            [disabled]="(v.accessType == variableAccessType.Readonly) || (!authService.isOperator)"
-                            (change)="setBinaryOutput(v.variableId!, (v.value == 0))">
-                        </div>
+                        @if (v.spinnerVisible) {
+                          <c-spinner size="sm" color="primary" />
+                          <span style="width:17px;height:26px"></span>
+                        }
+                        @else {
+                          <div class="form-check form-switch">
+                            <input 
+                              class="form-check-input" 
+                              type="checkbox"
+                              role="switch" 
+                              [id]="'binSwitch_' + v.variableId?.toString()"
+                              aria-label="Switch" 
+                              [checked]="v.value" 
+                              [disabled]="(v.accessType == variableAccessType.Readonly) || (!authService.isOperator)"
+                              (change)="setBinaryOutput(v.variableId!, (v.value == 0))"
+                            >
+                          </div>
+                          }
                       }
                       @if (v.type! == variableType.Integer || v.type! == variableType.FloatingPoint) 
                       {
                         <span>{{v.value?.toFixed(v.type! == variableType.Integer ? 0 : 2)}}</span>
                         <span style="margin-left: 3px; margin-right: 8px;">{{v.units}}</span>
+
+                        @if (authService.isOperator && (v.accessType == variableAccessType.ReadWrite
+                          || v.accessType == variableAccessType.ReadWriteAction)) {
+                          <button cButton size="sm" (click)="doSetVariable(v)">
+                            <svg cIcon [name]="iconSubset.cilPencil" size="md"></svg>
+                          </button>
+                        }
                       }
                     </c-col>
                   </c-row>

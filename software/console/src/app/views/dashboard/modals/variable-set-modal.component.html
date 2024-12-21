@@ -1,0 +1,18 @@
+<c-modal id="profileModal" [(visible)]="visible" alignment="center" backdrop="static" keyboard="true">
+  <form cForm (submit)="saveChanges()">
+    <c-modal-header>
+      <h5 cModalTitle>{{literals.common!.profile}}</h5>
+      <button (click)="dismiss()" cButtonClose></button>
+    </c-modal-header>
+    <c-modal-body>
+      <label for="description">{{literals.common!.description}} </label>
+      <input cFormControl type="text" id="description" name="description" [value]="varDescription" class="mb-3" disabled>
+      <label for="value">{{literals.common!.language}} </label>
+      <input cFormControl type="number" id="value" name="value" [(ngModel)]="varValue" class="mb-3">
+    </c-modal-body>
+    <c-modal-footer>
+      <button type="submit" cButton color="primary">{{literals.common!.buttonOk}}</button>
+      <button (click)="dismiss()" cButton color="secondary">{{literals.common!.buttonCancel}}</button>
+    </c-modal-footer>
+  </form>
+</c-modal>

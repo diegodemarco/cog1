@@ -17,8 +17,8 @@ import { AuthService } from 'src/app/services/auth.service';
   templateUrl: 'variables.component.html',
   styleUrls: ['variables.component.scss'],
   standalone: true,
-  imports: [TextColorDirective, CardComponent, CardBodyComponent, RowComponent, ColComponent,
-    ButtonDirective, IconDirective, ReactiveFormsModule, ButtonDirective, 
+  imports: [TextColorDirective, CardComponent, CardBodyComponent, RowComponent,
+    ColComponent, ButtonDirective, IconDirective, ReactiveFormsModule,
     VariableEditModalComponent, FormsModule, CrudPageComponent]
 })
 export class VariablesComponent

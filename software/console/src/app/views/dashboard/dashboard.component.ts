@@ -1,16 +1,12 @@
 import { DOCUMENT, NgStyle } from '@angular/common';
-import { Component, DestroyRef, effect, inject, OnInit, Renderer2, signal, WritableSignal } from '@angular/core';
-import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
-import { ChartData, ChartDataset, ChartOptions, PluginOptionsByType, ScaleOptions, TooltipLabelStyle } from 'chart.js';
-import { AvatarComponent, ButtonDirective, ButtonGroupComponent, CardBodyComponent, CardComponent,
-         CardFooterComponent, CardHeaderComponent, ColComponent, FormCheckLabelDirective,
-         GutterDirective, ProgressBarDirective, ProgressComponent, RowComponent, TableDirective,
-         TextColorDirective } from '@coreui/angular';
+import { Component, DestroyRef, inject, OnInit, Renderer2, signal, ViewChild, WritableSignal } from '@angular/core';
+import { ReactiveFormsModule } from '@angular/forms';
+import { ChartData, ChartOptions, PluginOptionsByType, ScaleOptions, TooltipLabelStyle } from 'chart.js';
+import { ButtonDirective, CardBodyComponent, CardComponent, ColComponent, ProgressBarDirective,
+         ProgressComponent, RowComponent, SpinnerComponent, TextColorDirective } from '@coreui/angular';
 import { ChartjsComponent } from '@coreui/angular-chartjs';
 import { IconDirective } from '@coreui/icons-angular';
 import { getStyle, hexToRgba } from '@coreui/utils';
-import { WidgetsBrandComponent } from '../widgets/widgets-brand/widgets-brand.component';
-import { WidgetsDropdownComponent } from '../widgets/widgets-dropdown/widgets-dropdown.component';
 import { BasicEntitiesService } from 'src/app/services/basic-entities.service';
 import { ViewStatusService } from 'src/app/services/view-status.service';
 import { BackendService } from 'src/app/services/backend.service';
@@ -18,33 +14,38 @@ import { DeepPartial } from 'chart.js/dist/types/utils';
 import { VariableType, VariableDTO, VariableAccessType, LiteralsContainerDTO, JsonControllerException } from 'src/app/api-client/data-contracts';
 import { IconSubset } from 'src/app/icons/icon-subset';
 import { Subscription, timer } from 'rxjs';
-import { ProfileModalComponent } from 'src/app/modals/profile/profile-modal.component';
 import { AuthService } from 'src/app/services/auth.service';
+import { VariableSetModalModalComponent } from './modals/variable-set-modal.component';
 
 interface VarWithValue extends VariableDTO 
 {
   value?: number | null | undefined;
+  spinnerVisible: boolean;
 }
 
 @Component({
   templateUrl: 'dashboard.component.html',
   styleUrls: ['dashboard.component.scss'],
   standalone: true,
-  imports: [TextColorDirective, CardComponent, CardBodyComponent, RowComponent, 
+  imports: [TextColorDirective, CardComponent, CardBodyComponent, RowComponent, ButtonDirective,
     ColComponent, IconDirective, ReactiveFormsModule, ChartjsComponent, NgStyle, 
-    ProgressBarDirective, ProgressComponent ]
+    ProgressBarDirective, ProgressComponent, SpinnerComponent, VariableSetModalModalComponent]
 })
 export class DashboardComponent implements OnInit 
 {
   // Enums
   readonly variableType = VariableType;
   readonly variableAccessType = VariableAccessType;
+  readonly iconSubset = IconSubset;
 
   // Literals
   readonly literals: LiteralsContainerDTO;
 
   // Services
   authService: AuthService;
+
+  // View children
+  @ViewChild(VariableSetModalModalComponent) setValueModal!: VariableSetModalModalComponent;
 
   // Subscriptions
   private cpuTimerSub: Subscription | null = null;
@@ -80,7 +81,7 @@ export class DashboardComponent implements OnInit
   public temperatureColor: string = "succes";
 
   // Variable data
-  public builtinVariables: VarWithValue[] = [];
+  public variables: VarWithValue[] = [];
 
   constructor(private backend: BackendService, private basicEntitiesService: BasicEntitiesService, 
     authService: AuthService, private viewStatus: ViewStatusService) 
@@ -119,7 +120,7 @@ export class DashboardComponent implements OnInit
   private updateCpuHistory(): void
   {
     this.backend.system.getCpuHistory5Min()
-      .then((data) => 
+      .then(data => 
       {
         this.updateCpuChartData(data.data);
       });
@@ -157,25 +158,32 @@ export class DashboardComponent implements OnInit
     this.backend.variables.enumerateVariables()
       .then(data =>
       {
+        //console.log('Old var data: ', this.variables);
         data.data
           //.filter(item => item.variableId! < 100)
-          .forEach((item) =>
+          .forEach(item =>
           {
-            let x: VarWithValue = {};
+            let x: VarWithValue = { spinnerVisible: false };
             Object.assign(x, item);
             tempList.push(x);
           });
-        return this.backend.variables.getVariableValues();
+          //console.log('New var data: ', tempList);
+          return this.backend.variables.getVariableValues();
       })
       .then(data => 
       {
         data.data.forEach(item =>
         {
           let v = tempList.find(x => x.variableId! == item.variableId!);
-          if (v)
+          if (v) {
             v!.value = item.value;
+            // Restore the spinner if it's currently visible
+            let currVar = this.findVar(item.variableId!);
+            if (currVar)
+              v!.spinnerVisible = currVar.spinnerVisible;
+          }
         });
-        this.builtinVariables = tempList;
+        this.variables = tempList;
       });
   }
 
@@ -342,17 +350,38 @@ export class DashboardComponent implements OnInit
     return this.basicEntitiesService.getVariableTypeDescription(type)
   }
 
+  private findVar(variableId: number): VarWithValue | undefined
+  {
+    return this.variables.find(item => item.variableId == variableId);
+  }
+
   setBinaryOutput(variableId: number, turnOn: boolean)
   {
+    this.findVar(variableId)!.spinnerVisible = true;
     this.backend.variables.setVariableValue(variableId, turnOn ? 1 : 0)
       .then(() => {
+        this.findVar(variableId)!.spinnerVisible = false;
+        //console.log('Done: variable: ', variableId, ' data: ', this.variables);
         this.updateVariables();
       })
       .catch(error => {
-        console.log(error);
+        this.findVar(variableId)!.spinnerVisible = false;
         let e: JsonControllerException = error.error;
         this.viewStatus.showErrorToast(e.message!);
       });
+  }
+
+  doSetVariable(v: VarWithValue) {
+    this.setValueModal.showModal(v.variableId!, v.description!, v.value ?? 0)
+      .then(() =>
+        {
+          this.viewStatus.showSuccessToast(this.literals.variables!.variableUpdated!);
+          this.updateVariables();
+        }
+      )
+      .catch(() => 
+        { }
+      );
   }
 
 }
