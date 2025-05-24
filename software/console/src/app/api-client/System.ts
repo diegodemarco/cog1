@@ -1,5 +1,6 @@
-﻿/* eslint-disable */
+/* eslint-disable */
 /* tslint:disable */
+// @ts-nocheck
 /*
  * ---------------------------------------------------------------
  * ## THIS FILE WAS GENERATED VIA SWAGGER-TYPESCRIPT-API        ##
@@ -12,12 +13,14 @@
 import { JsonControllerException, SystemStatsReport } from "./data-contracts";
 import { HttpClient, RequestParams } from "./http-client";
 
-export class System<SecurityDataType = unknown> extends HttpClient<SecurityDataType> {
+export class System<
+  SecurityDataType = unknown,
+> extends HttpClient<SecurityDataType> {
   /**
    * No description
    *
    * @tags System
-   * @name getSystemStats
+   * @name GetSystemStats
    * @request GET:/api/system/stats
    */
   getSystemStats = (params: RequestParams = {}) =>
@@ -31,7 +34,7 @@ export class System<SecurityDataType = unknown> extends HttpClient<SecurityDataT
    * No description
    *
    * @tags System
-   * @name getCpuHistory5Min
+   * @name GetCpuHistory5Min
    * @request GET:/api/system/stats/cpu/history-5min
    */
   getCpuHistory5Min = (params: RequestParams = {}) =>
@@ -45,7 +48,7 @@ export class System<SecurityDataType = unknown> extends HttpClient<SecurityDataT
    * No description
    *
    * @tags System
-   * @name ping
+   * @name Ping
    * @request GET:/api/system/ping
    */
   ping = (params: RequestParams = {}) =>

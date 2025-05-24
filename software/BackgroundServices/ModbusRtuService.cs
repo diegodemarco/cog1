@@ -17,10 +17,6 @@ namespace cog1.BackgroundServices
     /// <param name="logger">
     /// Logger used by the background service.
     /// </param>
-    /// <param name="scopeFactory">
-    /// Scope factory used to create new scopes as needed, mostly to instantiate contexts 
-    /// to access the database.
-    /// </param>
     public class ModbusRtuService(ILogger<ModbusRtuService> logger) : BackgroundService
     {
         private ModbusRtuServer rtuServer = null;
@@ -59,7 +55,7 @@ namespace cog1.BackgroundServices
                     Config.ModbusRtuDataBits,
                     Config.ModbusRtuStopBits,
                     Config.ModbusRtuParity);
-                logger.LogInformation($"Successfully started RTU server on {Config.ModbusRtuSerialPort} at {Config.ModbusRtuBaudRate} bauds");
+                logger.LogInformation($"Successfully started RTU server on {Config.ModbusRtuSerialPort}. Port setup: {Config.ModbusRtuBaudRate},{Config.ModbusRtuDataBits},{Config.ModbusRtuParity},{Config.ModbusRtuStopBits}");
             }
         }
 

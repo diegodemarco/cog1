@@ -1,5 +1,6 @@
 /* eslint-disable */
 /* tslint:disable */
+// @ts-nocheck
 /*
  * ---------------------------------------------------------------
  * ## THIS FILE WAS GENERATED VIA SWAGGER-TYPESCRIPT-API        ##
@@ -8,6 +9,51 @@
  * ## SOURCE: https://github.com/acacode/swagger-typescript-api ##
  * ---------------------------------------------------------------
  */
+
+/** @format int32 */
+export enum VariableType {
+  Unknown = 0,
+  Binary = 1,
+  Integer = 2,
+  FloatingPoint = 3,
+}
+
+/** @format int32 */
+export enum VariableSource {
+  Unknown = 0,
+  BuiltIn = 1,
+  Calculated = 2,
+  External = 3,
+  Modbus = 4,
+}
+
+/** @format int32 */
+export enum VariableAccessType {
+  Unknown = 0,
+  Readonly = 1,
+  ReadWrite = 2,
+  ReadWriteAction = 3,
+}
+
+/** @format int32 */
+export enum ModbusRegisterType {
+  Unknown = 0,
+  Coil = 1,
+  DiscreteInput = 2,
+  HoldingRegister = 3,
+  InputRegister = 4,
+}
+
+/** @format int32 */
+export enum ModbusDataType {
+  Unknown = 0,
+  Boolean = 1,
+  UInt16 = 2,
+  UInt32 = 3,
+  Int16 = 4,
+  Int32 = 5,
+  Float32 = 6,
+}
 
 export interface AccessTokenInfoDTO {
   user?: UserDTO;
@@ -283,17 +329,6 @@ export interface MemoryReportDTO {
   availablePercentage?: number;
 }
 
-/** @format int32 */
-export enum ModbusDataType {
-  Unknown = 0,
-  Boolean = 1,
-  UInt16 = 2,
-  UInt32 = 3,
-  Int16 = 4,
-  Int32 = 5,
-  Float32 = 6,
-}
-
 export interface ModbusDataTypeDTO {
   modbusDataType?: ModbusDataType;
   description?: string | null;
@@ -323,7 +358,6 @@ export interface ModbusLiteralsContainer {
 }
 
 export interface ModbusRegisterDTO {
-  description?: string | null;
   tcpHost?: string | null;
   /** @format int32 */
   slaveId?: number;
@@ -331,15 +365,6 @@ export interface ModbusRegisterDTO {
   registerAddress?: number;
   registerType?: ModbusRegisterType;
   dataType?: ModbusDataType;
-}
-
-/** @format int32 */
-export enum ModbusRegisterType {
-  Unknown = 0,
-  Coil = 1,
-  DiscreteInput = 2,
-  HoldingRegister = 3,
-  InputRegister = 4,
 }
 
 export interface ModbusRegisterTypeDTO {
@@ -409,14 +434,6 @@ export interface UserWithPasswordDTO {
   password?: string | null;
 }
 
-/** @format int32 */
-export enum VariableAccessType {
-  Unknown = 0,
-  Readonly = 1,
-  ReadWrite = 2,
-  ReadWriteAction = 3,
-}
-
 export interface VariableAccessTypeDTO {
   accessType?: VariableAccessType;
   description?: string | null;
@@ -436,26 +453,9 @@ export interface VariableDTO {
   modbusRegister?: ModbusRegisterDTO;
 }
 
-/** @format int32 */
-export enum VariableSource {
-  Unknown = 0,
-  BuiltIn = 1,
-  Calculated = 2,
-  External = 3,
-  Modbus = 4,
-}
-
 export interface VariableSourceDTO {
   variableSource?: VariableSource;
   description?: string | null;
-}
-
-/** @format int32 */
-export enum VariableType {
-  Unknown = 0,
-  Binary = 1,
-  Integer = 2,
-  FloatingPoint = 3,
 }
 
 export interface VariableTypeDTO {

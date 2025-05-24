@@ -1,5 +1,6 @@
-﻿/* eslint-disable */
+/* eslint-disable */
 /* tslint:disable */
+// @ts-nocheck
 /*
  * ---------------------------------------------------------------
  * ## THIS FILE WAS GENERATED VIA SWAGGER-TYPESCRIPT-API        ##
@@ -20,12 +21,14 @@ import {
 } from "./data-contracts";
 import { ContentType, HttpClient, RequestParams } from "./http-client";
 
-export class Security<SecurityDataType = unknown> extends HttpClient<SecurityDataType> {
+export class Security<
+  SecurityDataType = unknown,
+> extends HttpClient<SecurityDataType> {
   /**
    * No description
    *
    * @tags Security
-   * @name login
+   * @name Login
    * @request POST:/api/security/login
    */
   login = (data: LoginRequestDTO, params: RequestParams = {}) =>
@@ -41,7 +44,7 @@ export class Security<SecurityDataType = unknown> extends HttpClient<SecurityDat
    * No description
    *
    * @tags Security
-   * @name getAccessTokenInfo
+   * @name GetAccessTokenInfo
    * @request GET:/api/security/access-token
    */
   getAccessTokenInfo = (params: RequestParams = {}) =>
@@ -55,7 +58,7 @@ export class Security<SecurityDataType = unknown> extends HttpClient<SecurityDat
    * No description
    *
    * @tags Security
-   * @name enumerateUsers
+   * @name EnumerateUsers
    * @request GET:/api/security/users
    */
   enumerateUsers = (params: RequestParams = {}) =>
@@ -69,7 +72,7 @@ export class Security<SecurityDataType = unknown> extends HttpClient<SecurityDat
    * No description
    *
    * @tags Security
-   * @name createUser
+   * @name CreateUser
    * @request POST:/api/security/users
    */
   createUser = (data: UserWithPasswordDTO, params: RequestParams = {}) =>
@@ -85,7 +88,7 @@ export class Security<SecurityDataType = unknown> extends HttpClient<SecurityDat
    * No description
    *
    * @tags Security
-   * @name editUser
+   * @name EditUser
    * @request PUT:/api/security/users
    */
   editUser = (data: UserWithPasswordDTO, params: RequestParams = {}) =>
@@ -101,7 +104,7 @@ export class Security<SecurityDataType = unknown> extends HttpClient<SecurityDat
    * No description
    *
    * @tags Security
-   * @name getUser
+   * @name GetUser
    * @request GET:/api/security/users/{userId}
    */
   getUser = (userId: number, params: RequestParams = {}) =>
@@ -115,24 +118,26 @@ export class Security<SecurityDataType = unknown> extends HttpClient<SecurityDat
    * No description
    *
    * @tags Security
-   * @name deleteUser
+   * @name DeleteUser
    * @request DELETE:/api/security/users/{userId}
    */
   deleteUser = (userId: number, params: RequestParams = {}) =>
-    this.request<any, JsonControllerException>({
+    this.request<void, JsonControllerException>({
       path: `/api/security/users/${userId}`,
       method: "DELETE",
-      format: "json",
       ...params,
     });
   /**
    * No description
    *
    * @tags Security
-   * @name updateUserProfile
+   * @name UpdateUserProfile
    * @request POST:/api/security/users/profile
    */
-  updateUserProfile = (data: UpdateProfileRequestDTO, params: RequestParams = {}) =>
+  updateUserProfile = (
+    data: UpdateProfileRequestDTO,
+    params: RequestParams = {},
+  ) =>
     this.request<UserDTO, JsonControllerException>({
       path: `/api/security/users/profile`,
       method: "POST",
@@ -145,7 +150,7 @@ export class Security<SecurityDataType = unknown> extends HttpClient<SecurityDat
    * No description
    *
    * @tags Security
-   * @name ping
+   * @name Ping
    * @request GET:/api/security/ping
    */
   ping = (params: RequestParams = {}) =>

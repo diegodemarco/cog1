@@ -111,7 +111,7 @@ namespace cog1.Controllers
 
         [HttpPost]
         [Route("users/profile")]
-        public UserDTO UpdateProfile([FromBody] UpdateProfileRequestDTO userProfile)
+        public UserDTO UpdateUserProfile([FromBody] UpdateProfileRequestDTO userProfile)
         {
             return MethodPattern(() =>
             {

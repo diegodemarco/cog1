@@ -42,7 +42,7 @@ namespace cog1.Controllers
 
         [HttpGet]
         [Route("stats/cpu/history-5min")]
-        public List<double> GetCPU5min()
+        public List<double> getCpuHistory5Min()
         {
             return MethodPattern(() =>
             {

@@ -1,5 +1,6 @@
-﻿/* eslint-disable */
+/* eslint-disable */
 /* tslint:disable */
+// @ts-nocheck
 /*
  * ---------------------------------------------------------------
  * ## THIS FILE WAS GENERATED VIA SWAGGER-TYPESCRIPT-API        ##
@@ -9,15 +10,21 @@
  * ---------------------------------------------------------------
  */
 
-import { JsonControllerException, VariableDTO, VariableValueDTO } from "./data-contracts";
+import {
+  JsonControllerException,
+  VariableDTO,
+  VariableValueDTO,
+} from "./data-contracts";
 import { ContentType, HttpClient, RequestParams } from "./http-client";
 
-export class Variables<SecurityDataType = unknown> extends HttpClient<SecurityDataType> {
+export class Variables<
+  SecurityDataType = unknown,
+> extends HttpClient<SecurityDataType> {
   /**
    * No description
    *
    * @tags Variables
-   * @name enumerateVariables
+   * @name EnumerateVariables
    * @request GET:/api/variables
    */
   enumerateVariables = (params: RequestParams = {}) =>
@@ -31,7 +38,7 @@ export class Variables<SecurityDataType = unknown> extends HttpClient<SecurityDa
    * No description
    *
    * @tags Variables
-   * @name createVariable
+   * @name CreateVariable
    * @request POST:/api/variables
    */
   createVariable = (data: VariableDTO, params: RequestParams = {}) =>
@@ -47,7 +54,7 @@ export class Variables<SecurityDataType = unknown> extends HttpClient<SecurityDa
    * No description
    *
    * @tags Variables
-   * @name editVariable
+   * @name EditVariable
    * @request PUT:/api/variables
    */
   editVariable = (data: VariableDTO, params: RequestParams = {}) =>
@@ -63,10 +70,10 @@ export class Variables<SecurityDataType = unknown> extends HttpClient<SecurityDa
    * No description
    *
    * @tags Variables
-   * @name getVariable
+   * @name GetVariableById
    * @request GET:/api/variables/{variableId}
    */
-  getVariable = (variableId: number, params: RequestParams = {}) =>
+  getVariableById = (variableId: number, params: RequestParams = {}) =>
     this.request<VariableDTO, JsonControllerException>({
       path: `/api/variables/${variableId}`,
       method: "GET",
@@ -77,21 +84,20 @@ export class Variables<SecurityDataType = unknown> extends HttpClient<SecurityDa
    * No description
    *
    * @tags Variables
-   * @name deleteVariable
+   * @name DeleteVariable
    * @request DELETE:/api/variables/{variableId}
    */
   deleteVariable = (variableId: number, params: RequestParams = {}) =>
-    this.request<any, JsonControllerException>({
+    this.request<void, JsonControllerException>({
       path: `/api/variables/${variableId}`,
       method: "DELETE",
-      format: "json",
       ...params,
     });
   /**
    * No description
    *
    * @tags Variables
-   * @name getVariableValues
+   * @name GetVariableValues
    * @request GET:/api/variables/values
    */
   getVariableValues = (params: RequestParams = {}) =>
@@ -105,7 +111,7 @@ export class Variables<SecurityDataType = unknown> extends HttpClient<SecurityDa
    * No description
    *
    * @tags Variables
-   * @name getVariableValue
+   * @name GetVariableValue
    * @request GET:/api/variables/values/{variableId}
    */
   getVariableValue = (variableId: number, params: RequestParams = {}) =>
@@ -119,10 +125,14 @@ export class Variables<SecurityDataType = unknown> extends HttpClient<SecurityDa
    * No description
    *
    * @tags Variables
-   * @name setVariableValue
+   * @name SetVariableValue
    * @request POST:/api/variables/values/{variableId}
    */
-  setVariableValue = (variableId: number, data: number, params: RequestParams = {}) =>
+  setVariableValue = (
+    variableId: number,
+    data: number,
+    params: RequestParams = {},
+  ) =>
     this.request<VariableValueDTO, JsonControllerException>({
       path: `/api/variables/values/${variableId}`,
       method: "POST",
@@ -135,7 +145,7 @@ export class Variables<SecurityDataType = unknown> extends HttpClient<SecurityDa
    * No description
    *
    * @tags Variables
-   * @name ping
+   * @name Ping
    * @request GET:/api/variables/ping
    */
   ping = (params: RequestParams = {}) =>

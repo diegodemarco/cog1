@@ -10,6 +10,7 @@ using Cog1.DB;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
@@ -101,6 +102,16 @@ namespace cog1
                 c.SwaggerDoc("current", new OpenApiInfo { Title = "cog1 API", Version = "v1" });
                 c.SchemaFilter<EnumSchemaFilter>();
                 c.OperationFilter<EndpointErrorsFilter>();
+                // Use method name as operation id in Swagger
+                c.CustomOperationIds(e =>
+                {
+                    if (e.ActionDescriptor is ControllerActionDescriptor)
+                    {
+                        var ad = (ControllerActionDescriptor)e.ActionDescriptor;
+                        return ad.MethodInfo.Name;
+                    }
+                    return string.Empty;
+                });
             });
             services.AddSwaggerGenNewtonsoftSupport();
         }
@@ -180,66 +191,32 @@ namespace cog1
 
         internal sealed class EndpointErrorsFilter : IOperationFilter
         {
-            private static object _lock = new();
-            private static HashSet<HttpStatusCode> usedErrorCodes = null;
-
-            private void LoadErrorCodes()
-            {
-                lock (_lock)
-                {
-                    if (usedErrorCodes != null)
-                        return;
-
-                    usedErrorCodes = new();
-                    var errorCodes = new Exceptions.ErrorCodes(Locales.English.LocaleCode);
-                    foreach (var prop in errorCodes.GetType().GetProperties().Where(item => item.PropertyType == typeof(ErrorCodesContainer)
-                      || item.PropertyType.IsSubclassOf(typeof(ErrorCodesContainer))))
-                    {
-                        var container = prop.GetValue(errorCodes) as ErrorCodesContainer;
-                        foreach (var err in prop.PropertyType.GetProperties().Where(item => item.PropertyType == typeof(ErrorCode)
-                          || item.PropertyType.IsSubclassOf(typeof(ErrorCode))))
-                        {
-                            var errorCode = err.GetValue(container) as ErrorCode;
-                            //Console.WriteLine($"{prop.Name}.{err.Name}={errorCode.StatusCode}");
-                            usedErrorCodes.Add(errorCode.StatusCode);
-                        }
-                    }
-                }
-            }
-
             public void Apply(OpenApiOperation operation, OperationFilterContext context)
             {
-                LoadErrorCodes();
-
                 // Check if JsonControllerException is already in the schema
                 context.SchemaRepository.TryLookupByType(typeof(ControllerException.JsonControllerException), out var schema);
                 if (schema is null)
                     schema = context.SchemaGenerator.GenerateSchema(typeof(ControllerException.JsonControllerException), context.SchemaRepository);
 
-                var response200 = operation.Responses["200"];
-                if (response200.Content.Count < 1)
-                {
-                    context.SchemaRepository.TryLookupByType(typeof(object), out var objectSchema);
-                    if (objectSchema == null)
-                        objectSchema = context.SchemaGenerator.GenerateSchema(typeof(object), context.SchemaRepository);
-                    response200.Content.Add("text/plain", new OpenApiMediaType { Schema = objectSchema });
-                    response200.Content.Add("application/json", new OpenApiMediaType { Schema = objectSchema });
-                    response200.Content.Add("text/json", new OpenApiMediaType { Schema = objectSchema });
-                }
+                //var response200 = operation.Responses["200"];
+                //if (response200.Content.Count < 1)
+                //{
+                //    context.SchemaRepository.TryLookupByType(typeof(object), out var objectSchema);
+                //    if (objectSchema == null)
+                //        objectSchema = context.SchemaGenerator.GenerateSchema(typeof(object), context.SchemaRepository);
+                //    response200.Content.Add("text/plain", new OpenApiMediaType { Schema = objectSchema });
+                //    response200.Content.Add("application/json", new OpenApiMediaType { Schema = objectSchema });
+                //    response200.Content.Add("text/json", new OpenApiMediaType { Schema = objectSchema });
+                //}
 
-                var content = new Dictionary<string, OpenApiMediaType>()
-                {
-                    { "text/json", new OpenApiMediaType { Schema = schema } }
-                };
-                foreach (var errorCode in usedErrorCodes)
-                {
-                    operation.Responses.Add(((int)errorCode).ToString(), new OpenApiResponse() { Content = content, Description = $"{errorCode}" });
-                }
+                var content = new Dictionary<string, OpenApiMediaType>() { { "text/json", new OpenApiMediaType { Schema = schema } } };
+                operation.Responses.Add("4XX", new OpenApiResponse() { Content = content, Description = "Errors with status code 4xx" });
+                operation.Responses.Add("5XX", new OpenApiResponse() { Content = content, Description = "Errors with status code 5xx" });
             }
         }
 
         /// <summary>
-        /// This filter is used to ensure that swagger when rendering swagger.json, 
+        /// This filter is used to ensure that when rendering swagger.json, 
         /// enums are represented with their values, but also their names are included,
         /// so that code-generation tools (like swagger-typescript-api, used by the
         /// frontend), can generate enums that contain the proper names.

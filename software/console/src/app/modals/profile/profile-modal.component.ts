@@ -21,11 +21,10 @@ import { LiteralsContainerDTO, LocaleDTO } from 'src/app/api-client/data-contrac
   selector: 'app-profile-modal',
   standalone: true,
   imports: [
-    FormsModule, RowComponent, ColComponent, TextColorDirective, CardComponent, CardHeaderComponent,
-    CardBodyComponent, ModalComponent, ModalHeaderComponent, ModalTitleDirective, ThemeDirective,
-    ButtonCloseDirective, ModalBodyComponent, ModalFooterComponent, ButtonDirective, ModalToggleDirective,
-    PopoverDirective, TooltipDirective, FormDirective, FormLabelDirective, FormControlDirective, FormSelectDirective
-  ],
+    FormsModule, ModalComponent, ModalHeaderComponent, ModalTitleDirective, ThemeDirective,
+    ButtonCloseDirective, ModalBodyComponent, ModalFooterComponent, ButtonDirective,
+    FormDirective, FormControlDirective, FormSelectDirective
+],
   templateUrl: './profile-modal.component.html',
   styleUrl: './profile-modal.component.scss'
 })

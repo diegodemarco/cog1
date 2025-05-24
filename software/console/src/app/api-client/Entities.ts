@@ -1,5 +1,6 @@
-﻿/* eslint-disable */
+/* eslint-disable */
 /* tslint:disable */
+// @ts-nocheck
 /*
  * ---------------------------------------------------------------
  * ## THIS FILE WAS GENERATED VIA SWAGGER-TYPESCRIPT-API        ##
@@ -9,15 +10,20 @@
  * ---------------------------------------------------------------
  */
 
-import { BasicEntitiesContainerDTO, JsonControllerException } from "./data-contracts";
+import {
+  BasicEntitiesContainerDTO,
+  JsonControllerException,
+} from "./data-contracts";
 import { HttpClient, RequestParams } from "./http-client";
 
-export class Entities<SecurityDataType = unknown> extends HttpClient<SecurityDataType> {
+export class Entities<
+  SecurityDataType = unknown,
+> extends HttpClient<SecurityDataType> {
   /**
    * No description
    *
    * @tags Entities
-   * @name getBasicEntities
+   * @name GetBasicEntities
    * @request GET:/api/entities/basic
    */
   getBasicEntities = (params: RequestParams = {}) =>
@@ -31,7 +37,7 @@ export class Entities<SecurityDataType = unknown> extends HttpClient<SecurityDat
    * No description
    *
    * @tags Entities
-   * @name ping
+   * @name Ping
    * @request GET:/api/entities/ping
    */
   ping = (params: RequestParams = {}) =>

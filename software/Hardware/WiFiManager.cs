@@ -62,6 +62,9 @@ namespace cog1.Hardware
                 Thread.Sleep(5000);
                 OSUtils.Run("systemctl", "start", "NetworkManager");
                 OSUtils.Run("nmcli", "radio", "wifi", "on");
+                OSUtils.Run("systemctl", "restart", "wpa_supplicant");
+                Thread.Sleep(5000);
+                OSUtils.Run("systemctl", "start", "wpa_supplicant");
                 return true;
             }
             catch
