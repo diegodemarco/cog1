@@ -17,7 +17,7 @@ The cog1 platform currently supports:
 - Four digital outputs (relays, varistor-protected).
 - Four analog voltage inputs (0-10 V, non-isolated), protected up to 48 VDC. The ADC is an [ADC128D818](https://www.ti.com/lit/ds/symlink/adc128d818.pdf) chip from TI.
 - Four analog current inputs (0-20 mA, non isolated), protected up to 100 mA. Uses the same [ADC128D818](https://www.ti.com/lit/ds/symlink/adc128d818.pdf) chip as the voltage inputs.
-- One RS-485 port (tested from 9600 to 115200 bauds). Support for Modbus RTU will be built on top of this.
+- One RS-485 port (tested from 9600 to 115200 bauds). Support for Modbus RTU is already built on top of this.
 - Battery-backed RTC.
 - A simple but extensible user interface with a small OLED display and a rotary encoder + pushbutton.
 - All connectivity inherited from the Orange Pi Zero 3 SBC
@@ -32,8 +32,15 @@ The current software is rather basic, but includes everything needed to fully te
 
 The front-end (console) is written in Angular, based on the [Core-UI admin template](https://coreui.io/product/free-angular-admin-template/), and it communicates with the back-end via web-services, which are already integrated in such a way that creating new controllers/endpoints and consuming them from the front-end is really simple. 
 
+The following features are already implemented:
+- Internal variables are fully supported. These match the actual hardware of the cog1.
+- External variables can be defined as well, based on Modbus registers.
+- Both Modbus RTU and Modbus TCP are supported, allowing reading and writing the most common types of registers in a variety of data types.
+- Variables can be defined to be "polled" automatically. For variables bound to Modbus registers, this means that the respective registers are polled via RTU or TCP as needed.
+- Writeable variables can be controlled/modified from the dashboard.
+- Writeable variables bound to Modbus registers also trigger the respective write operations through RTU or TCP, which can be done from the dashboard.
+
 The plan is to continue developing the software so that it can:
-- Enable the definition of "variables" based on the various inputs and outputs as well as on Modbus RTU (through the built-in RS-485 port). This could easily be extended to use Modbus TCP as well, or any other LAN protocol that could be relevant.
 - Provide data-extraction web services.
 - Communicate with external cloud services via MQTT or any other protocol that could be relevant.
 - Allow running javascript code using [Jint](https://github.com/sebastienros/jint) to make it possible to compute complex variables, do edge data-processing, etc.
