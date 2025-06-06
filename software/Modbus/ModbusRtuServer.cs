@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO.Ports;
+using System.Net.Sockets;
 using System.Threading;
 
 namespace cog1.Modbus
@@ -55,7 +56,7 @@ namespace cog1.Modbus
             serialPort.DiscardInBuffer();
         }
 
-        private bool ReadChars(byte[] buffer, ref int offset, int byteCount)
+        protected override bool ReadChars(Socket socket, byte[] buffer, ref int offset, int byteCount)
         {
             if (byteCount < 1)
                 return true;
@@ -75,12 +76,12 @@ namespace cog1.Modbus
                 }
                 Thread.Sleep(10);
             }
-            Console.WriteLine("Timeout");
+            Console.WriteLine("RTU: Timeout");
             SetErrorInfoTimeout();
             return false;
         }
 
-        protected override bool ExchangeData(object conn, byte[] requestData, out byte[] responseData)
+        protected override bool ExchangeData(string tcpHost, byte[] requestData, out byte[] responseData)
         {
 
             // Add checksum
@@ -99,11 +100,6 @@ namespace cog1.Modbus
             // Send the data frame
             serialPort.Write(newArray, 0, newArray.Length);
 
-            // Read the response
-            int index = 0;
-            var buffer = new byte[256];
-            responseData = Array.Empty<byte>();
-
             //// Read echo
             //if (!ReadChars(buffer, ref index, newArray.Length))
             //{
@@ -112,80 +108,8 @@ namespace cog1.Modbus
             //}
             //index = 0;
 
-            // Read device address and function code
-            if (!ReadChars(buffer, ref index, 2))
-            {
-                Console.WriteLine($"Timeout => [{Utils.BytesToHex(buffer, index)}]");
-                return false;
-            }
-            var functionCode = buffer[1];
-
-            // Check for error
-            if (functionCode >= 0x80)
-            {
-                // Read three bytes (error code and checksum) to complete
-                if (!ReadChars(buffer, ref index, 3))
-                {
-                    Console.WriteLine($"Timeout => [{Utils.BytesToHex(buffer, index)}]");
-                    return false;
-                }
-                Console.WriteLine($"Error => [{Utils.BytesToHex(buffer, index)}]");
-                return StripChecksum(buffer, index, out responseData);
-            }
-
-            // Read content
-            switch (functionCode)
-            {
-                case FUNCTION_READ_COIL:
-                case FUNCTION_READ_DISCRETE_INPUT:
-                case FUNCTION_READ_HOLDING_REGISTER:
-                case FUNCTION_READ_INPUT_REGISTER:
-                    // Read number of bytes following
-                    if (!ReadChars(buffer, ref index, 1))
-                    {
-                        Console.WriteLine($"Timeout => [{Utils.BytesToHex(buffer, index)}]");
-                        return false;
-                    }
-                    var byteCount = buffer[index - 1];
-                    // Read the specified number of chars, plus the checksum, to complete
-                    if (!ReadChars(buffer, ref index, byteCount + 2))    // Data bytes + checksum
-                    {
-                        Console.WriteLine($"Timeout => [{Utils.BytesToHex(buffer, index)}]");
-                        return false;
-                    }
-                    return StripChecksum(buffer, index, out responseData);
-
-                case FUNCTION_WRITE_SINGLE_COIL:
-                    // Read the rest of the frame
-                    if (!ReadChars(buffer, ref index, 2 + 2 + 2))        // Register address + register value + checksum
-                    {
-                        Console.WriteLine($"Timeout => [{Utils.BytesToHex(buffer, index)}]");
-                        return false;
-                    }
-                    return StripChecksum(buffer, index, out responseData);
-
-                case FUNCTION_WRITE_SINGLE_HOLDING_REGISTER:
-                    // Read the rest of the frame
-                    if (!ReadChars(buffer, ref index, 2 + 2 + 2))        // Register address + register value + checksum
-                    {
-                        Console.WriteLine($"Timeout => [{Utils.BytesToHex(buffer, index)}]");
-                        return false;
-                    }
-                    return StripChecksum(buffer, index, out responseData);
-
-                case FUNCTION_WRITE_MULTIPLE_HOLDING_REGISTERS:
-                    // Read the rest of the frame
-                    if (!ReadChars(buffer, ref index, 2 + 2 + 2))        // Register address + register count + checksum
-                    {
-                        Console.WriteLine($"Timeout => [{Utils.BytesToHex(buffer, index)}]");
-                        return false;
-                    }
-                    return StripChecksum(buffer, index, out responseData);
-
-                default:
-                    SetErrorInfo($"Unsupported response function code {functionCode}");
-                    return false;
-            }
+            // Read the response
+            return ReadResponseMessage(null, out responseData, true);
         }
 
         #endregion
@@ -252,7 +176,7 @@ namespace cog1.Modbus
             chk0 = (byte)(wCRCWord & 0xff);
         }
 
-        private bool StripChecksum(byte[] arr, int len, out byte[] data)
+        protected override bool StripChecksum(byte[] arr, int len, out byte[] data)
         {
             if (len < 3)
             {
@@ -278,112 +202,6 @@ namespace cog1.Modbus
             //Console.WriteLine($"Received with correct checksum: [{Utils.BytesToHex(arr, len, " ")}]");
 
             return true;
-        }
-
-        #endregion
-
-        #region Coils
-
-        public bool ReadCoil(byte slaveAddress, UInt16 registerAddress, out bool value)
-        {
-            return base.ReadCoil(null, slaveAddress, registerAddress, out value);
-        }
-
-        public bool WriteCoil(byte slaveAddress, UInt16 registerAddress, bool value)
-        {
-            return base.WriteCoil(null, slaveAddress, registerAddress, value);
-        }
-
-        #endregion
-
-        #region Discrete inputs
-
-        public bool ReadDiscreteInput(byte slaveAddress, UInt16 registerAddress, out bool value)
-        {
-            return base.ReadDiscreteInput(null, slaveAddress, registerAddress, out value);
-        }
-
-        #endregion
-
-        #region Holding registers
-
-        public bool ReadHoldingRegisterUInt16(byte slaveAddress, UInt16 registerAddress, out UInt16 value)
-        {
-            return base.ReadHoldingRegisterUInt16(null, slaveAddress, registerAddress, out value);
-        }
-
-        public bool WriteHoldingRegisterUInt16(byte slaveAddress, UInt16 registerAddress, UInt16 value)
-        {
-            return base.WriteHoldingRegisterUInt16(null, slaveAddress, registerAddress, value);
-        }
-
-        public bool ReadHoldingRegisterInt16(byte slaveAddress, UInt16 registerAddress, out Int16 value)
-        {
-            return base.ReadHoldingRegisterInt16(null, slaveAddress, registerAddress, out value);
-        }
-
-        public bool WriteHoldingRegisterInt16(byte slaveAddress, UInt16 registerAddress, Int16 value)
-        {
-            return base.WriteHoldingRegisterInt16(null, slaveAddress, registerAddress, value);
-        }
-
-        public bool ReadHoldingRegisterUInt32(byte slaveAddress, UInt16 registerAddress, out UInt32 value)
-        {
-            return base.ReadHoldingRegisterUInt32(null, slaveAddress, registerAddress, out value);
-        }
-
-        public bool WriteHoldingRegisterUInt32(byte slaveAddress, UInt16 registerAddress, UInt32 value)
-        {
-            return base.WriteHoldingRegisterUInt32(null, slaveAddress, registerAddress, value);
-        }
-
-        public bool ReadHoldingRegisterInt32(byte slaveAddress, UInt16 registerAddress, out Int32 value)
-        {
-            return base.ReadHoldingRegisterInt32(null, slaveAddress, registerAddress, out value);
-        }
-
-        public bool WriteHoldingRegisterInt32(byte slaveAddress, UInt16 registerAddress, Int32 value)
-        {
-            return base.WriteHoldingRegisterInt32(null, slaveAddress, registerAddress, value);
-        }
-
-        public bool ReadHoldingRegisterFloat32(byte slaveAddress, UInt16 registerAddress, out Single value)
-        {
-            return ReadHoldingRegisterFloat32(null, slaveAddress, registerAddress, out value);
-        }
-
-        public bool WriteHoldingRegisterFloat32(byte slaveAddress, UInt16 registerAddress, Single value)
-        {
-            return base.WriteHoldingRegisterFloat32(null, slaveAddress, registerAddress, value);
-        }
-
-        #endregion
-
-        #region Input registers
-
-        public bool ReadInputRegisterUInt16(byte slaveAddress, UInt16 registerAddress, out UInt16 value)
-        {
-            return base.ReadInputRegisterUInt16(null, slaveAddress, registerAddress, out value);
-        }
-
-        public bool ReadInputRegisterInt16(byte slaveAddress, UInt16 registerAddress, out Int16 value)
-        {
-            return base.ReadInputRegisterInt16(null, slaveAddress, registerAddress, out value);
-        }
-
-        public bool ReadInputRegisterUInt32(byte slaveAddress, UInt16 registerAddress, out UInt32 value)
-        {
-            return base.ReadInputRegisterUInt32(null, slaveAddress, registerAddress, out value);
-        }
-
-        public bool ReadInputRegisterInt32(byte slaveAddress, UInt16 registerAddress, out Int32 value)
-        {
-            return base.ReadInputRegisterInt32(null, slaveAddress, registerAddress, out value);
-        }
-
-        public bool ReadInputRegisterFloat32(byte slaveAddress, UInt16 registerAddress, out Single value)
-        {
-            return base.ReadInputRegisterFloat32(null, slaveAddress, registerAddress, out value);
         }
 
         #endregion

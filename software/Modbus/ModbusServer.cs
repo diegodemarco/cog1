@@ -1,5 +1,6 @@
 ﻿using System.Linq;
 using System;
+using System.Net.Sockets;
 
 namespace cog1.Modbus
 {
@@ -31,7 +32,9 @@ namespace cog1.Modbus
 
         #region Abstract communication methods
 
-        protected abstract bool ExchangeData(object conn, byte[] requestData, out byte[] responseData);
+        protected abstract bool ExchangeData(string tcpHost, byte[] requestData, out byte[] responseData);
+        protected abstract bool ReadChars(Socket socket, byte[] buffer, ref int offset, int byteCount);
+        protected abstract bool StripChecksum(byte[] arr, int len, out byte[] data);
 
         #endregion
 
@@ -102,6 +105,89 @@ namespace cog1.Modbus
 
         #region Generic register read/write
 
+        protected bool ReadResponseMessage(Socket socket, out byte[] responseData, bool useChecksum)
+        {
+            // Read the response
+            int index = 0;
+            var buffer = new byte[256];
+            responseData = Array.Empty<byte>();
+
+            // Read device address and function code
+            if (!ReadChars(socket, buffer, ref index, 2))
+            {
+                Console.WriteLine($"Timeout reading device address and function code => [{Utils.BytesToHex(buffer, index)}]");
+                return false;
+            }
+            var functionCode = buffer[1];
+
+            // Check for error
+            if (functionCode >= 0x80)
+            {
+                // Read three bytes (error code and checksum) to complete
+                if (!ReadChars(socket, buffer, ref index, 1 + (useChecksum ? 2 : 0)))
+                {
+                    Console.WriteLine($"Timeout reading error details => [{Utils.BytesToHex(buffer, index)}]");
+                    return false;
+                }
+                Console.WriteLine($"Error => [{Utils.BytesToHex(buffer, index)}]");
+                return StripChecksum(buffer, index, out responseData);
+            }
+
+            // Read content
+            switch (functionCode)
+            {
+                case FUNCTION_READ_COIL:
+                case FUNCTION_READ_DISCRETE_INPUT:
+                case FUNCTION_READ_HOLDING_REGISTER:
+                case FUNCTION_READ_INPUT_REGISTER:
+                    // Read number of bytes following
+                    if (!ReadChars(socket, buffer, ref index, 1))
+                    {
+                        Console.WriteLine($"Timeout reading number of bytes => [{Utils.BytesToHex(buffer, index)}]");
+                        return false;
+                    }
+                    var byteCount = buffer[index - 1];
+                    // Read the specified number of chars, plus the checksum, to complete
+                    if (!ReadChars(socket, buffer, ref index, byteCount + (useChecksum ? 2 : 0)))    // Data bytes + checksum
+                    {
+                        Console.WriteLine($"Timeout reading specified number of bytes => [{Utils.BytesToHex(buffer, index)}]");
+                        return false;
+                    }
+                    return StripChecksum(buffer, index, out responseData);
+
+                case FUNCTION_WRITE_SINGLE_COIL:
+                    // Read the rest of the frame
+                    if (!ReadChars(socket, buffer, ref index, 2 + 2 + (useChecksum ? 2 : 0)))        // Register address + register value + checksum
+                    {
+                        Console.WriteLine($"Timeout reading write single coil bytes => [{Utils.BytesToHex(buffer, index)}]");
+                        return false;
+                    }
+                    return StripChecksum(buffer, index, out responseData);
+
+                case FUNCTION_WRITE_SINGLE_HOLDING_REGISTER:
+                    // Read the rest of the frame
+                    if (!ReadChars(socket, buffer, ref index, 2 + 2 + (useChecksum ? 2 : 0)))        // Register address + register value + checksum
+                    {
+                        Console.WriteLine($"Timeout reading write single holding register bytes => [{Utils.BytesToHex(buffer, index)}]");
+                        return false;
+                    }
+                    return StripChecksum(buffer, index, out responseData);
+
+                case FUNCTION_WRITE_MULTIPLE_HOLDING_REGISTERS:
+                    // Read the rest of the frame
+                    if (!ReadChars(socket, buffer, ref index, 2 + 2 + (useChecksum ? 2 : 0)))        // Register address + register count + checksum
+                    {
+                        Console.WriteLine($"Timeout reading write multiple holding register bytes => [{Utils.BytesToHex(buffer, index)}]");
+                        return false;
+                    }
+                    return StripChecksum(buffer, index, out responseData);
+
+                default:
+                    SetErrorInfo($"Unsupported response function code {functionCode}");
+                    return false;
+            }
+        }
+
         private bool CheckBasicResponseAspects(byte[] rspData, UInt16 slaveAddress, byte function)
         {
             // Ensure response is from the expected slave
@@ -129,7 +215,7 @@ namespace cog1.Modbus
             return true;
         }
 
-        protected bool ReadRegisters(object conn, byte slaveAddress, byte function, UInt16 registerAddress, UInt16 registerCount, byte expectedBytes, out byte[] data)
+        protected bool ReadRegisters(string tcpHost, byte slaveAddress, byte function, UInt16 registerAddress, UInt16 registerCount, byte expectedBytes, out byte[] data)
         {
             var registerAddressData = FromUInt16((UInt16)(registerAddress - 1));        // Register IDs are zero-based
             var registerCountData = FromUInt16(registerCount);
@@ -146,7 +232,7 @@ namespace cog1.Modbus
 
             // Exchange data
             byte[] rspData;
-            if (!ExchangeData(conn, reqData, out rspData))
+            if (!ExchangeData(tcpHost, reqData, out rspData))
             {
                 // Error info must have been set by ExchangeData()
                 data = Array.Empty<byte>();
@@ -177,7 +263,7 @@ namespace cog1.Modbus
             return true;
         }
 
-        protected bool WriteSingleRegister(object conn, byte slaveAddress, byte function, UInt16 registerAddress, UInt16 data)
+        protected bool WriteSingleRegister(string tcpHost, byte slaveAddress, byte function, UInt16 registerAddress, UInt16 data)
         {
             var registerAddressData = FromUInt16((UInt16)(registerAddress - 1));        // Register IDs are zero-based
             var registerData = FromUInt16(data);
@@ -194,7 +280,7 @@ namespace cog1.Modbus
 
             // Exchange data
             byte[] rspData;
-            if (!ExchangeData(conn, reqData, out rspData))
+            if (!ExchangeData(tcpHost, reqData, out rspData))
             {
                 // Error info must have been set by ExchangeData()
                 return false;
@@ -208,7 +294,7 @@ namespace cog1.Modbus
             return true;
         }
 
-        protected bool WriteMultipleRegisters(object conn, byte slaveAddress, byte function, UInt16 registerAddress, UInt16 registerCount, byte[] data)
+        protected bool WriteMultipleRegisters(string tcpHost, byte slaveAddress, byte function, UInt16 registerAddress, UInt16 registerCount, byte[] data)
         {
             //SetErrorInfo("Modbus WriteMultipleRegisters: not implemented");
             var registerAddressData = FromUInt16((UInt16)(registerAddress - 1));        // Register IDs are zero-based
@@ -229,7 +315,7 @@ namespace cog1.Modbus
 
             // Exchange data
             byte[] rspData;
-            if (!ExchangeData(conn, reqData, out rspData))
+            if (!ExchangeData(tcpHost, reqData, out rspData))
             {
                 // Error info must have been set by ExchangeData()
                 return false;
@@ -247,9 +333,9 @@ namespace cog1.Modbus
 
         #region Coils
 
-        protected bool ReadCoil(object conn, byte slaveAddress, UInt16 registerAddress, out bool value)
+        public bool ReadCoil(string tcpHost, byte slaveAddress, UInt16 registerAddress, out bool value)
         {
-            if (ReadRegisters(conn, slaveAddress, FUNCTION_READ_COIL, registerAddress, 1, 1, out var data))
+            if (ReadRegisters(tcpHost, slaveAddress, FUNCTION_READ_COIL, registerAddress, 1, 1, out var data))
             {
                 value = (data[0] != 0);
                 return true;
@@ -258,18 +344,18 @@ namespace cog1.Modbus
             return false;
         }
 
-        protected bool WriteCoil(object conn, byte slaveAddress, UInt16 registerAddress, bool value)
+        public bool WriteCoil(string tcpHost, byte slaveAddress, UInt16 registerAddress, bool value)
         {
-            return WriteSingleRegister(conn, slaveAddress, FUNCTION_WRITE_SINGLE_COIL, registerAddress, value ? (UInt16)0xff00 : (UInt16)0x0000);
+            return WriteSingleRegister(tcpHost, slaveAddress, FUNCTION_WRITE_SINGLE_COIL, registerAddress, value ? (UInt16)0xff00 : (UInt16)0x0000);
         }
 
         #endregion
 
         #region Discrete inputs
 
-        protected bool ReadDiscreteInput(object conn, byte slaveAddress, UInt16 registerAddress, out bool value)
+        public bool ReadDiscreteInput(string tcpHost, byte slaveAddress, UInt16 registerAddress, out bool value)
         {
-            if (ReadRegisters(conn, slaveAddress, FUNCTION_READ_DISCRETE_INPUT, registerAddress, 1, 1, out var data))
+            if (ReadRegisters(tcpHost, slaveAddress, FUNCTION_READ_DISCRETE_INPUT, registerAddress, 1, 1, out var data))
             {
                 value = (data[0] != 0);
                 return true;
@@ -282,9 +368,9 @@ namespace cog1.Modbus
 
         #region Holding registers
 
-        protected bool ReadHoldingRegisterUInt16(object conn, byte slaveAddress, UInt16 registerAddress, out UInt16 value)
+        public bool ReadHoldingRegisterUInt16(string tcpHost, byte slaveAddress, UInt16 registerAddress, out UInt16 value)
         {
-            if (ReadRegisters(conn, slaveAddress, FUNCTION_READ_HOLDING_REGISTER, registerAddress, 1, 2, out var data))
+            if (ReadRegisters(tcpHost, slaveAddress, FUNCTION_READ_HOLDING_REGISTER, registerAddress, 1, 2, out var data))
             {
                 value = ToUInt16(data);
                 return true;
@@ -293,14 +379,14 @@ namespace cog1.Modbus
             return false;
         }
 
-        protected bool WriteHoldingRegisterUInt16(object conn, byte slaveAddress, UInt16 registerAddress, UInt16 value)
+        public bool WriteHoldingRegisterUInt16(string tcpHost, byte slaveAddress, UInt16 registerAddress, UInt16 value)
         {
-            return WriteSingleRegister(conn, slaveAddress, FUNCTION_WRITE_SINGLE_HOLDING_REGISTER, registerAddress, value);
+            return WriteSingleRegister(tcpHost, slaveAddress, FUNCTION_WRITE_SINGLE_HOLDING_REGISTER, registerAddress, value);
         }
 
-        protected bool ReadHoldingRegisterInt16(object conn, byte slaveAddress, UInt16 registerAddress, out Int16 value)
+        public bool ReadHoldingRegisterInt16(string tcpHost, byte slaveAddress, UInt16 registerAddress, out Int16 value)
         {
-            if (ReadRegisters(conn, slaveAddress, FUNCTION_READ_HOLDING_REGISTER, registerAddress, 1, 2, out var data))
+            if (ReadRegisters(tcpHost, slaveAddress, FUNCTION_READ_HOLDING_REGISTER, registerAddress, 1, 2, out var data))
             {
                 value = ToInt16(data);
                 return true;
@@ -309,14 +395,14 @@ namespace cog1.Modbus
             return false;
         }
 
-        protected bool WriteHoldingRegisterInt16(object conn, byte slaveAddress, UInt16 registerAddress, Int16 value)
+        public bool WriteHoldingRegisterInt16(string tcpHost, byte slaveAddress, UInt16 registerAddress, Int16 value)
         {
-            return WriteSingleRegister(conn, slaveAddress, FUNCTION_WRITE_SINGLE_HOLDING_REGISTER, registerAddress, (UInt16)value);
+            return WriteSingleRegister(tcpHost, slaveAddress, FUNCTION_WRITE_SINGLE_HOLDING_REGISTER, registerAddress, (UInt16)value);
         }
 
-        protected bool ReadHoldingRegisterUInt32(object conn, byte slaveAddress, UInt16 registerAddress, out UInt32 value)
+        public bool ReadHoldingRegisterUInt32(string tcpHost, byte slaveAddress, UInt16 registerAddress, out UInt32 value)
         {
-            if (ReadRegisters(conn, slaveAddress, FUNCTION_READ_HOLDING_REGISTER, registerAddress, 2, 4, out var data))
+            if (ReadRegisters(tcpHost, slaveAddress, FUNCTION_READ_HOLDING_REGISTER, registerAddress, 2, 4, out var data))
             {
                 value = ToUInt32(data);
                 return true;
@@ -325,14 +411,14 @@ namespace cog1.Modbus
             return false;
         }
 
-        protected bool WriteHoldingRegisterUInt32(object conn, byte slaveAddress, UInt16 registerAddress, UInt32 value)
+        public bool WriteHoldingRegisterUInt32(string tcpHost, byte slaveAddress, UInt16 registerAddress, UInt32 value)
         {
-            return WriteMultipleRegisters(conn, slaveAddress, FUNCTION_WRITE_MULTIPLE_HOLDING_REGISTERS, registerAddress, 2, FromUInt32(value));
+            return WriteMultipleRegisters(tcpHost, slaveAddress, FUNCTION_WRITE_MULTIPLE_HOLDING_REGISTERS, registerAddress, 2, FromUInt32(value));
         }
 
-        protected bool ReadHoldingRegisterInt32(object conn, byte slaveAddress, UInt16 registerAddress, out Int32 value)
+        public bool ReadHoldingRegisterInt32(string tcpHost, byte slaveAddress, UInt16 registerAddress, out Int32 value)
         {
-            if (ReadRegisters(conn, slaveAddress, FUNCTION_READ_HOLDING_REGISTER, registerAddress, 2, 4, out var data))
+            if (ReadRegisters(tcpHost, slaveAddress, FUNCTION_READ_HOLDING_REGISTER, registerAddress, 2, 4, out var data))
             {
                 value = ToInt32(data);
                 return true;
@@ -341,14 +427,14 @@ namespace cog1.Modbus
             return false;
         }
 
-        protected bool WriteHoldingRegisterInt32(object conn, byte slaveAddress, UInt16 registerAddress, Int32 value)
+        public bool WriteHoldingRegisterInt32(string tcpHost, byte slaveAddress, UInt16 registerAddress, Int32 value)
         {
-            return WriteMultipleRegisters(conn, slaveAddress, FUNCTION_WRITE_MULTIPLE_HOLDING_REGISTERS, registerAddress, 2, FromInt32(value));
+            return WriteMultipleRegisters(tcpHost, slaveAddress, FUNCTION_WRITE_MULTIPLE_HOLDING_REGISTERS, registerAddress, 2, FromInt32(value));
         }
 
-        protected bool ReadHoldingRegisterFloat32(object conn, byte slaveAddress, UInt16 registerAddress, out Single value)
+        public bool ReadHoldingRegisterFloat32(string tcpHost, byte slaveAddress, UInt16 registerAddress, out Single value)
         {
-            if (ReadRegisters(conn, slaveAddress, FUNCTION_READ_HOLDING_REGISTER, registerAddress, 2, 4, out var data))
+            if (ReadRegisters(tcpHost, slaveAddress, FUNCTION_READ_HOLDING_REGISTER, registerAddress, 2, 4, out var data))
             {
                 value = ToFloat32(data);
                 return true;
@@ -357,18 +443,18 @@ namespace cog1.Modbus
             return false;
         }
 
-        protected bool WriteHoldingRegisterFloat32(object conn, byte slaveAddress, UInt16 registerAddress, Single value)
+        public bool WriteHoldingRegisterFloat32(string tcpHost, byte slaveAddress, UInt16 registerAddress, Single value)
         {
-            return WriteMultipleRegisters(conn, slaveAddress, FUNCTION_WRITE_MULTIPLE_HOLDING_REGISTERS, registerAddress, 2, FromFloat32(value));
+            return WriteMultipleRegisters(tcpHost, slaveAddress, FUNCTION_WRITE_MULTIPLE_HOLDING_REGISTERS, registerAddress, 2, FromFloat32(value));
         }
 
         #endregion
 
         #region Input registers
 
-        protected bool ReadInputRegisterUInt16(object conn, byte slaveAddress, UInt16 registerAddress, out UInt16 value)
+        public bool ReadInputRegisterUInt16(string tcpHost, byte slaveAddress, UInt16 registerAddress, out UInt16 value)
         {
-            if (ReadRegisters(conn, slaveAddress, FUNCTION_READ_INPUT_REGISTER, registerAddress, 1, 2, out var data))
+            if (ReadRegisters(tcpHost, slaveAddress, FUNCTION_READ_INPUT_REGISTER, registerAddress, 1, 2, out var data))
             {
                 value = ToUInt16(data);
                 return true;
@@ -377,9 +463,9 @@ namespace cog1.Modbus
             return false;
         }
 
-        protected bool ReadInputRegisterInt16(object conn, byte slaveAddress, UInt16 registerAddress, out Int16 value)
+        public bool ReadInputRegisterInt16(string tcpHost, byte slaveAddress, UInt16 registerAddress, out Int16 value)
         {
-            if (ReadRegisters(conn, slaveAddress, FUNCTION_READ_INPUT_REGISTER, registerAddress, 1, 2, out var data))
+            if (ReadRegisters(tcpHost, slaveAddress, FUNCTION_READ_INPUT_REGISTER, registerAddress, 1, 2, out var data))
             {
                 value = ToInt16(data);
                 return true;
@@ -388,9 +474,9 @@ namespace cog1.Modbus
             return false;
         }
 
-        protected bool ReadInputRegisterUInt32(object conn, byte slaveAddress, UInt16 registerAddress, out UInt32 value)
+        public bool ReadInputRegisterUInt32(string tcpHost, byte slaveAddress, UInt16 registerAddress, out UInt32 value)
         {
-            if (ReadRegisters(conn, slaveAddress, FUNCTION_READ_INPUT_REGISTER, registerAddress, 2, 4, out var data))
+            if (ReadRegisters(tcpHost, slaveAddress, FUNCTION_READ_INPUT_REGISTER, registerAddress, 2, 4, out var data))
             {
                 value = ToUInt32(data);
                 return true;
@@ -399,9 +485,9 @@ namespace cog1.Modbus
             return false;
         }
 
-        protected bool ReadInputRegisterInt32(object conn, byte slaveAddress, UInt16 registerAddress, out Int32 value)
+        public bool ReadInputRegisterInt32(string tcpHost, byte slaveAddress, UInt16 registerAddress, out Int32 value)
         {
-            if (ReadRegisters(conn, slaveAddress, FUNCTION_READ_INPUT_REGISTER, registerAddress, 2, 4, out var data))
+            if (ReadRegisters(tcpHost, slaveAddress, FUNCTION_READ_INPUT_REGISTER, registerAddress, 2, 4, out var data))
             {
                 value = ToInt32(data);
                 return true;
@@ -410,9 +496,9 @@ namespace cog1.Modbus
             return false;
         }
 
-        protected bool ReadInputRegisterFloat32(object conn, byte slaveAddress, UInt16 registerAddress, out Single value)
+        public bool ReadInputRegisterFloat32(string tcpHost, byte slaveAddress, UInt16 registerAddress, out Single value)
         {
-            if (ReadRegisters(conn, slaveAddress, FUNCTION_READ_INPUT_REGISTER, registerAddress, 2, 4, out var data))
+            if (ReadRegisters(tcpHost, slaveAddress, FUNCTION_READ_INPUT_REGISTER, registerAddress, 2, 4, out var data))
             {
                 value = ToFloat32(data);
                 return true;

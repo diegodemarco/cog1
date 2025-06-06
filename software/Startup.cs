@@ -92,6 +92,7 @@ namespace cog1
             services.AddHostedService<VariablePollingService>();
             services.AddHostedService<ModbusService>();
             services.AddHostedService<ModbusRtuService>();
+            services.AddHostedService<ModbusTcpService>();
 
             // Add API controllers
             services.AddControllers();
