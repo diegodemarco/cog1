@@ -57,6 +57,9 @@ namespace cog1.Hardware
         {
             try
             {
+                OSUtils.Run("rmmod", "sprdwl_ng");
+                OSUtils.Run("modprobe", "sprdwl_ng");
+                /*
                 OSUtils.Run("nmcli", "radio", "wifi", "off");
                 OSUtils.Run("systemctl", "stop", "NetworkManager");
                 Thread.Sleep(5000);
@@ -65,6 +68,7 @@ namespace cog1.Hardware
                 OSUtils.Run("systemctl", "restart", "wpa_supplicant");
                 Thread.Sleep(5000);
                 OSUtils.Run("systemctl", "start", "wpa_supplicant");
+                */
                 return true;
             }
             catch
