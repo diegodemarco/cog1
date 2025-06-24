@@ -34,12 +34,14 @@ namespace cog1.Display.Menu
             }
 
             var temps = SystemStats.GetTemps();
-            var wifi = WiFiManager.GetWiFiStatus();
+            var wifi = WiFiManager.GetStatus();
             var wifiState = wifi.isConnected ? wifi.ipv4 : "Disconnected";
+            var ether = EthernetManager.GetStatus();
+            var etherState = ether.isConnected ? ether.ipv4 : "Disconnected";
 
             canvas.DrawText(0, 16, font, $"Date {DateTime.Now.ToString("yyyy-MM-dd HH:mm")}");
             canvas.DrawText(0, 24, font, $"WiFi" + wifiState.PadLeft(21 - 4));
-            canvas.DrawText(0, 32, font, $"Eth                  ");
+            canvas.DrawText(0, 32, font, $"Eth" + etherState.PadLeft(21 - 3));
             canvas.DrawText(0, 40, font, "Temp" + $"{(int?)temps.maxTemperatureC}ºC/{(int?)Utils.CelsiusToFahrenheit(temps.maxTemperatureC)}ºF".PadLeft(21 - 4));
             canvas.DrawText(0, 48, font, $"CPU (1 min)    {usedCPU}");
             canvas.DrawText(0, 56, font, $"Firmware" + Global.Version.PadLeft(21 - 8));

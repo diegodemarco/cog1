@@ -2,11 +2,12 @@
 {
     public class LiteralsContainerDTO : BaseLiteralsContainer
     {
-        private CommonLiteralsContainer common;
-        private DashboardLiteralsContainer dashboard;
-        private SecurityLiteralsContainer security;
-        private VariablesLiteralsContainer variables;
-        private ModbusLiteralsContainer modbus;
+        private CommonLiteralsContainer _common;
+        private DashboardLiteralsContainer _dashboard;
+        private SecurityLiteralsContainer _security;
+        private NetworkLiteralsContainer _network;
+        private VariablesLiteralsContainer _variables;
+        private ModbusLiteralsContainer _modbus;
 
         public LiteralsContainerDTO() : base() 
         {
@@ -22,9 +23,9 @@
         {
             get
             {
-                if (common == null)
-                    common = new CommonLiteralsContainer(LocaleCode);
-                return common;
+                if (_common == null)
+                    _common = new CommonLiteralsContainer(LocaleCode);
+                return _common;
             }
             set { }
         }
@@ -33,9 +34,9 @@
         {
             get
             {
-                if (dashboard == null)
-                    dashboard = new DashboardLiteralsContainer(LocaleCode);
-                return dashboard;
+                if (_dashboard == null)
+                    _dashboard = new DashboardLiteralsContainer(LocaleCode);
+                return _dashboard;
             }
             set { }
         }
@@ -44,9 +45,20 @@
         {
             get
             {
-                if (security == null)
-                    security = new SecurityLiteralsContainer(LocaleCode);
-                return security;
+                if (_security == null)
+                    _security = new SecurityLiteralsContainer(LocaleCode);
+                return _security;
+            }
+            set { }
+        }
+
+        public NetworkLiteralsContainer Network
+        {
+            get
+            {
+                if (_network == null)
+                    _network = new NetworkLiteralsContainer(LocaleCode);
+                return _network;
             }
             set { }
         }
@@ -55,9 +67,9 @@
         {
             get
             {
-                if (variables == null)
-                    variables = new VariablesLiteralsContainer(LocaleCode);
-                return variables;
+                if (_variables == null)
+                    _variables = new VariablesLiteralsContainer(LocaleCode);
+                return _variables;
             }
             set { }
         }
@@ -66,9 +78,9 @@
         {
             get
             {
-                if (modbus == null)
-                    modbus = new ModbusLiteralsContainer(LocaleCode);
-                return modbus;
+                if (_modbus == null)
+                    _modbus = new ModbusLiteralsContainer(LocaleCode);
+                return _modbus;
             }
             set { }
         }

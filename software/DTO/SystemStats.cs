@@ -284,7 +284,8 @@ namespace cog1.Telemetry
                 memory = GetMem(),
                 disk = GetDisk(),
                 temperature = GetTemps(),
-                wiFi = WiFiManager.GetWiFiStatus(),
+                wiFi = WiFiManager.GetStatus(),
+                ethernet = EthernetManager.GetStatus()
             };
         }
 

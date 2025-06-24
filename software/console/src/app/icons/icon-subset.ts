@@ -101,7 +101,16 @@ import {
   cilGraph,
   cilWarning,
   cilPlus,
-  cilIndustry
+  cilIndustry,
+  cilGlobeAlt,
+  cilEthernet,
+  cilInfo,
+  cilWifiSignal1,
+  cilWifiSignal2,
+  cilWifiSignal3,
+  cilWifiSignal4,
+  cilHamburgerMenu,
+  cilReload,
 } from '@coreui/icons';
 
 import { signet } from './signet';
@@ -210,7 +219,16 @@ export const iconSubset = {
   cilGraph,
   cilWarning,
   cilPlus,
-  cilIndustry
+  cilIndustry,
+  cilGlobeAlt,
+  cilEthernet,
+  cilInfo,
+  cilWifiSignal1,
+  cilWifiSignal2,
+  cilWifiSignal3,
+  cilWifiSignal4,
+  cilHamburgerMenu,
+  cilReload,
 };
 
 export enum IconSubset {
@@ -318,6 +336,15 @@ export enum IconSubset {
   cilGraph = 'cilGraph',
   cilWarning = 'cilWarning',
   cilPlus = 'cilPlus',
-  cilIndustry = 'cilIndustry'
+  cilIndustry = 'cilIndustry',
+  cilGlobeAlt = 'cilGlobeAlt',
+  cilEthernet = 'cilEthernet',
+  cilInfo = 'cilInfo',
+  cilWifiSignal1 = 'cilWifiSignal1',
+  cilWifiSignal2 = 'cilWifiSignal2',
+  cilWifiSignal3 = 'cilWifiSignal3',
+  cilWifiSignal4 = 'cilWifiSignal4',
+  cilHamburgerMenu = 'cilHamburgerMenu',
+  cilReload = 'cilReload',
 }
 

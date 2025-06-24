@@ -10,7 +10,11 @@
  * ---------------------------------------------------------------
  */
 
-import { JsonControllerException, SystemStatsReport } from "./data-contracts";
+import {
+  JsonControllerException,
+  SystemStatsReport,
+  WiFiSsidDTO,
+} from "./data-contracts";
 import { HttpClient, RequestParams } from "./http-client";
 
 export class System<
@@ -42,6 +46,97 @@ export class System<
       path: `/api/system/stats/cpu/history-5min`,
       method: "GET",
       format: "json",
+      ...params,
+    });
+  /**
+   * No description
+   *
+   * @tags System
+   * @name GetWiFiScan
+   * @request GET:/api/system/wifi/scan
+   */
+  getWiFiScan = (params: RequestParams = {}) =>
+    this.request<WiFiSsidDTO[], JsonControllerException>({
+      path: `/api/system/wifi/scan`,
+      method: "GET",
+      format: "json",
+      ...params,
+    });
+  /**
+   * No description
+   *
+   * @tags System
+   * @name WiFiConnect
+   * @request GET:/api/system/wifi/connect
+   */
+  wiFiConnect = (
+    query?: {
+      ssid?: string;
+      password?: string;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<void, JsonControllerException>({
+      path: `/api/system/wifi/connect`,
+      method: "GET",
+      query: query,
+      ...params,
+    });
+  /**
+   * No description
+   *
+   * @tags System
+   * @name WiFiReconnect
+   * @request GET:/api/system/wifi/reconnect
+   */
+  wiFiReconnect = (
+    query?: {
+      ssid?: string;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<void, JsonControllerException>({
+      path: `/api/system/wifi/reconnect`,
+      method: "GET",
+      query: query,
+      ...params,
+    });
+  /**
+   * No description
+   *
+   * @tags System
+   * @name WiFiDisconnect
+   * @request GET:/api/system/wifi/disconnect
+   */
+  wiFiDisconnect = (
+    query?: {
+      ssid?: string;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<void, JsonControllerException>({
+      path: `/api/system/wifi/disconnect`,
+      method: "GET",
+      query: query,
+      ...params,
+    });
+  /**
+   * No description
+   *
+   * @tags System
+   * @name WiFiForget
+   * @request GET:/api/system/wifi/forget
+   */
+  wiFiForget = (
+    query?: {
+      ssid?: string;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<void, JsonControllerException>({
+      path: `/api/system/wifi/forget`,
+      method: "GET",
+      query: query,
       ...params,
     });
   /**

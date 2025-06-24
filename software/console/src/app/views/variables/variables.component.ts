@@ -6,12 +6,12 @@ import { IconDirective } from '@coreui/icons-angular';
 import { BasicEntitiesService } from '../../services/basic-entities.service';
 import { ViewStatusService } from '../../services/view-status.service';
 import { BackendService } from '../../services/backend.service';
+import { AuthService } from '../../services/auth.service';
 import { JsonControllerException, LiteralsContainerDTO, VariableDTO, VariableSource } from '../../api-client/data-contracts';
 import { VariableEditModalComponent } from './modals/variable-edit-modal.component';
-import { IconSubset } from 'src/app/icons/icon-subset';
+import { IconSubset } from '../../icons/icon-subset';
 import { CrudPageComponent } from '../../shared/crud-page/crud-page.component'
 import { Utils } from '../../utils';
-import { AuthService } from 'src/app/services/auth.service';
 
 @Component({
   templateUrl: 'variables.component.html',

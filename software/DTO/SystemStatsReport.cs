@@ -8,5 +8,6 @@ namespace cog1
         public DiskReport disk { get; set; }
         public TemperatureReport temperature { get; set; }
         public WiFiReport wiFi { get; set; }
+        public EthernetReport ethernet { get; set; }
     }
 }

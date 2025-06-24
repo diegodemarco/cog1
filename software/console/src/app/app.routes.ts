@@ -26,7 +26,12 @@ export const routes: Routes = [
         canActivate: [AuthGuard]
       },
       {
-        path: 'security/users',
+        path: 'network',
+        loadChildren: () => import('./views/network/routes').then((m) => m.routes),
+        canActivate: [AuthGuard]
+      },
+      {
+        path: 'security',
         loadChildren: () => import('./views/users/routes').then((m) => m.routes),
         canActivate: [AuthGuard]
       },
@@ -39,14 +44,10 @@ export const routes: Routes = [
       //   loadChildren: () => import('./views/base/routes').then((m) => m.routes)
       // },
       // {
-      //   path: 'buttons',
-      //   loadChildren: () => import('./views/buttons/routes').then((m) => m.routes)
+      //   path: 'forms',
+      //   loadChildren: () => import('./views/forms/routes').then((m) => m.routes),
+      //   canActivate: [AuthGuard]
       // },
-      {
-        path: 'forms',
-        loadChildren: () => import('./views/forms/routes').then((m) => m.routes),
-        canActivate: [AuthGuard]
-      },
       // {
       //   path: 'icons',
       //   loadChildren: () => import('./views/icons/routes').then((m) => m.routes)

@@ -1,6 +1,6 @@
 import { Component, HostListener } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { BasicEntitiesService } from '../../services/basic-entities.service';
+import { BasicEntitiesService } from '../services/basic-entities.service';
 import { RowComponent, ColComponent, TextColorDirective, CardComponent, CardHeaderComponent, CardBodyComponent, FormDirective, FormLabelDirective, FormControlDirective, ButtonDirective, FormSelectDirective } from '@coreui/angular';
 import { IconDirective } from '@coreui/icons-angular';
 import { 
@@ -14,9 +14,9 @@ import {
   PopoverDirective,
   ThemeDirective,
   TooltipDirective } from '@coreui/angular';
-import { BackendService } from '../../services/backend.service';
-import { IconSubset } from 'src/app/icons/icon-subset';
-import { LiteralsContainerDTO } from 'src/app/api-client/data-contracts';
+import { BackendService } from '../services/backend.service';
+import { IconSubset } from '../icons/icon-subset';
+import { LiteralsContainerDTO } from '../api-client/data-contracts';
 
 @Component({
   selector: 'app-warning-prompt-modal',

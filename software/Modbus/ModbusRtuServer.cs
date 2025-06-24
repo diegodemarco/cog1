@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 using System.IO.Ports;
 using System.Net.Sockets;
 using System.Threading;
@@ -11,7 +10,6 @@ namespace cog1.Modbus
         private const int MIN_INTER_FRAME_DELAY = 20;
         private int interFrameDelay = MIN_INTER_FRAME_DELAY;
         private SerialPort serialPort;
-        private Stopwatch sw = Stopwatch.StartNew();
 
         public ModbusRtuServer(string portName, int baudRate, int dataBits, StopBits stopBits, Parity parity)
         {
@@ -50,8 +48,8 @@ namespace cog1.Modbus
         {
             serialPort.DiscardOutBuffer();
             serialPort.DiscardInBuffer();
-            var timeout = sw.ElapsedMilliseconds + interFrameDelay;
-            while (sw.ElapsedMilliseconds < timeout)
+            var timeout = stopwatch.ElapsedMilliseconds + interFrameDelay;
+            while (stopwatch.ElapsedMilliseconds < timeout)
                 Thread.Sleep(10);
             serialPort.DiscardInBuffer();
         }
@@ -62,8 +60,8 @@ namespace cog1.Modbus
                 return true;
 
             //Console.WriteLine($"Waiting for {byteCount} bytes");
-            var timeout = sw.ElapsedMilliseconds + 1000;
-            while (sw.ElapsedMilliseconds < timeout)
+            var timeout = stopwatch.ElapsedMilliseconds + 1000;
+            while (stopwatch.ElapsedMilliseconds < timeout)
             {
                 while (serialPort.BytesToRead > 0)
                 {

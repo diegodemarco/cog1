@@ -7,14 +7,14 @@ import { ButtonDirective, CardBodyComponent, CardComponent, ColComponent, Progre
 import { ChartjsComponent } from '@coreui/angular-chartjs';
 import { IconDirective } from '@coreui/icons-angular';
 import { getStyle, hexToRgba } from '@coreui/utils';
-import { BasicEntitiesService } from 'src/app/services/basic-entities.service';
-import { ViewStatusService } from 'src/app/services/view-status.service';
-import { BackendService } from 'src/app/services/backend.service';
+import { BasicEntitiesService } from '../../services/basic-entities.service';
+import { ViewStatusService } from '../../services/view-status.service';
+import { BackendService } from '../../services/backend.service';
 import { DeepPartial } from 'chart.js/dist/types/utils';
-import { VariableType, VariableDTO, VariableAccessType, LiteralsContainerDTO, JsonControllerException } from 'src/app/api-client/data-contracts';
-import { IconSubset } from 'src/app/icons/icon-subset';
+import { VariableType, VariableDTO, VariableAccessType, LiteralsContainerDTO, JsonControllerException } from '../../api-client/data-contracts';
+import { IconSubset } from '../../icons/icon-subset';
 import { Subscription, timer } from 'rxjs';
-import { AuthService } from 'src/app/services/auth.service';
+import { AuthService } from '../../services/auth.service';
 import { VariableSetModalModalComponent } from './modals/variable-set-modal.component';
 
 interface VarWithValue extends VariableDTO 

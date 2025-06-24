@@ -1,10 +1,11 @@
 import { Injectable } from '@angular/core';
 import { ToasterComponent, ToasterPlacement } from '@coreui/angular';
 import { ProfileModalComponent } from '../modals/profile/profile-modal.component';
-import { WarningPromptModalComponent } from '../modals/profile/warning-prompt-modal.component';
+import { WarningPromptModalComponent } from '../modals/warning-prompt-modal.component';
 import { BaseToastComponent } from '../layout/default-layout/toast/base-toast.component';
 import { BasicEntitiesService } from './basic-entities.service';
 import { LiteralsContainerDTO } from '../api-client/data-contracts';
+import { ProgressModalComponent } from '../modals/progress-modal.component';
 
 
 @Injectable({
@@ -15,6 +16,7 @@ export class ViewStatusService {
   public title: string = "No title";
   public profileModal?: ProfileModalComponent = undefined;
   public warningPromptModal?: WarningPromptModalComponent = undefined;
+  public progressModal?: ProgressModalComponent = undefined;
   public toaster?: ToasterComponent = undefined;
 
   private literals: LiteralsContainerDTO;
@@ -37,6 +39,10 @@ export class ViewStatusService {
     this.warningPromptModal = c;
   }
 
+  public setProgressModal(c: ProgressModalComponent) {
+    this.progressModal = c;
+  }
+
   public setToaster(c: ToasterComponent) {
     this.toaster = c;
   }
@@ -47,12 +53,28 @@ export class ViewStatusService {
   }
 
   public showWarningModal(title: string, message: string): Promise<void> {
-    if (this.warningPromptModal){
+    if (this.warningPromptModal) {
       return this.warningPromptModal.show(title, message);
     }
     else {
       return new Promise((resolve, reject) => resolve());
     }
+  }
+
+  public showProgressModal(title: string, message: string): void {
+    if (this.progressModal)
+      this.progressModal.show(title, message);
+  }
+
+  public hideProgressModal() {
+    if (this.progressModal)
+      this.progressModal.dismiss();
+  }
+
+  public hideModals() {
+    if (this.warningPromptModal)
+      this.warningPromptModal.dismiss();
+    this.hideProgressModal();
   }
 
   private showToast(message: string, title: string, color: string)

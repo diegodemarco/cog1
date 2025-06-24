@@ -1,8 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Net.Sockets;
 using System.Threading;
@@ -14,7 +11,6 @@ namespace cog1.Modbus
         //private const int MIN_INTER_FRAME_DELAY = 20;
         //private int interFrameDelay = MIN_INTER_FRAME_DELAY;
         //private SerialPort serialPort;
-        private Stopwatch sw = Stopwatch.StartNew();
         private List<TcpSlave> slaveConnections = new List<TcpSlave>();
         private int transactionId = 0;
 
@@ -33,11 +29,11 @@ namespace cog1.Modbus
             if (byteCount <= 0)
                 return true;
 
-            var timeout = sw.ElapsedMilliseconds + 6000;        // 6 second timeout
+            var timeout = stopwatch.ElapsedMilliseconds + 6000;        // 6 second timeout
             try
             {
                 //Console.WriteLine($"TCP: Waiting for {byteCount} bytes");
-                while (timeout > sw.ElapsedMilliseconds)
+                while (timeout > stopwatch.ElapsedMilliseconds)
                 {
                     var len = socket.Available;
                     if (len > 0)

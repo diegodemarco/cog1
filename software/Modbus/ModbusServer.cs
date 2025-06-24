@@ -1,6 +1,7 @@
 ﻿using System.Linq;
 using System;
 using System.Net.Sockets;
+using System.Diagnostics;
 
 namespace cog1.Modbus
 {
@@ -37,6 +38,8 @@ namespace cog1.Modbus
         protected abstract bool StripChecksum(byte[] arr, int len, out byte[] data);
 
         #endregion
+
+        protected Stopwatch stopwatch { get; } = Stopwatch.StartNew();
 
         #region Error handling
 

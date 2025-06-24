@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
+using System.Net;
 
 namespace cog1.Hardware
 {
@@ -10,12 +10,31 @@ namespace cog1.Hardware
 
         #region Private
 
+        private const string device_name = "wlan0";
+
+        private class ScanItem
+        {
+            public string ssid { get; set; }
+            public int quality { get; set; }
+            public int channel { get; set; }
+            public string security { get; set; }
+        }
+
+        private static HashSet<int> channels_24 = new() 
+        { 
+            1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14 
+        };
+        private static HashSet<int> channels_5 = new()
+        {
+            32, 36, 40, 44, 48, 52, 56, 60, 64, 68, 72, 76, 80, 84, 88, 92, 96, 100, 104, 108,
+            112, 116, 120, 124, 128, 132, 136, 140, 144, 149, 153, 157, 161, 165, 169, 173, 177
+        };
 
         private static List<string> GetConnections()
         {
-            var data = OSUtils.ParseNMCliOutput(OSUtils.RunWithOutput("nmcli", "-t", "connection", "show"));
-            return data.Where(line => line.Length >= 3 && line[2].Contains("802-11-wireless"))
-                .Select(line => line[0])
+            return OSUtils.RunNmCli("NAME", "connection", "show")
+                .Where(item => item["TYPE"].Equals("802-11-wireless", StringComparison.OrdinalIgnoreCase))
+                .Select(item => item["NAME"])
                 .ToList();
         }
 
@@ -81,7 +100,7 @@ namespace cog1.Hardware
 
         #region WiFi status & information
 
-        public static WiFiReport GetWiFiStatus()
+        public static WiFiReport GetStatus()
         {
             /*
             This is an example of what the output of "nmcli device show wlan0" looks like:
@@ -97,9 +116,11 @@ namespace cog1.Hardware
             IP6.GATEWAY:                            --
             */
 
+            /*
             const string GENERAL_CONNECTION = "GENERAL.CONNECTION:";
             const string GENERAL_STATE = "GENERAL.STATE:";
             const string IP_V4 = "IP4.ADDRESS[1]:";
+            */
 
             var result = new WiFiReport()
             {
@@ -109,54 +130,30 @@ namespace cog1.Hardware
                 savedConnections = GetConnections()
             };
 
-            var output = OSUtils.RunWithOutput("nmcli", "device", "show", "wlan0");
-            if (output == null)
+            var dict = OSUtils.RunNmCli("GENERAL.DEVICE", "device", "show", device_name).FirstOrDefault();
+            if (dict == null)
                 return result;
 
-            var lines = OSUtils.GetLines(output, true, true);
+            // GENERAL.CONNECTION
+            if (dict.TryGetValue("GENERAL.CONNECTION", out var ssid))
+                result.ssid = ssid;
 
-            // GENERAL_CONNECTION
-            result.ssid = lines.FirstOrDefault(line => line.ToUpper().StartsWith(GENERAL_CONNECTION));
-            if (!string.IsNullOrWhiteSpace(result.ssid))
-            {
-                result.ssid = result.ssid.Substring(GENERAL_CONNECTION.Length).Trim();
-                if (string.Equals(result.ssid, "--", StringComparison.OrdinalIgnoreCase))
-                    result.ssid = null;
-            }
+            // IP configuration obtained via nmcli
+            OSUtils.ParseNMCliDeviceShow(dict, out var connState, out var isConnected, out var ipv4, out var maskBits, out var gateway, out var dns, out var macAddress);
+            result.macAddress = macAddress;
+            result.connectionState = connState;
+            result.isConnected = isConnected;
+            result.ipv4 = ipv4;
+            result.maskBits = maskBits;
+            result.gateway = gateway;
+            result.dns = dns;
 
-            // GENERAL_CONNECTION
-            var generalState = lines.FirstOrDefault(line => line.ToUpper().StartsWith(GENERAL_STATE));
-            if (!string.IsNullOrWhiteSpace(generalState))
-            {
-                generalState = generalState.Substring(GENERAL_STATE.Length).Trim();
-                var parts = generalState.Split(' ', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
-                if (parts.Length > 0 && int.TryParse(parts[0], out var n))
-                    result.connectionState = n;
-            }
-            //Console.WriteLine($"General.State={generalState}");
-            //Console.WriteLine($"General.State.Int={result.connectionState}");
-            result.isConnected = result.connectionState == 100;   // 100 means "connected"
+            // IP configuration obtained via ip
+            OSUtils.GetIpData(device_name, out var isDynamic);
+            result.dhcp = isDynamic;
 
-            // If connected, add IP and signal information
             if (result.isConnected)
             {
-                // IP4.ADDRESS[1]
-                var ip4 = lines.FirstOrDefault(line => line.ToUpper().StartsWith(IP_V4));
-                if (!string.IsNullOrWhiteSpace(ip4))
-                {
-                    ip4 = ip4.Substring(IP_V4.Length).Trim();
-                    var parts = ip4.Split('/', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
-                    if (parts.Length >= 2 && int.TryParse(parts[1], out var mask))
-                    {
-                        result.ipv4 = parts[0];
-                        result.maskBits = mask;
-                    }
-                    else if (parts.Length > 0)
-                    {
-                        result.ipv4 = parts[0];
-                    }
-                }
-
                 // Signal
                 GetSignal(out var rssi, out var noise, out var frequency);
                 result.rssi = rssi;
@@ -169,19 +166,143 @@ namespace cog1.Hardware
 
         public static string GetWifiDetails()
         {
-            // First from iwconfig
-            string output = OSUtils.RunWithOutput("iwconfig", "wlan0");
+            // First from iw
+            string output = OSUtils.RunWithOutput("iw", "dev", device_name, "link");
 
             // Add nmcli information
-            output += OSUtils.RunWithOutput("nmcli", "device", "show", "wlan0");
+            output += OSUtils.RunWithOutput("nmcli", "device", "show", device_name);
 
             // Add route information
             output += Environment.NewLine + OSUtils.RunWithOutput("route");
 
             // Add ip information
-            output += Environment.NewLine + OSUtils.RunWithOutput("ip", "-4", "-o", "addr", "show", "wlan0");
+            output += Environment.NewLine + OSUtils.RunWithOutput("ip", "-4", "-o", "addr", "show", device_name);
 
             return output;
+        }
+
+        public static List<WiFiSsidDTO> Scan()
+        {
+            var scanList = new List<ScanItem>();
+            var nets = OSUtils.RunNmCli("IN-USE", "dev", "wifi", "list", "--rescan", "yes");
+            foreach (var net in nets)
+            {
+                if (net.TryGetValue("SSID", out var ssid) && !string.IsNullOrWhiteSpace(ssid)
+                    && net.TryGetValue("MODE", out var mode) && string.Equals(mode, "Infra", StringComparison.OrdinalIgnoreCase)
+                    && net.TryGetValue("SIGNAL", out var signal) && int.TryParse(signal, out var signalInt)
+                    && net.TryGetValue("CHAN", out var channel) && int.TryParse(channel, out var channelInt)
+                    && net.TryGetValue("SECURITY", out var security))
+                {
+                    scanList.Add(new()
+                    {
+                        ssid = ssid,
+                        channel = channelInt,
+                        quality = signalInt,
+                        security = security
+                    });
+                }
+            }
+
+            var status = GetStatus();
+            var ssids = status.savedConnections.Concat(scanList.Select(item => item.ssid)).ToHashSet();     // Unique SSIDs
+            var result = new List<WiFiSsidDTO>();
+            foreach (var ssid in ssids)
+            {
+                var scans = scanList.Where(item => string.Equals(item.ssid, ssid)).ToList();
+                result.Add(new()
+                {
+                    ssid = ssid,
+                    isConnected = status.isConnected && string.Equals(ssid, status.ssid),
+                    isSaved = status.savedConnections.Contains(ssid),
+                    frequencies = GetFrequencies(scans),
+                    quality = GetQuality(scans),
+                    isOpen = !scans.Any(item => item.ssid.Equals(ssid) && !string.IsNullOrWhiteSpace(item.security))
+                });
+            }
+
+            return result
+                .OrderBy(item => item.isConnected ? 0 : 1)
+                .ThenBy(item => item.isSaved ? 0 : 1)
+                .ThenByDescending(item => item.quality)
+                .ToList();
+        }
+
+        private static string GetFrequencies(List<ScanItem> scans)
+        {
+            if (scans.Count == 0)
+                return string.Empty;
+            var is24 = false;
+            var is5 = false;
+            foreach (var ch in scans.Select(item => item.channel))
+            {
+                if (channels_24.Contains(ch))
+                    is24 = true;
+                if (channels_5.Contains(ch))
+                    is5 = true;
+            }
+            if (is24 && is5)
+                return "5 GHz / 2.4 GHz";
+            if (is5)
+                return "5 GHz";
+            if (is24)
+                return "2.4 GHz";
+            return string.Empty;
+        }
+
+        private static int GetQuality(List<ScanItem> scans)
+        {
+            if (scans.Count == 0)
+                return 0;
+            return scans.Select(item => item.quality).Max();
+        }
+
+        #endregion
+
+        #region WiFi setup
+
+        public static bool Reconnect(string ssid)
+        {
+            OSUtils.Run("nmcli", "conn", "modify", ssid, "connection.autoconnect", "yes");
+            return OSUtils.Run("nmcli", "conn", "up", ssid) == 0;
+        }
+
+        public static bool Connect(string ssid, string password)
+        {
+            Forget(ssid);
+            if (OSUtils.Run("nmcli", "device", "wifi", "connect", ssid, "password", password) == 0)
+                return true;
+            // Failure
+            Forget(ssid);
+            return false;
+        }
+
+        public static bool Disconnect(string ssid)
+        {
+            return OSUtils.Run("nmcli", "conn", "down", ssid) == 0;
+        }
+
+        public static bool Forget(string ssid)
+        {
+
+            return OSUtils.Run("nmcli", "conn", "delete", ssid) == 0;
+        }
+
+        public static bool SetFixedIP(string ssid, string ipv4, int netMask, string gateway, string dns)
+        {
+            return OSUtils.Run("nmcli", "conn", "modify", ssid,
+                "ipv4.addresses", $"{ipv4}/{netMask}", 
+                "ipv4.gateway", gateway,
+                "ipv4.dns", dns, 
+                "ipv4.method", "manual") == 0;
+        }
+
+        public static bool SetDHCP(string ssid)
+        {
+            return OSUtils.Run("nmcli", "conn", "modify", ssid,
+                "ipv4.addresses", string.Empty, 
+                "ipv4.gateway", string.Empty,
+                "ipv4.dns", string.Empty, 
+                "ipv4.method", "auto") == 0;
         }
 
         #endregion

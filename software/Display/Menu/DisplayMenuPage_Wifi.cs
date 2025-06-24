@@ -21,7 +21,7 @@ namespace cog1.Display.Menu
                 canvas.ToDisplay();
             }
 
-            var wifi = WiFiManager.GetWiFiStatus();
+            var wifi = WiFiManager.GetStatus();
             var status = wifi.isConnected ? "Connected" : "Disconnected";
             var ssid = wifi.isConnected ? wifi.ssid : "-";
             var ipv4 = wifi.isConnected ? wifi.ipv4 : "-";

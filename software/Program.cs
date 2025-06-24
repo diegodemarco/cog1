@@ -11,7 +11,7 @@ namespace cog1
         public static int Main(string[] args)
         {
             Startup.CreateSettings();
-
+            EthernetManager.EnsureEthernetConnection();
             try
             {
                 var host = CreateHostBuilder(args).Build();

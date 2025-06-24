@@ -284,6 +284,23 @@ export interface DiskReport {
   freePercentage?: number;
 }
 
+export interface EthernetReport {
+  macAddress?: string | null;
+  /** @format int32 */
+  connectionState?: number;
+  isConnected?: boolean;
+  /** @format int32 */
+  speed?: number;
+  fullDuplex?: boolean;
+  autoNegotiate?: boolean;
+  dhcp?: boolean;
+  ipv4?: string | null;
+  /** @format int32 */
+  maskBits?: number;
+  dns?: string | null;
+  gateway?: string | null;
+}
+
 export interface JsonControllerException {
   message?: string | null;
   className?: string | null;
@@ -295,6 +312,7 @@ export interface LiteralsContainerDTO {
   common?: CommonLiteralsContainer;
   dashboard?: DashboardLiteralsContainer;
   security?: SecurityLiteralsContainer;
+  network?: NetworkLiteralsContainer;
   variables?: VariablesLiteralsContainer;
   modbus?: ModbusLiteralsContainer;
   localeCode?: string | null;
@@ -372,6 +390,39 @@ export interface ModbusRegisterTypeDTO {
   description?: string | null;
 }
 
+export interface NetworkLiteralsContainer {
+  network?: string | null;
+  summary?: string | null;
+  networkSummary?: string | null;
+  connection?: string | null;
+  status?: string | null;
+  connected?: string | null;
+  disconnected?: string | null;
+  ipMethod?: string | null;
+  ipFixed?: string | null;
+  ipAddress?: string | null;
+  gateway?: string | null;
+  frequency?: string | null;
+  speed?: string | null;
+  fullDuplex?: string | null;
+  halfDuplex?: string | null;
+  macAddress?: string | null;
+  connect?: string | null;
+  disconnect?: string | null;
+  forget?: string | null;
+  scanning?: string | null;
+  scanningPleaseWait?: string | null;
+  connectingPleaseWait?: string | null;
+  disconnectingPleaseWait?: string | null;
+  forgettingPleaseWait?: string | null;
+  ipConfiguration?: string | null;
+  linkConfiguration?: string | null;
+  wiFiNetworks?: string | null;
+  confirmChanges?: string | null;
+  confirmForget?: string | null;
+  localeCode?: string | null;
+}
+
 export interface SecurityLiteralsContainer {
   basicUser?: string | null;
   operator?: string | null;
@@ -398,6 +449,7 @@ export interface SystemStatsReport {
   disk?: DiskReport;
   temperature?: TemperatureReport;
   wiFi?: WiFiReport;
+  ethernet?: EthernetReport;
 }
 
 export interface TemperatureReport {
@@ -504,13 +556,17 @@ export interface VariablesLiteralsContainer {
 }
 
 export interface WiFiReport {
+  macAddress?: string | null;
   ssid?: string | null;
   /** @format int32 */
   connectionState?: number;
   isConnected?: boolean;
+  dhcp?: boolean;
   ipv4?: string | null;
   /** @format int32 */
   maskBits?: number;
+  dns?: string | null;
+  gateway?: string | null;
   /** @format int32 */
   rssi?: number;
   /** @format int32 */
@@ -518,4 +574,14 @@ export interface WiFiReport {
   /** @format int32 */
   frequency?: number;
   savedConnections?: string[] | null;
+}
+
+export interface WiFiSsidDTO {
+  ssid?: string | null;
+  isConnected?: boolean;
+  isSaved?: boolean;
+  /** @format int32 */
+  quality?: number;
+  frequencies?: string | null;
+  isOpen?: boolean;
 }

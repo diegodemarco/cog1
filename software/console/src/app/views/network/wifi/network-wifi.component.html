@@ -1,0 +1,96 @@
+<c-row>
+  <c-col sm="12">
+    <c-card class="my-2 mb-3">
+      <c-card-body>
+        <c-row>
+          <c-col>
+            <h4 style="display: inline" class="card-title" style="margin-bottom: 10px;">{{literals.network!.summary}}</h4>
+            @for (v of wifiValues; track $index)
+            {
+              <c-row>
+                <c-col>
+                  {{v.key}}
+                </c-col>
+                <c-col style="text-align: right;">
+                  {{v.value}}
+                </c-col>
+              </c-row>
+            }
+          </c-col>
+        </c-row>
+      </c-card-body>
+    </c-card>
+  </c-col>
+</c-row>
+
+<c-row>
+  <c-col>
+    <c-card class="my-3">
+      <c-card-body>
+        <c-row>
+          <c-col class="mb-3">
+            <h4 style="display: inline" class="card-title">
+              {{literals.network!.wiFiNetworks}}
+              <button cButton size="sm" (click)="reload()" color="primary" style="margin-left: 5px; border-radius:5px">
+                <svg cIcon name="cilReload"></svg>
+              </button>
+            </h4>
+          </c-col>
+        </c-row>
+        @for (sn of networks; track sn.ssid)
+        {
+          <c-card>
+            <c-card-body>
+              <c-row style="height: 100%">
+                <c-col xs="6" lg="8" style="align-content: center">
+
+                  @if (sn.quality! > 70) { <svg cIcon name="cilWifiSignal4" style="margin-right: 6px"></svg> }
+                  @else if (sn.quality! > 60) { <svg cIcon name="cilWifiSignal3" style="margin-right: 6px"></svg> }
+                  @else if (sn.quality! > 30) { <svg cIcon name="cilWifiSignal2" style="margin-right: 6px"></svg> }
+                  @else { <svg cIcon name="cilWifiSignal1" style="margin-right: 6px"></svg> }
+
+                  @if (sn.isConnected) 
+                  { 
+                    <strong>{{sn.ssid}} ({{literals.network!.connected!.toLowerCase()}})</strong>
+                  }
+                  @else
+                  {
+                    {{sn.ssid}}
+                  }
+                </c-col>
+                <c-col xs="6" lg="4" style="text-align: right;">
+
+                  @if (sn.isConnected) {
+                    <button cButton color="primary" (click)="doDisconnect(sn)">
+                      {{literals.network!.disconnect}}
+                    </button> 
+                  }
+                  @else 
+                  {
+                    <button cButton color="primary" (click)="doConnect(sn)">
+                      {{literals.network!.connect}}
+                    </button> 
+                  }
+
+                  @if (sn.isSaved) {
+                    <c-dropdown variant="btn-group">
+                      <button cButton cDropdownToggle [caret]="false" color="primary" style="margin-left: 5px; border-radius:5px">
+                        <svg cIcon name="cilHamburgerMenu"></svg>
+                      </button>
+                      <ul cDropdownMenu>
+                        <li><button cDropdownItem (click)="doIpConfig(sn)">{{literals.network!.ipConfiguration}}</button></li>
+                        <li><button cDropdownItem (click)="doForget(sn)">{{literals.network!.forget}}</button></li>
+                      </ul>
+                    </c-dropdown>
+                  }
+
+                </c-col>
+              </c-row>
+            </c-card-body>
+          </c-card>
+        }
+      </c-card-body>
+    </c-card>
+  </c-col>
+</c-row>
+

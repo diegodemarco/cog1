@@ -35,9 +35,9 @@ namespace cog1.Hardware
                 {
                     try
                     {
-                        if (!Global.IsDevelopment)
+                        if (!Global.IsDevelopment && WiFiManager.GetConnections().Count > 0)
                         {
-                            var wiFiStatus = WiFiManager.GetWiFiStatus();
+                            var wiFiStatus = WiFiManager.GetStatus();
                             var wiFiText =
                                 DateTime.UtcNow.ToString("s") + Environment.NewLine +
                                 Environment.NewLine +

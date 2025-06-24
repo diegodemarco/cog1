@@ -287,6 +287,28 @@
 
         }
 
+        public static class Network
+        {
+            public class WIFI_CONNECT_ERROR: LiteralConstant
+            {
+                public override string EN => "Connection to the specified Wi-Fi network could not be completed";
+                public override string ES => "No pudo completarse la conexión a la red Wi-Fi especificada";
+            }
+
+            public class WIFI_DISCONNECT_ERROR : LiteralConstant
+            {
+                public override string EN => "Disconnection from the specified Wi-Fi network could not be completed";
+                public override string ES => "No pudo completarse la desconexión de la red Wi-Fi especificada";
+            }
+
+            public class WIFI_FORGET_ERROR : LiteralConstant
+            {
+                public override string EN => "The specified Wi-Fi network could not be removed";
+                public override string ES => "La conexión a la red Wi-Fi especificada no pudo eliminarse";
+            }
+
+        }
+
     }
 
 }

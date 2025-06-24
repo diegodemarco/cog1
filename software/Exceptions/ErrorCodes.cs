@@ -151,9 +151,20 @@ namespace cog1.Exceptions
             => new ErrorCode(4000, _LocaleCode, new Literals.ErrorCodes.Modbus.INVALID_REGISTER_ID(), HttpStatusCode.NotFound);
         public ErrorCode INVALID_DATA_TYPE_FOR_REGISTER_TYPE
             => new ErrorCode(4001, _LocaleCode, new Literals.ErrorCodes.Modbus.INVALID_DATA_TYPE_FOR_REGISTER_TYPE(), HttpStatusCode.NotFound);
-
         public ErrorCode COULD_NOT_WRITE_REGISTER(string errorMessage)
             => new ErrorCode(4002, new Literals.ErrorCodes.Modbus.COULD_NOT_WRITE_REGISTER().Format(_LocaleCode, errorMessage), HttpStatusCode.NotFound);
+    }
+
+    public class NetworkErrorCodes : ErrorCodesContainer                // Range 5000-5999
+    {
+        public NetworkErrorCodes(string localeCode) : base(localeCode) { }
+
+        public ErrorCode WIFI_CONNECT_ERROR
+            => new ErrorCode(5000, _LocaleCode, new Literals.ErrorCodes.Network.WIFI_CONNECT_ERROR(), HttpStatusCode.NotFound);
+        public ErrorCode WIFI_DISCONNECT_ERROR
+            => new ErrorCode(5001, _LocaleCode, new Literals.ErrorCodes.Network.WIFI_DISCONNECT_ERROR(), HttpStatusCode.NotFound);
+        public ErrorCode WIFI_FORGET_ERROR
+            => new ErrorCode(5002, _LocaleCode, new Literals.ErrorCodes.Network.WIFI_FORGET_ERROR(), HttpStatusCode.NotFound);
     }
 
     /// <summary>
@@ -164,17 +175,30 @@ namespace cog1.Exceptions
         protected string localeCode = "en";
         public string LocaleCode => localeCode;
 
+        readonly Lazy<GeneralErrorCodes> _generalErrorCodes;
+        readonly Lazy<UsersErrorCodes> _usersErrorCodes;
+        readonly Lazy<SecurityErrorCodes> _securityErrorCodes;
+        readonly Lazy<VariablesErrorCodes> _variablesErrorCodes;
+        readonly Lazy<ModbusErrorCodes> _modbusErrorCodes;
+        readonly Lazy<NetworkErrorCodes> _networkErrorCodes;
+
         public ErrorCodes(string localeCode)
         {
             this.localeCode = localeCode;
+            _generalErrorCodes = new (() => new GeneralErrorCodes(localeCode));
+            _usersErrorCodes = new(() => new UsersErrorCodes(localeCode));
+            _securityErrorCodes = new(() => new SecurityErrorCodes(localeCode));
+            _variablesErrorCodes = new(() => new VariablesErrorCodes(localeCode));
+            _modbusErrorCodes = new(() => new ModbusErrorCodes(localeCode));
+            _networkErrorCodes = new(() => new NetworkErrorCodes(localeCode));
         }
 
-        public GeneralErrorCodes General { get => new GeneralErrorCodes(localeCode); }
-        public UsersErrorCodes Users { get => new UsersErrorCodes(localeCode); }
-        public SecurityErrorCodes Security { get => new SecurityErrorCodes(localeCode); }
-        public VariablesErrorCodes Variables { get => new VariablesErrorCodes(localeCode); }
-        public ModbusErrorCodes Modbus { get => new ModbusErrorCodes(localeCode); }
-
+        public GeneralErrorCodes General => _generalErrorCodes.Value;
+        public UsersErrorCodes Users => _usersErrorCodes.Value;
+        public SecurityErrorCodes Security => _securityErrorCodes.Value;
+        public VariablesErrorCodes Variables => _variablesErrorCodes.Value;
+        public ModbusErrorCodes Modbus => _modbusErrorCodes.Value;
+        public NetworkErrorCodes Network => _networkErrorCodes.Value;
     }
 }
 

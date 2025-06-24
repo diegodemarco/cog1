@@ -1,0 +1,46 @@
+<c-row>
+  <c-col sm="6">
+    <c-card class="my-2 mb-3" style="height: calc(100% - 20px)">
+      <c-card-body>
+        <c-row>
+          <c-col>
+            <h4 style="display: inline" class="card-title" style="margin-bottom: 10px;">Ethernet</h4>
+            @for (v of ethernetValues; track $index)
+            {
+              <c-row>
+                <c-col>
+                  {{v.key}}
+                </c-col>
+                <c-col style="text-align: right;">
+                  {{v.value}}
+                </c-col>
+              </c-row>
+            }
+          </c-col>
+        </c-row>
+      </c-card-body>
+    </c-card>
+  </c-col>
+  <c-col sm="6">
+    <c-card class="my-2 mb-3" style="height: calc(100% - 20px)">
+      <c-card-body>
+        <c-row>
+          <c-col>
+            <h4 style="display: inline" class="card-title" style="margin-bottom: 10px;">Wi-Fi</h4>
+            @for (v of wifiValues; track v.key)
+            {
+              <c-row>
+                <c-col>
+                  {{v.key}}
+                </c-col>
+                <c-col style="text-align: right;">
+                  {{v.value}}
+                </c-col>
+              </c-row>
+            }
+          </c-col>
+        </c-row>
+      </c-card-body>
+    </c-card>
+  </c-col>
+</c-row>

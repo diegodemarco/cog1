@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
 using System.Linq;
 
@@ -20,6 +21,11 @@ namespace cog1
 
         public static string RunWithOutput(string fileName, params string[] parameters)
         {
+            return RunWithOutput(out _, fileName, parameters);
+        }
+
+        public static string RunWithOutput(out int exitCode, string fileName, params string[] parameters)
+        {
             var psi = new ProcessStartInfo
             {
                 FileName = fileName,
@@ -36,12 +42,13 @@ namespace cog1
             {
                 output = process.StandardOutput.ReadToEnd();
                 process.WaitForExit();
+                exitCode = process.ExitCode;
             }
 
             return output;
         }
 
-        public static void Run(string fileName, params string[] parameters)
+        public static int Run(string fileName, params string[] parameters)
         {
             var psi = new ProcessStartInfo
             {
@@ -57,21 +64,42 @@ namespace cog1
             using (var process = Process.Start(psi))
             {
                 process.WaitForExit();
+                return process.ExitCode;
             }
         }
 
-        public static List<string[]> ParseNMCliOutput(string lines)
+        public static List<Dictionary<string, string>> RunNmCli(string firstItem, params string[] p)
+        {
+            var rawData = OSUtils.RunWithOutput("nmcli", new string[3] { "-t", "--mode", "multiline" }.Concat(p).ToArray());
+            return OSUtils.ParseNMCliMultiLine(rawData, firstItem);
+        }
+
+        private static List<Dictionary<string, string>> ParseNMCliMultiLine(string lines, string firstKey)
         {
             if (string.IsNullOrWhiteSpace(lines))
-                return new List<string[]>();
+                return new();
 
-            var result = new List<string[]>();
-            var pLines = GetLines(lines
-                .Replace("\\\\", "\\")
-                .Replace("\\:", ":"));
+            var result = new List<Dictionary<string, string>>();
+            var pLines = GetLines(lines);
+            var dict = new Dictionary<string, string>();
             foreach (var line in pLines)
-                result.Add(line.Split(':'));
-
+            {
+                var sepIndex = line.IndexOf(':');
+                if (sepIndex > 0)
+                {
+                    var key = line.Substring(0, sepIndex);
+                    var value = (line.Length > sepIndex + 1) ? line.Substring(sepIndex + 1) : string.Empty;
+                    if (dict.Count > 0 && key.Equals(firstKey, StringComparison.OrdinalIgnoreCase))
+                    {
+                        result.Add(dict);
+                        dict = new Dictionary<string, string>();
+                    }
+                    dict.Add(key, value);
+                }
+            }
+            // Add last dict
+            if (dict.Count > 0)
+                result.Add(dict);
             return result;
         }
 
@@ -169,5 +197,70 @@ namespace cog1
             Run("shutdown", "now");
         }
 
+        public static void ParseNMCliDeviceShow(Dictionary<string, string> dict, out int connState, out bool isConnected, out string ipv4, out int maskBits, out string gateway, out string dns,
+            out string macAddress)
+        {
+            connState = 0;
+            ipv4 = null;
+            maskBits = 0;
+            gateway = null;
+            dns = null;
+
+            // GENERAL.STATE
+            if (dict.TryGetValue("GENERAL.STATE", out var generalState))
+            {
+                var parts = generalState.Split(' ', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+                if (parts.Length > 0 && int.TryParse(parts[0], out var n))
+                    connState = n;
+            }
+            //Console.WriteLine($"General.State={generalState}");
+            //Console.WriteLine($"General.State.Int={result.connectionState}");
+            isConnected = connState == 100;   // 100 means "connected"
+
+            // MAC address
+            if (!dict.TryGetValue("GENERAL.HWADDR", out macAddress))
+                macAddress = string.Empty;
+
+            // If connected, add IP and signal information
+            if (isConnected)
+            {
+                // IP4.ADDRESS[1]
+                if (dict.TryGetValue("IP4.ADDRESS[1]", out var ip4) && !string.IsNullOrWhiteSpace(ip4))
+                {
+                    var parts = ip4.Split('/', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+                    if (parts.Length >= 2 && int.TryParse(parts[1], out var mask))
+                    {
+                        ipv4 = parts[0];
+                        maskBits = mask;
+                    }
+                    else if (parts.Length > 0)
+                    {
+                        ipv4 = parts[0];
+                    }
+                }
+
+                // IP4.DNS[1]
+                if (dict.TryGetValue("IP4.DNS[1]", out var dns4) && !string.IsNullOrWhiteSpace(dns4))
+                    dns = dns4;
+
+                // IP4.GATEWAY
+                if (dict.TryGetValue("IP4.GATEWAY", out var gw4) && !string.IsNullOrWhiteSpace(gw4))
+                    gateway = gw4;
+            }
+        }
+
+        public static void GetIpData(string device_name, out bool isDynamic)
+        {
+            var data = GetLines(RunWithOutput("ip", "-4", "addr", "show", device_name))
+                .FirstOrDefault(item => item.Trim().StartsWith("inet "));
+            isDynamic = (data != null) && (data.Contains(" dynamic ") || data.EndsWith(" dynamic"));
+        }
+
+        public static string QuoteString(string s)
+        {
+            return $"\"{s.Replace("\"", "\\\"")}\"";
+        }
+
     }
+
 }

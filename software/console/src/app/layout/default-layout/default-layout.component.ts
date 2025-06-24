@@ -6,12 +6,13 @@ import { ContainerComponent, INavData, ShadowOnScrollDirective, SidebarBrandComp
          SidebarFooterComponent, SidebarHeaderComponent, SidebarNavComponent, SidebarToggleDirective,
          SidebarTogglerDirective, ToasterComponent, ToasterPlacement} from '@coreui/angular';
 import { DefaultFooterComponent, DefaultHeaderComponent } from './';
-import { IconSubset } from 'src/app/icons/icon-subset';
-import { ViewStatusService } from 'src/app/services/view-status.service';
-import { ProfileModalComponent } from 'src/app/modals/profile/profile-modal.component';
-import { WarningPromptModalComponent } from 'src/app/modals/profile/warning-prompt-modal.component';
-import { BasicEntitiesService } from 'src/app/services/basic-entities.service';
-import { LiteralsContainerDTO } from 'src/app/api-client/data-contracts';
+import { IconSubset } from '../../icons/icon-subset';
+import { ViewStatusService } from '../../services/view-status.service';
+import { ProfileModalComponent } from '../../modals/profile/profile-modal.component';
+import { WarningPromptModalComponent } from '../../modals/warning-prompt-modal.component';
+import { BasicEntitiesService } from '../../services/basic-entities.service';
+import { LiteralsContainerDTO } from '../../api-client/data-contracts';
+import { ProgressModalComponent } from '../../modals/progress-modal.component';
 
 function isOverflown(element: HTMLElement) {
   return (
@@ -43,6 +44,7 @@ function isOverflown(element: HTMLElement) {
     DefaultFooterComponent,
     ProfileModalComponent,
     WarningPromptModalComponent,
+    ProgressModalComponent,
     ToasterComponent
 ]
 })
@@ -50,6 +52,7 @@ export class DefaultLayoutComponent implements AfterViewInit
 {
   @ViewChild(ProfileModalComponent) profileModal!: ProfileModalComponent;
   @ViewChild(WarningPromptModalComponent) warningPromptModal!: WarningPromptModalComponent;
+  @ViewChild(ProgressModalComponent) progressModal!: ProgressModalComponent;
   @ViewChild(ToasterComponent)toaster!: ToasterComponent;
 
   readonly literals: LiteralsContainerDTO;
@@ -65,6 +68,7 @@ export class DefaultLayoutComponent implements AfterViewInit
   ngAfterViewInit() {
     this.viewStatus.setProfileModal(this.profileModal);
     this.viewStatus.setWarningPromptModal(this.warningPromptModal);
+    this.viewStatus.setProgressModal(this.progressModal);
     this.viewStatus.setToaster(this.toaster);
   }
 
@@ -97,7 +101,25 @@ export class DefaultLayoutComponent implements AfterViewInit
           {
             name: this.literals.variables!.variables!,
             url: '/variables',
-            iconComponent: { name: IconSubset.cilGraph },
+          }
+        ]
+      },
+      {
+        name: this.literals.network!.network!,
+        url: '',
+        iconComponent: { name: IconSubset.cilGlobeAlt },
+        children: [
+          {
+            name: this.literals.network!.summary!,
+            url: '/network/summary',
+          },
+          {
+            name: "Ethernet",
+            url: '/network/ethernet',
+          },
+          {
+            name: "Wi-Fi",
+            url: '/network/wifi',
           }
         ]
       },
@@ -108,8 +130,7 @@ export class DefaultLayoutComponent implements AfterViewInit
         children: [
           {
             name: this.literals.security!.users!,
-            url: '/security/users',
-            iconComponent: { name: IconSubset.cilGroup }
+            url: '/security/users'
           }       
         ]
       },
@@ -227,6 +248,8 @@ export class DefaultLayoutComponent implements AfterViewInit
           }
         ]
       },
+*/
+/*
       {
         name: 'Buttons',
         url: '/buttons',
@@ -249,7 +272,6 @@ export class DefaultLayoutComponent implements AfterViewInit
           }
         ]
       },
-      /*
       {
         name: 'Forms',
         url: '/forms',
