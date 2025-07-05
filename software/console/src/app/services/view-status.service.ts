@@ -6,6 +6,7 @@ import { BaseToastComponent } from '../layout/default-layout/toast/base-toast.co
 import { BasicEntitiesService } from './basic-entities.service';
 import { LiteralsContainerDTO } from '../api-client/data-contracts';
 import { ProgressModalComponent } from '../modals/progress-modal.component';
+import { BaseViewComponent } from '../views/base/base-view.component';
 
 
 @Injectable({
@@ -18,6 +19,8 @@ export class ViewStatusService {
   public warningPromptModal?: WarningPromptModalComponent = undefined;
   public progressModal?: ProgressModalComponent = undefined;
   public toaster?: ToasterComponent = undefined;
+  private baseView?: BaseViewComponent = undefined;
+  private baseLayoutReady: boolean = false;
 
   private literals: LiteralsContainerDTO;
 
@@ -29,6 +32,18 @@ export class ViewStatusService {
   public setTitle(title: string)
   {
     this.title = title;
+  }
+
+  public setDefaultLayoutReady() {
+    this.baseLayoutReady = true;
+    if (this.baseView)
+      this.baseView!.onViewReady();
+  }
+
+  public notifyChildViewReady(view: BaseViewComponent) {
+    this.baseView = view;
+    if (this.baseLayoutReady)
+      view.onViewReady();
   }
 
   public setProfileModal(c: ProfileModalComponent) {

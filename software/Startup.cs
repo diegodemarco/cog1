@@ -3,7 +3,6 @@ using cog1.Business;
 using cog1.Display.Menu;
 using cog1.Exceptions;
 using cog1.Hardware;
-using cog1.Literals;
 using cog1.Middleware;
 using cog1.Telemetry;
 using Cog1.DB;
@@ -23,7 +22,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Net;
 
 namespace cog1
 {
@@ -86,7 +84,7 @@ namespace cog1
             services.AddHostedService<IOManager.HeartbeatService>();
             services.AddHostedService<IOManager.AnalogInputPollerService>();
             services.AddHostedService<SystemStats.BackgroundTelemetryService>();
-            services.AddHostedService<WiFiManager.WiFiMonitorService>();
+            services.AddHostedService<WiFiMonitorService>();
             services.AddHostedService<DisplayMenu.MenuLoopService>();
             services.AddHostedService<HousekeepingService>();
             services.AddHostedService<VariablePollingService>();
@@ -199,16 +197,16 @@ namespace cog1
                 if (schema is null)
                     schema = context.SchemaGenerator.GenerateSchema(typeof(ControllerException.JsonControllerException), context.SchemaRepository);
 
-                //var response200 = operation.Responses["200"];
-                //if (response200.Content.Count < 1)
-                //{
-                //    context.SchemaRepository.TryLookupByType(typeof(object), out var objectSchema);
-                //    if (objectSchema == null)
-                //        objectSchema = context.SchemaGenerator.GenerateSchema(typeof(object), context.SchemaRepository);
-                //    response200.Content.Add("text/plain", new OpenApiMediaType { Schema = objectSchema });
-                //    response200.Content.Add("application/json", new OpenApiMediaType { Schema = objectSchema });
-                //    response200.Content.Add("text/json", new OpenApiMediaType { Schema = objectSchema });
-                //}
+                var response200 = operation.Responses["200"];
+                if (response200.Content.Count < 1)
+                {
+                    context.SchemaRepository.TryLookupByType(typeof(object), out var objectSchema);
+                    if (objectSchema == null)
+                        objectSchema = context.SchemaGenerator.GenerateSchema(typeof(object), context.SchemaRepository);
+                    response200.Content.Add("text/plain", new OpenApiMediaType { Schema = objectSchema });
+                    response200.Content.Add("application/json", new OpenApiMediaType { Schema = objectSchema });
+                    response200.Content.Add("text/json", new OpenApiMediaType { Schema = objectSchema });
+                }
 
                 var content = new Dictionary<string, OpenApiMediaType>() { { "text/json", new OpenApiMediaType { Schema = schema } } };
                 operation.Responses.Add("4XX", new OpenApiResponse() { Content = content, Description = "Errors with status code 4xx" });

@@ -11,11 +11,16 @@
  */
 
 import {
+  EthernetLinkConfigurationDTO,
+  IpConfigurationDTO,
   JsonControllerException,
   SystemStatsReport,
+  WiFiConnectRequestDTO,
+  WiFiSetIpConfigurationDTO,
   WiFiSsidDTO,
+  WiFiSsidRequestDTO,
 } from "./data-contracts";
-import { HttpClient, RequestParams } from "./http-client";
+import { ContentType, HttpClient, RequestParams } from "./http-client";
 
 export class System<
   SecurityDataType = unknown,
@@ -67,19 +72,15 @@ export class System<
    *
    * @tags System
    * @name WiFiConnect
-   * @request GET:/api/system/wifi/connect
+   * @request POST:/api/system/wifi/connect
    */
-  wiFiConnect = (
-    query?: {
-      ssid?: string;
-      password?: string;
-    },
-    params: RequestParams = {},
-  ) =>
-    this.request<void, JsonControllerException>({
+  wiFiConnect = (data: WiFiConnectRequestDTO, params: RequestParams = {}) =>
+    this.request<any, JsonControllerException>({
       path: `/api/system/wifi/connect`,
-      method: "GET",
-      query: query,
+      method: "POST",
+      body: data,
+      type: ContentType.Json,
+      format: "json",
       ...params,
     });
   /**
@@ -87,18 +88,15 @@ export class System<
    *
    * @tags System
    * @name WiFiReconnect
-   * @request GET:/api/system/wifi/reconnect
+   * @request POST:/api/system/wifi/reconnect
    */
-  wiFiReconnect = (
-    query?: {
-      ssid?: string;
-    },
-    params: RequestParams = {},
-  ) =>
-    this.request<void, JsonControllerException>({
+  wiFiReconnect = (data: WiFiSsidRequestDTO, params: RequestParams = {}) =>
+    this.request<any, JsonControllerException>({
       path: `/api/system/wifi/reconnect`,
-      method: "GET",
-      query: query,
+      method: "POST",
+      body: data,
+      type: ContentType.Json,
+      format: "json",
       ...params,
     });
   /**
@@ -106,18 +104,15 @@ export class System<
    *
    * @tags System
    * @name WiFiDisconnect
-   * @request GET:/api/system/wifi/disconnect
+   * @request POST:/api/system/wifi/disconnect
    */
-  wiFiDisconnect = (
-    query?: {
-      ssid?: string;
-    },
-    params: RequestParams = {},
-  ) =>
-    this.request<void, JsonControllerException>({
+  wiFiDisconnect = (data: WiFiSsidRequestDTO, params: RequestParams = {}) =>
+    this.request<any, JsonControllerException>({
       path: `/api/system/wifi/disconnect`,
-      method: "GET",
-      query: query,
+      method: "POST",
+      body: data,
+      type: ContentType.Json,
+      format: "json",
       ...params,
     });
   /**
@@ -125,18 +120,120 @@ export class System<
    *
    * @tags System
    * @name WiFiForget
-   * @request GET:/api/system/wifi/forget
+   * @request POST:/api/system/wifi/forget
    */
-  wiFiForget = (
+  wiFiForget = (data: WiFiSsidRequestDTO, params: RequestParams = {}) =>
+    this.request<any, JsonControllerException>({
+      path: `/api/system/wifi/forget`,
+      method: "POST",
+      body: data,
+      type: ContentType.Json,
+      format: "json",
+      ...params,
+    });
+  /**
+   * No description
+   *
+   * @tags System
+   * @name WiFiGetIpConfiguration
+   * @request GET:/api/system/wifi/ip-configuration
+   */
+  wiFiGetIpConfiguration = (
     query?: {
       ssid?: string;
     },
     params: RequestParams = {},
   ) =>
-    this.request<void, JsonControllerException>({
-      path: `/api/system/wifi/forget`,
+    this.request<IpConfigurationDTO, JsonControllerException>({
+      path: `/api/system/wifi/ip-configuration`,
       method: "GET",
       query: query,
+      format: "json",
+      ...params,
+    });
+  /**
+   * No description
+   *
+   * @tags System
+   * @name WiFiSetIpConfiguration
+   * @request POST:/api/system/wifi/ip-configuration
+   */
+  wiFiSetIpConfiguration = (
+    data: WiFiSetIpConfigurationDTO,
+    params: RequestParams = {},
+  ) =>
+    this.request<any, JsonControllerException>({
+      path: `/api/system/wifi/ip-configuration`,
+      method: "POST",
+      body: data,
+      type: ContentType.Json,
+      format: "json",
+      ...params,
+    });
+  /**
+   * No description
+   *
+   * @tags System
+   * @name EthernetGetIpConfiguration
+   * @request GET:/api/system/ethernet/ip-configuration
+   */
+  ethernetGetIpConfiguration = (params: RequestParams = {}) =>
+    this.request<IpConfigurationDTO, JsonControllerException>({
+      path: `/api/system/ethernet/ip-configuration`,
+      method: "GET",
+      format: "json",
+      ...params,
+    });
+  /**
+   * No description
+   *
+   * @tags System
+   * @name EthernetSetIpConfiguration
+   * @request POST:/api/system/ethernet/ip-configuration
+   */
+  ethernetSetIpConfiguration = (
+    data: IpConfigurationDTO,
+    params: RequestParams = {},
+  ) =>
+    this.request<any, JsonControllerException>({
+      path: `/api/system/ethernet/ip-configuration`,
+      method: "POST",
+      body: data,
+      type: ContentType.Json,
+      format: "json",
+      ...params,
+    });
+  /**
+   * No description
+   *
+   * @tags System
+   * @name EthernetGetLinkConfiguration
+   * @request GET:/api/system/ethernet/link-configuration
+   */
+  ethernetGetLinkConfiguration = (params: RequestParams = {}) =>
+    this.request<EthernetLinkConfigurationDTO, JsonControllerException>({
+      path: `/api/system/ethernet/link-configuration`,
+      method: "GET",
+      format: "json",
+      ...params,
+    });
+  /**
+   * No description
+   *
+   * @tags System
+   * @name EthernetSetLinkConfiguration
+   * @request POST:/api/system/ethernet/link-configuration
+   */
+  ethernetSetLinkConfiguration = (
+    data: EthernetLinkConfigurationDTO,
+    params: RequestParams = {},
+  ) =>
+    this.request<any, JsonControllerException>({
+      path: `/api/system/ethernet/link-configuration`,
+      method: "POST",
+      body: data,
+      type: ContentType.Json,
+      format: "json",
       ...params,
     });
   /**

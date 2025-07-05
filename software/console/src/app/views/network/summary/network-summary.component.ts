@@ -57,10 +57,10 @@ export class NetworkSummaryComponent implements OnInit
               value: eth.speed!.toString() + " Mb/s"  });
           }
           this.ethernetValues.push({ key: "IP", value: "" });
-          this.ethernetValues.push({ key: this.indent + ln.ipMethod, value: eth.dhcp ? "DHCP" : ln.ipFixed });
-          this.ethernetValues.push({ key: this.indent + ln.ipAddress, value: eth.ipv4! + "/" + eth.maskBits?.toString() });
-          this.ethernetValues.push({ key: this.indent + ln.gateway, value: eth.gateway });
-          this.ethernetValues.push({ key: this.indent + "DNS", value: eth.dns });
+          this.ethernetValues.push({ key: this.indent + ln.ipMethod, value: eth.ipConfiguration?.dhcp ? "DHCP" : ln.ipFixed });
+          this.ethernetValues.push({ key: this.indent + ln.ipAddress, value: eth.ipConfiguration?.ipv4 + "/" + eth.ipConfiguration?.netMask?.toString() });
+          this.ethernetValues.push({ key: this.indent + ln.gateway, value: eth.ipConfiguration?.gateway });
+          this.ethernetValues.push({ key: this.indent + "DNS", value: eth.ipConfiguration?.dns });
         }
 
         // WiFi
@@ -74,10 +74,10 @@ export class NetworkSummaryComponent implements OnInit
           this.wifiValues.push({ key: this.indent + ln.frequency, value: wifi.frequency?.toString() + " MHz" });
           this.wifiValues.push({ key: this.indent + "RSSID", value: wifi.rssi?.toString() + " dBm" });
           this.wifiValues.push({ key: "IP", value: "" });
-          this.wifiValues.push({ key: this.indent + ln.ipMethod, value: wifi.dhcp ? "DHCP" : ln.ipFixed });
-          this.wifiValues.push({ key: this.indent + ln.ipAddress, value: wifi.ipv4! + "/" + wifi.maskBits?.toString() });
-          this.wifiValues.push({ key: this.indent + ln.gateway, value: wifi.gateway });
-          this.wifiValues.push({ key: this.indent + "DNS", value: wifi.dns });
+          this.wifiValues.push({ key: this.indent + ln.ipMethod, value: wifi.ipConfiguration?.dhcp ? "DHCP" : ln.ipFixed });
+          this.wifiValues.push({ key: this.indent + ln.ipAddress, value: wifi.ipConfiguration?.ipv4 + "/" + wifi.ipConfiguration?.netMask?.toString() });
+          this.wifiValues.push({ key: this.indent + ln.gateway, value: wifi.ipConfiguration?.gateway });
+          this.wifiValues.push({ key: this.indent + "DNS", value: wifi.ipConfiguration?.dns });
         }
 
       });

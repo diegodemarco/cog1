@@ -284,6 +284,11 @@ export interface DiskReport {
   freePercentage?: number;
 }
 
+export interface EthernetLinkConfigurationDTO {
+  /** @format int32 */
+  speed?: number;
+}
+
 export interface EthernetReport {
   macAddress?: string | null;
   /** @format int32 */
@@ -293,12 +298,16 @@ export interface EthernetReport {
   speed?: number;
   fullDuplex?: boolean;
   autoNegotiate?: boolean;
+  ipConfiguration?: IpConfigurationDTO;
+}
+
+export interface IpConfigurationDTO {
   dhcp?: boolean;
   ipv4?: string | null;
   /** @format int32 */
-  maskBits?: number;
-  dns?: string | null;
+  netMask?: number;
   gateway?: string | null;
+  dns?: string | null;
 }
 
 export interface JsonControllerException {
@@ -415,11 +424,13 @@ export interface NetworkLiteralsContainer {
   connectingPleaseWait?: string | null;
   disconnectingPleaseWait?: string | null;
   forgettingPleaseWait?: string | null;
+  configuringPleaseWait?: string | null;
   ipConfiguration?: string | null;
   linkConfiguration?: string | null;
   wiFiNetworks?: string | null;
   confirmChanges?: string | null;
   confirmForget?: string | null;
+  configurationAppliedSuccessfully?: string | null;
   localeCode?: string | null;
 }
 
@@ -555,18 +566,18 @@ export interface VariablesLiteralsContainer {
   localeCode?: string | null;
 }
 
+export interface WiFiConnectRequestDTO {
+  ssid?: string | null;
+  password?: string | null;
+}
+
 export interface WiFiReport {
   macAddress?: string | null;
   ssid?: string | null;
   /** @format int32 */
   connectionState?: number;
   isConnected?: boolean;
-  dhcp?: boolean;
-  ipv4?: string | null;
-  /** @format int32 */
-  maskBits?: number;
-  dns?: string | null;
-  gateway?: string | null;
+  ipConfiguration?: IpConfigurationDTO;
   /** @format int32 */
   rssi?: number;
   /** @format int32 */
@@ -574,6 +585,11 @@ export interface WiFiReport {
   /** @format int32 */
   frequency?: number;
   savedConnections?: string[] | null;
+}
+
+export interface WiFiSetIpConfigurationDTO {
+  ssid?: string | null;
+  ipConfiguration?: IpConfigurationDTO;
 }
 
 export interface WiFiSsidDTO {
@@ -584,4 +600,8 @@ export interface WiFiSsidDTO {
   quality?: number;
   frequencies?: string | null;
   isOpen?: boolean;
+}
+
+export interface WiFiSsidRequestDTO {
+  ssid?: string | null;
 }

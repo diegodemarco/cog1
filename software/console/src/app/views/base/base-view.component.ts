@@ -16,6 +16,10 @@ export class BaseViewComponent implements OnDestroy
 
   protected viewStatus: ViewStatusService;
 
+  public onViewReady() {
+
+  }
+
   constructor(viewStatus: ViewStatusService)
   {
     this.viewStatus = viewStatus;

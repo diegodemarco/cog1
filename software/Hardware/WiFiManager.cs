@@ -1,11 +1,11 @@
-﻿using System;
+﻿using cog1.DTO;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
 
 namespace cog1.Hardware
 {
-    public static partial class WiFiManager
+    public static class WiFiManager
     {
 
         #region Private
@@ -30,7 +30,7 @@ namespace cog1.Hardware
             112, 116, 120, 124, 128, 132, 136, 140, 144, 149, 153, 157, 161, 165, 169, 173, 177
         };
 
-        private static List<string> GetConnections()
+        public static List<string> GetConnections()
         {
             return OSUtils.RunNmCli("NAME", "connection", "show")
                 .Where(item => item["TYPE"].Equals("802-11-wireless", StringComparison.OrdinalIgnoreCase))
@@ -69,30 +69,6 @@ namespace cog1.Hardware
                         frequency = Convert.ToInt32(double.Parse(parts[1]));
                     }
                 }
-            }
-        }
-
-        private static bool ResetWiFi()
-        {
-            try
-            {
-                OSUtils.Run("rmmod", "sprdwl_ng");
-                OSUtils.Run("modprobe", "sprdwl_ng");
-                /*
-                OSUtils.Run("nmcli", "radio", "wifi", "off");
-                OSUtils.Run("systemctl", "stop", "NetworkManager");
-                Thread.Sleep(5000);
-                OSUtils.Run("systemctl", "start", "NetworkManager");
-                OSUtils.Run("nmcli", "radio", "wifi", "on");
-                OSUtils.Run("systemctl", "restart", "wpa_supplicant");
-                Thread.Sleep(5000);
-                OSUtils.Run("systemctl", "start", "wpa_supplicant");
-                */
-                return true;
-            }
-            catch
-            {
-                return false;
             }
         }
 
@@ -139,18 +115,20 @@ namespace cog1.Hardware
                 result.ssid = ssid;
 
             // IP configuration obtained via nmcli
-            OSUtils.ParseNMCliDeviceShow(dict, out var connState, out var isConnected, out var ipv4, out var maskBits, out var gateway, out var dns, out var macAddress);
+            OSUtils.ParseNMCliDeviceShow(dict, out var connState, out var isConnected, out var ipv4, out var netMask, out var gateway, out var dns, out var macAddress);
             result.macAddress = macAddress;
             result.connectionState = connState;
             result.isConnected = isConnected;
-            result.ipv4 = ipv4;
-            result.maskBits = maskBits;
-            result.gateway = gateway;
-            result.dns = dns;
 
             // IP configuration obtained via ip
-            OSUtils.GetIpData(device_name, out var isDynamic);
-            result.dhcp = isDynamic;
+            result.ipConfiguration = new()
+            {
+                dhcp = OSUtils.IsDynamicIp(device_name),
+                ipv4 = ipv4,
+                netMask = netMask,
+                gateway = gateway,
+                dns = dns
+            };
 
             if (result.isConnected)
             {
@@ -258,7 +236,7 @@ namespace cog1.Hardware
 
         #endregion
 
-        #region WiFi setup
+        #region WiFi ssid connect/disconnect/reconnect/forget
 
         public static bool Reconnect(string ssid)
         {
@@ -287,22 +265,27 @@ namespace cog1.Hardware
             return OSUtils.Run("nmcli", "conn", "delete", ssid) == 0;
         }
 
-        public static bool SetFixedIP(string ssid, string ipv4, int netMask, string gateway, string dns)
+        #endregion
+
+        #region IP configuration
+
+        public static IpConfigurationDTO GetIpConfiguration(string ssid)
         {
-            return OSUtils.Run("nmcli", "conn", "modify", ssid,
-                "ipv4.addresses", $"{ipv4}/{netMask}", 
-                "ipv4.gateway", gateway,
-                "ipv4.dns", dns, 
-                "ipv4.method", "manual") == 0;
+            return OSUtils.GetIpConfiguration(ssid);
         }
 
-        public static bool SetDHCP(string ssid)
+        public static bool SetIpConfiguration(string ssid, IpConfigurationDTO config)
         {
-            return OSUtils.Run("nmcli", "conn", "modify", ssid,
-                "ipv4.addresses", string.Empty, 
-                "ipv4.gateway", string.Empty,
-                "ipv4.dns", string.Empty, 
-                "ipv4.method", "auto") == 0;
+            // Get current status
+            var status = GetStatus();
+
+            if (!OSUtils.SetIpConfiguration(ssid, config))
+                return false;
+
+            // If this was connected, reconnect it so it uses the new parameters
+            if (status.ssid == ssid)
+                return Reconnect(ssid);
+            return true;
         }
 
         #endregion

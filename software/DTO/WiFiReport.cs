@@ -1,3 +1,4 @@
+using cog1.DTO;
 using System.Collections.Generic;
 
 namespace cog1
@@ -8,11 +9,7 @@ namespace cog1
         public string ssid { get; set; }
         public int connectionState { get; set; }
         public bool isConnected { get; set; }
-        public bool dhcp { get; set; }
-        public string ipv4 { get; set; }
-        public int maskBits { get; set; }
-        public string dns { get; set; }
-        public string gateway { get; set; }
+        public IpConfigurationDTO ipConfiguration { get; set; }
         public int rssi { get; set; }
         public int noise { get; set; }
         public int frequency { get; set; }

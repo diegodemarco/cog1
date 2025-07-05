@@ -307,6 +307,30 @@
                 public override string ES => "La conexión a la red Wi-Fi especificada no pudo eliminarse";
             }
 
+            public class IP_CONFIG_READ_ERROR : LiteralConstant
+            {
+                public override string EN => "An error occurred while attemting to read the IP configuration";
+                public override string ES => "Ocurrió un error al intentar leer la configuración IP";
+            }
+
+            public class IP_CONFIG_ERROR : LiteralConstant
+            {
+                public override string EN => "The specified IP configuration could not be applied";
+                public override string ES => "La configuración IP indicada no pudo ser aplicada";
+            }
+
+            public class LINK_CONFIG_READ_ERROR : LiteralConstant
+            {
+                public override string EN => "An error occurred while attemting to read the link configuration";
+                public override string ES => "Ocurrió un error al intentar leer la configuración del link";
+            }
+
+            public class LINK_CONFIG_ERROR : LiteralConstant
+            {
+                public override string EN => "The specified link configuration could not be applied";
+                public override string ES => "La configuración de link indicada no pudo ser aplicada";
+            }
+
         }
 
     }

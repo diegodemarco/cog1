@@ -56,8 +56,8 @@ namespace cog1.Literals
 
         public class IpFixed : LiteralConstant
         {
-            public override string EN => "Fixed";
-            public override string ES => "Fijo";
+            public override string EN => "Fixed IP";
+            public override string ES => "IP fijo";
         }
 
         public class IpAddress : LiteralConstant
@@ -150,6 +150,12 @@ namespace cog1.Literals
             public override string ES => "Olvidando, por favor espere";
         }
 
+        public class ConfiguringPleaseWait : LiteralConstant
+        {
+            public override string EN => "Configuring, please wait";
+            public override string ES => "Configurando, por favor espere";
+        }
+
         public class IpConfiguration : LiteralConstant
         {
             public override string EN => "IP Configuration";
@@ -180,6 +186,12 @@ namespace cog1.Literals
         {
             public override string EN => "Credentials for this connection will be forgotten. If you need to reconnect to this network, you will be asked to enter the credentials again";
             public override string ES => "Se perderán las credenciales para esta conexión. Si necesita reconectarse a esta red, se le pedirán las credenciales nuevamente";
+        }
+
+        public class ConfigurationAppliedSuccessfully : LiteralConstant
+        {
+            public override string EN => "Configuration applied successfully";
+            public override string ES => "Configuración aplicada correctamente";
         }
 
     }

@@ -35,9 +35,9 @@ namespace cog1.Display.Menu
 
             var temps = SystemStats.GetTemps();
             var wifi = WiFiManager.GetStatus();
-            var wifiState = wifi.isConnected ? wifi.ipv4 : "Disconnected";
+            var wifiState = wifi.isConnected ? wifi.ipConfiguration.ipv4 : "Disconnected";
             var ether = EthernetManager.GetStatus();
-            var etherState = ether.isConnected ? ether.ipv4 : "Disconnected";
+            var etherState = ether.isConnected ? ether.ipConfiguration.ipv4 : "Disconnected";
 
             canvas.DrawText(0, 16, font, $"Date {DateTime.Now.ToString("yyyy-MM-dd HH:mm")}");
             canvas.DrawText(0, 24, font, $"WiFi" + wifiState.PadLeft(21 - 4));

@@ -1,0 +1,46 @@
+<c-modal id="profileModal" [(visible)]="visible" alignment="center" backdrop="static" keyboard="true">
+  <form cForm (submit)="saveChanges()">
+    <c-modal-header>
+      <h5 cModalTitle>{{literals!.network!.connect}}</h5>
+      <button (click)="dismiss()" cButtonClose></button>
+    </c-modal-header>
+    <c-modal-body>
+
+      <label for="ipMethod">{{literals!.network!.ipMethod}}</label>
+      <select cFormControl type="text" id="ipMethod" name="ipMethod" cSelect class="mb-3" 
+        [(ngModel)]="currentConfig!.dhcp">
+        <option [ngValue]="true">DHCP</option>
+        <option [ngValue]="false">{{literals!.network!.ipFixed}}</option>
+      </select>
+
+      <label for="ipAddress">{{literals.network!.ipAddress}}</label>
+      <input cFormControl type="text" id="ipAddress" name="ipAddress" class="mb-3" 
+        [(ngModel)]="currentConfig!.ipv4" [disabled]="currentConfig!.dhcp!">
+
+      <label for="netMask">Net mask</label>
+      <input cFormControl type="number" id="netMask" name="netMask" class="mb-3" 
+        [(ngModel)]="currentConfig!.netMask" [disabled]="currentConfig!.dhcp!">
+
+        <label for="gateway">{{literals.network!.gateway}}</label>
+      <input cFormControl type="text" id="gateway" name="gateway" class="mb-3" 
+        [(ngModel)]="currentConfig!.gateway" [disabled]="currentConfig!.dhcp!">
+
+      <label for="dns">DNS</label>
+      <input cFormControl type="text" id="dns" name="dns" class="mb-3" 
+        [(ngModel)]="currentConfig!.dns" [disabled]="currentConfig!.dhcp!">
+
+      <c-container breakpoint="md">
+        <c-row class="mb-3">
+          <c-alert dismissible color="danger" [visible]="alertVisible">
+            {{alertMessage}}
+          </c-alert>
+        </c-row>
+      </c-container>
+
+      </c-modal-body>
+    <c-modal-footer>
+      <button type="submit" cButton color="primary">{{literals.common!.buttonOk}}</button>
+      <button (click)="dismiss()" cButton color="secondary">{{literals.common!.buttonCancel}}</button>
+    </c-modal-footer>
+  </form>
+</c-modal>

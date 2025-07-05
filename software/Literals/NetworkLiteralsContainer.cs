@@ -28,11 +28,13 @@
         public virtual string ConnectingPleaseWait { get => new NetworkLiterals.ConnectingPleaseWait().ExtractLiteral(LocaleCode); set { } }
         public virtual string DisconnectingPleaseWait { get => new NetworkLiterals.DisconnectingPleaseWait().ExtractLiteral(LocaleCode); set { } }
         public virtual string ForgettingPleaseWait { get => new NetworkLiterals.ForgettingPleaseWait().ExtractLiteral(LocaleCode); set { } }
+        public virtual string ConfiguringPleaseWait { get => new NetworkLiterals.ConfiguringPleaseWait().ExtractLiteral(LocaleCode); set { } }
         public virtual string IpConfiguration { get => new NetworkLiterals.IpConfiguration().ExtractLiteral(LocaleCode); set { } }
         public virtual string LinkConfiguration { get => new NetworkLiterals.LinkConfiguration().ExtractLiteral(LocaleCode); set { } }
         public virtual string WiFiNetworks { get => new NetworkLiterals.WiFiNetworks().ExtractLiteral(LocaleCode); set { } }
         public virtual string ConfirmChanges { get => new NetworkLiterals.ConfirmChanges().ExtractLiteral(LocaleCode); set { } }
         public virtual string ConfirmForget { get => new NetworkLiterals.ConfirmForget().ExtractLiteral(LocaleCode); set { } }
+        public virtual string ConfigurationAppliedSuccessfully { get => new NetworkLiterals.ConfigurationAppliedSuccessfully().ExtractLiteral(LocaleCode); set { } }
 
     }
 

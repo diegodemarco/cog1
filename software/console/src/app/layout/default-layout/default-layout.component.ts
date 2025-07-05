@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, QueryList, ViewChild, ViewChildren } from '@angular/core';
 import { RouterLink, RouterOutlet } from '@angular/router';
 import { NgScrollbar } from 'ngx-scrollbar';
 import { IconDirective } from '@coreui/icons-angular';
@@ -13,6 +13,8 @@ import { WarningPromptModalComponent } from '../../modals/warning-prompt-modal.c
 import { BasicEntitiesService } from '../../services/basic-entities.service';
 import { LiteralsContainerDTO } from '../../api-client/data-contracts';
 import { ProgressModalComponent } from '../../modals/progress-modal.component';
+import { BaseViewComponent } from '../../views/base/base-view.component';
+import { timeout } from 'rxjs';
 
 function isOverflown(element: HTMLElement) {
   return (
@@ -54,6 +56,7 @@ export class DefaultLayoutComponent implements AfterViewInit
   @ViewChild(WarningPromptModalComponent) warningPromptModal!: WarningPromptModalComponent;
   @ViewChild(ProgressModalComponent) progressModal!: ProgressModalComponent;
   @ViewChild(ToasterComponent)toaster!: ToasterComponent;
+  @ViewChildren(BaseViewComponent) baseViews!: QueryList<BaseViewComponent>;
 
   readonly literals: LiteralsContainerDTO;
   readonly navItems: INavData[];
@@ -70,6 +73,7 @@ export class DefaultLayoutComponent implements AfterViewInit
     this.viewStatus.setWarningPromptModal(this.warningPromptModal);
     this.viewStatus.setProgressModal(this.progressModal);
     this.viewStatus.setToaster(this.toaster);
+    setTimeout(() => this.viewStatus.setDefaultLayoutReady(), 100);
   }
 
   onScrollbarUpdate($event: any) {

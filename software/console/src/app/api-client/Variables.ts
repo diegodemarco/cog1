@@ -88,9 +88,10 @@ export class Variables<
    * @request DELETE:/api/variables/{variableId}
    */
   deleteVariable = (variableId: number, params: RequestParams = {}) =>
-    this.request<void, JsonControllerException>({
+    this.request<any, JsonControllerException>({
       path: `/api/variables/${variableId}`,
       method: "DELETE",
+      format: "json",
       ...params,
     });
   /**

@@ -122,9 +122,10 @@ export class Security<
    * @request DELETE:/api/security/users/{userId}
    */
   deleteUser = (userId: number, params: RequestParams = {}) =>
-    this.request<void, JsonControllerException>({
+    this.request<any, JsonControllerException>({
       path: `/api/security/users/${userId}`,
       method: "DELETE",
+      format: "json",
       ...params,
     });
   /**

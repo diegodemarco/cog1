@@ -1,4 +1,5 @@
 ﻿using cog1.Business;
+using cog1.DTO;
 using cog1.Exceptions;
 using cog1.Hardware;
 using cog1.Middleware;
@@ -81,51 +82,130 @@ namespace cog1.Controllers
             });
         }
 
-        [HttpGet]
+        [HttpPost]
         [RequiresAdmin]
         [Route("wifi/connect")]
-        public void WiFiConnect([FromQuery] string ssid, [FromQuery] string password)
+        public void WiFiConnect([FromBody] WiFiConnectRequestDTO request)
         {
             MethodPattern(() =>
             {
-                if (!WiFiManager.Connect(ssid, password))
+                if (!WiFiManager.Connect(request.ssid, request.password))
                     throw new ControllerException(context.ErrorCodes.Network.WIFI_CONNECT_ERROR);
             });
         }
 
-        [HttpGet]
+        [HttpPost]
         [RequiresAdmin]
         [Route("wifi/reconnect")]
-        public void WiFiReconnect([FromQuery] string ssid)
+        public void WiFiReconnect([FromBody] WiFiSsidRequestDTO request)
         {
             MethodPattern(() =>
             {
-                if (!WiFiManager.Reconnect(ssid))
+                if (!WiFiManager.Reconnect(request.ssid))
                     throw new ControllerException(context.ErrorCodes.Network.WIFI_CONNECT_ERROR);
             });
         }
 
-        [HttpGet]
+        [HttpPost]
         [RequiresAdmin]
         [Route("wifi/disconnect")]
-        public void WiFiDisconnect([FromQuery] string ssid)
+        public void WiFiDisconnect([FromBody] WiFiSsidRequestDTO request)
         {
             MethodPattern(() =>
             {
-                if (!WiFiManager.Disconnect(ssid))
+                if (!WiFiManager.Disconnect(request.ssid))
                     throw new ControllerException(context.ErrorCodes.Network.WIFI_DISCONNECT_ERROR);
             });
         }
 
-        [HttpGet]
+        [HttpPost]
         [RequiresAdmin]
         [Route("wifi/forget")]
-        public void WiFiForget([FromQuery] string ssid)
+        public void WiFiForget([FromBody] WiFiSsidRequestDTO request)
         {
             MethodPattern(() =>
             {
-                if (!WiFiManager.Forget(ssid))
+                if (!WiFiManager.Forget(request.ssid))
                     throw new ControllerException(context.ErrorCodes.Network.WIFI_FORGET_ERROR);
+            });
+        }
+
+        [HttpGet]
+        [Route("wifi/ip-configuration")]
+        public IpConfigurationDTO WiFiGetIpConfiguration([FromQuery] string ssid)
+        {
+            return MethodPattern(() =>
+            {
+                var result = WiFiManager.GetIpConfiguration(ssid);
+                if (result == null)
+                    throw new ControllerException(context.ErrorCodes.Network.IP_CONFIG_READ_ERROR);
+                return result;
+            });
+        }
+
+        [HttpPost]
+        [RequiresAdmin]
+        [Route("wifi/ip-configuration")]
+        public void WiFiSetIpConfiguration([FromBody] WiFiSetIpConfigurationDTO request)
+        {
+            MethodPattern(() =>
+            {
+                if (!WiFiManager.SetIpConfiguration(request.ssid, request.ipConfiguration))
+                    throw new ControllerException(context.ErrorCodes.Network.IP_CONFIG_ERROR);
+            });
+        }
+
+        #endregion
+
+        #region Ethernet
+
+        [HttpGet]
+        [Route("ethernet/ip-configuration")]
+        public IpConfigurationDTO EthernetGetIpConfiguration()
+        {
+            return MethodPattern(() =>
+            {
+                var result = EthernetManager.GetIpConfiguration();
+                if (result == null)
+                    throw new ControllerException(context.ErrorCodes.Network.IP_CONFIG_READ_ERROR);
+                return result;
+            });
+        }
+
+        [HttpPost]
+        [RequiresAdmin]
+        [Route("ethernet/ip-configuration")]
+        public void EthernetSetIpConfiguration([FromBody] IpConfigurationDTO configuration)
+        {
+            MethodPattern(() =>
+            {
+                if (!EthernetManager.SetIpConfiguration(configuration))
+                    throw new ControllerException(context.ErrorCodes.Network.IP_CONFIG_ERROR);
+            });
+        }
+
+        [HttpGet]
+        [Route("ethernet/link-configuration")]
+        public EthernetLinkConfigurationDTO EthernetGetLinkConfiguration()
+        {
+            return MethodPattern(() =>
+            {
+                var result = EthernetManager.GetLinkConfiguration();
+                if (result == null)
+                    throw new ControllerException(context.ErrorCodes.Network.LINK_CONFIG_READ_ERROR);
+                return result;
+            });
+        }
+
+        [HttpPost]
+        [RequiresAdmin]
+        [Route("ethernet/link-configuration")]
+        public void EthernetSetLinkConfiguration([FromBody] EthernetLinkConfigurationDTO configuration)
+        {
+            MethodPattern(() =>
+            {
+                if (!EthernetManager.SetLinkConfiguration(configuration, context.ErrorCodes))
+                    throw new ControllerException(context.ErrorCodes.Network.LINK_CONFIG_ERROR);
             });
         }
 

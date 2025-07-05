@@ -1,0 +1,27 @@
+<c-modal id="profileModal" [(visible)]="visible" alignment="center" backdrop="static" keyboard="true">
+  <form cForm (submit)="saveChanges()">
+
+    <c-modal-header>
+      <h5 cModalTitle>{{literals!.network!.connect}}</h5>
+      <button (click)="dismiss()" cButtonClose></button>
+    </c-modal-header>
+    <c-modal-body>
+
+      <label for="linkSpeed">{{literals!.network!.linkConfiguration}}</label>
+      <select cFormControl type="text" id="linkSpeed" name="linkSpeed" cSelect class="mb-3" 
+        [(ngModel)]="currentConfig!.speed">
+        <option [ngValue]="0">Auto</option>
+        <option [ngValue]="1000">1000 Mb/s</option>
+        <option [ngValue]="100">100 Mb/s</option>
+        <option [ngValue]="10">10 Mb/s</option>
+      </select>
+
+    </c-modal-body>
+
+    <c-modal-footer>
+      <button type="submit" cButton color="primary">{{literals.common!.buttonOk}}</button>
+      <button (click)="dismiss()" cButton color="secondary">{{literals.common!.buttonCancel}}</button>
+    </c-modal-footer>
+
+  </form>
+</c-modal>

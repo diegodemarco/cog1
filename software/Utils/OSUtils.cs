@@ -1,3 +1,4 @@
+using cog1.DTO;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -71,6 +72,7 @@ namespace cog1
         public static List<Dictionary<string, string>> RunNmCli(string firstItem, params string[] p)
         {
             var rawData = OSUtils.RunWithOutput("nmcli", new string[3] { "-t", "--mode", "multiline" }.Concat(p).ToArray());
+            //Console.WriteLine(rawData);
             return OSUtils.ParseNMCliMultiLine(rawData, firstItem);
         }
 
@@ -197,14 +199,14 @@ namespace cog1
             Run("shutdown", "now");
         }
 
-        public static void ParseNMCliDeviceShow(Dictionary<string, string> dict, out int connState, out bool isConnected, out string ipv4, out int maskBits, out string gateway, out string dns,
-            out string macAddress)
+        public static void ParseNMCliDeviceShow(Dictionary<string, string> dict, out int connState, out bool isConnected, 
+            out string ipv4, out int maskBits, out string gateway, out string dns, out string macAddress)
         {
             connState = 0;
-            ipv4 = null;
+            ipv4 = string.Empty;
             maskBits = 0;
-            gateway = null;
-            dns = null;
+            gateway = string.Empty;
+            dns = string.Empty;
 
             // GENERAL.STATE
             if (dict.TryGetValue("GENERAL.STATE", out var generalState))
@@ -239,26 +241,88 @@ namespace cog1
                     }
                 }
 
-                // IP4.DNS[1]
-                if (dict.TryGetValue("IP4.DNS[1]", out var dns4) && !string.IsNullOrWhiteSpace(dns4))
-                    dns = dns4;
-
                 // IP4.GATEWAY
                 if (dict.TryGetValue("IP4.GATEWAY", out var gw4) && !string.IsNullOrWhiteSpace(gw4))
                     gateway = gw4;
+
+                // IP4.DNS[1]
+                if (dict.TryGetValue("IP4.DNS[1]", out var dns4) && !string.IsNullOrWhiteSpace(dns4))
+                    dns = dns4;
             }
         }
 
-        public static void GetIpData(string device_name, out bool isDynamic)
+        public static IpConfigurationDTO GetIpConfiguration(string connName)
         {
-            var data = GetLines(RunWithOutput("ip", "-4", "addr", "show", device_name))
+            var dict = OSUtils.RunNmCli("connection.id", "conn", "show", connName).FirstOrDefault();
+            if (dict == null)
+                return null;
+            //Console.WriteLine(JsonConvert.SerializeObject(dict));
+
+            var result = new IpConfigurationDTO() { dhcp = true, ipv4 = string.Empty, netMask = 0, gateway = string.Empty, dns = string.Empty };
+
+            // ipv4.method
+            result.dhcp = dict.TryGetValue("ipv4.method", out var method) && string.Equals(method, "auto", StringComparison.OrdinalIgnoreCase);
+            if (result.dhcp)
+                return result;
+
+            // ipv4.addresses
+            if (dict.TryGetValue("ipv4.addresses", out var ip4) && !string.IsNullOrWhiteSpace(ip4) && ip4 != "--")
+            {
+                var parts = ip4.Split('/', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+                if (parts.Length >= 2 && int.TryParse(parts[1], out var mask))
+                {
+                    result.ipv4 = parts[0];
+                    result.netMask = mask;
+                }
+                else if (parts.Length > 0)
+                {
+                    result.ipv4 = parts[0];
+                }
+            }
+
+            // ipv4.gateway
+            if (dict.TryGetValue("ipv4.gateway", out var gw4) && !string.IsNullOrWhiteSpace(gw4) && gw4 != "--")
+                result.gateway = gw4;
+
+            // ipv4.dns
+            if (dict.TryGetValue("ipv4.dns", out var dns4) && !string.IsNullOrWhiteSpace(dns4) && dns4 != "--")
+                result.dns = dns4;
+
+            // Done
+            return result;
+        }
+
+        public static bool IsDynamicIp(string deviceName)
+        {
+            var data = GetLines(RunWithOutput("ip", "-4", "addr", "show", deviceName))
                 .FirstOrDefault(item => item.Trim().StartsWith("inet "));
-            isDynamic = (data != null) && (data.Contains(" dynamic ") || data.EndsWith(" dynamic"));
+            return (data != null) && (data.Contains(" dynamic ") || data.EndsWith(" dynamic"));
         }
 
         public static string QuoteString(string s)
         {
             return $"\"{s.Replace("\"", "\\\"")}\"";
+        }
+
+        public static bool SetIpConfiguration(string connName, IpConfigurationDTO config)
+        {
+            // Configure
+            if (config.dhcp)
+            {
+                return (OSUtils.Run("nmcli", "conn", "modify", connName,
+                    "ipv4.method", "auto",
+                    "ipv4.addresses", string.Empty,
+                    "ipv4.gateway", string.Empty,
+                    "ipv4.dns", string.Empty) == 0);
+            }
+            else
+            {
+                return (OSUtils.Run("nmcli", "conn", "modify", connName,
+                    "ipv4.addresses", $"{config.ipv4}/{config.netMask}",
+                    "ipv4.gateway", config.gateway,
+                    "ipv4.dns", config.dns,
+                    "ipv4.method", "manual") == 0);
+            }
         }
 
     }

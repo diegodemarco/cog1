@@ -1,3 +1,5 @@
+using cog1.DTO;
+
 namespace cog1
 {
     public class EthernetReport
@@ -8,10 +10,6 @@ namespace cog1
         public int speed { get; set; }
         public bool fullDuplex { get; set; }
         public bool autoNegotiate { get; set; }
-        public bool dhcp { get; set; }
-        public string ipv4 { get; set; }
-        public int maskBits { get; set; }
-        public string dns { get; set; }
-        public string gateway { get; set; }
+        public IpConfigurationDTO ipConfiguration { get; set; }
     }
 }

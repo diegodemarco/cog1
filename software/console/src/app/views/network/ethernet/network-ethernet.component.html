@@ -1,3 +1,6 @@
+<app-ip-configuration-modal />
+<app-link-configuration-modal />
+
 <c-row>
   <c-col sm="12">
     <c-card class="my-2 mb-3">
@@ -25,12 +28,12 @@
 @if (authService.isAdmin) {
     <c-row>
         <c-col>
-            <button cButton color="primary" (click)="doConfigureLink()" class="mb-3">
-                {{literals.network!.linkConfiguration}}
+            <button cButton color="primary" (click)="doIpConfig()" class="mb-3">
+                {{literals.network!.ipConfiguration}}
             </button> 
             &nbsp;
-            <button cButton color="primary" (click)="doConfigureIp()" class="mb-3">
-                {{literals.network!.ipConfiguration}}
+            <button cButton color="primary" (click)="doConfigureLink()" class="mb-3">
+                {{literals.network!.linkConfiguration}}
             </button> 
         </c-col>
     </c-row>

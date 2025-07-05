@@ -1,14 +1,14 @@
-﻿using cog1.Business;
+﻿using cog1.DTO;
 using cog1.Exceptions;
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Net;
-using static cog1.Literals.NetworkLiterals;
+using System.Threading;
 
 namespace cog1.Hardware
 {
-    public static partial class EthernetManager
+    public static class EthernetManager
     {
 
         #region Private
@@ -96,18 +96,20 @@ namespace cog1.Hardware
                 return result;
 
             // IP configuration obtained via nmcli
-            OSUtils.ParseNMCliDeviceShow(dict, out var connState, out var isConnected, out var ipv4, out var maskBits, out var gateway, out var dns, out var macAddress);
+            OSUtils.ParseNMCliDeviceShow(dict, out var connState, out var isConnected, out var ipv4, out var netMask, out var gateway, out var dns, out var macAddress);
             result.macAddress = macAddress;
             result.connectionState = connState;
             result.isConnected = isConnected;
-            result.ipv4 = ipv4;
-            result.maskBits = maskBits;
-            result.gateway = gateway;
-            result.dns = dns;
 
             // IP configuration obtained via ip
-            OSUtils.GetIpData(device_name, out var isDynamic);
-            result.dhcp = isDynamic;
+            result.ipConfiguration = new()
+            {
+                dhcp = OSUtils.IsDynamicIp(device_name),
+                ipv4 = ipv4,
+                netMask = netMask,
+                gateway = gateway,
+                dns = dns
+            };
 
             // Obtain link information from the kernel
             if (result.isConnected)
@@ -132,48 +134,10 @@ namespace cog1.Hardware
                 OSUtils.Run("nmcli", "conn", "delete", dict["NAME"]);
         }
 
-        public static void Reconnect()
+        public static bool Reconnect()
         {
             OSUtils.Run("nmcli", "conn", "down", "ethernet");
-            OSUtils.Run("nmcli", "conn", "up", "ethernet");
-        }
-
-        public static void SetFixedIP(string ipv4, int netMask, string gateway, string dns)
-        {
-            RemoveEthernetConnections();
-            OSUtils.Run("nmcli", "conn", "modify", connection_name, 
-                "ipv4.method", "manual", "ipv4.addresses", $"{ipv4}/{netMask}", "ipv4.gateway", gateway, "ipv4.dns", dns);
-            Reconnect();
-        }
-
-        public static void SetDHCP()
-        {
-            RemoveEthernetConnections();
-            OSUtils.Run("nmcli", "conn", "modify", connection_name, 
-                "ipv4.method", "auto", "ipv4.addresses", string.Empty, "ipv4.gateway", string.Empty, "ipv4.dns", string.Empty);
-            Reconnect();
-        }
-
-        public static void SetSpeed(int speed, bool fullDuplex, ErrorCodes ec)
-        {
-            if (speed != 10 && speed != 100 && speed != 1000)
-                throw new ControllerException(ec.General.INVALID_PARAMETER_VALUE("speed", speed.ToString()));
-            OSUtils.Run("nmcli", "conn", "modify", connection_name,
-                "802-3-ethernet.speed", speed.ToString(),
-                "802-3-ethernet.duplex", fullDuplex ? "full" : "half",
-                "802-3-ethernet.auto-negotiate", "no"
-                );
-            Reconnect();
-        }
-
-        public static void SetSpeedAuto()
-        {
-            OSUtils.Run("nmcli", "conn", "modify", connection_name,
-                "802-3-ethernet.speed", string.Empty,
-                "802-3-ethernet.duplex", string.Empty,
-                "802-3-ethernet.auto-negotiate", "yes"
-                );
-            Reconnect();
+            return OSUtils.Run("nmcli", "conn", "up", "ethernet") == 0;
         }
 
         public static bool CheckEthernetConnection()
@@ -197,6 +161,98 @@ namespace cog1.Hardware
             OSUtils.Run("nmcli", "conn", "add", "connection.id", "ethernet", "ifname", "end0", "type", "ethernet",
                 "802-3-ethernet.auto-negotiate", "yes", "ipv4.method", "auto");
             Reconnect();
+        }
+
+        #endregion
+
+        #region Link configuration
+
+        public static EthernetLinkConfigurationDTO GetLinkConfiguration()
+        {
+            var dict = OSUtils.RunNmCli("", "conn", "show", connection_name).FirstOrDefault();
+            if (dict == null)
+                return null;
+
+            if (!dict.TryGetValue("802-3-ethernet.auto-negotiate", out var autoNegotiate))
+                return null;
+
+            if (string.Equals(autoNegotiate, "yes", StringComparison.OrdinalIgnoreCase))
+                return new() { speed = 0 };
+
+            if (dict.TryGetValue("802-3-ethernet.speed", out var speed) && int.TryParse(speed, out var intSpeed))
+                return new() { speed = intSpeed };
+
+            return new() { speed = 0 };
+        }
+
+        public static bool SetLinkConfiguration(EthernetLinkConfigurationDTO config, ErrorCodes ec)
+        {
+            if (config.speed != 0 && config.speed != 10 && config.speed != 100 && config.speed != 1000)
+                throw new ControllerException(ec.General.INVALID_PARAMETER_VALUE("speed", config.speed.ToString()));
+
+            var status = GetStatus();
+
+            if (status.isConnected)
+                OSUtils.Run("nmcli", "conn", "down", connection_name);
+
+            if (config.speed == 0)
+            {
+                if (OSUtils.Run("nmcli", "conn", "modify", connection_name,
+                    "802-3-ethernet.speed", string.Empty,
+                    "802-3-ethernet.duplex", string.Empty,
+                    "802-3-ethernet.auto-negotiate", "yes"
+                    ) != 0)
+                    return false;
+            }
+            else
+            {
+                if (OSUtils.Run("nmcli", "conn", "modify", connection_name,
+                    "802-3-ethernet.speed", config.speed.ToString(),
+                    "802-3-ethernet.duplex", "full",
+                    "802-3-ethernet.auto-negotiate", "no"
+                    ) != 0)
+                    return false;
+            }
+
+            if (status.isConnected)
+            {
+                // Reconnect so that the changes take effect
+                var sw = Stopwatch.StartNew();
+                while (sw.ElapsedMilliseconds < 15000)
+                {
+                    if (OSUtils.Run("nmcli", "conn", "up", connection_name) == 0)
+                        return true;
+                    Thread.Sleep(1000);
+                }
+                return false;
+            }
+
+            return true;
+        }
+
+        #endregion
+
+        #region IP configuration
+
+        public static IpConfigurationDTO GetIpConfiguration()
+        {
+            return OSUtils.GetIpConfiguration(connection_name);
+        }
+
+        public static bool SetIpConfiguration(IpConfigurationDTO config)
+        {
+            var status = GetStatus();
+
+            if (!OSUtils.SetIpConfiguration(connection_name, config))
+                return false;
+
+            if (status.isConnected)
+            {
+                // Reconnect so that the changes take effect
+                return Reconnect();
+            }
+
+            return true;
         }
 
         #endregion

@@ -8,10 +8,9 @@ import { ContainerComponent, RowComponent, ColComponent, CardGroupComponent,
 import { BackendService } from '../../../services/backend.service';
 import { AuthService } from '../../../services/auth.service';
 import { FormsModule } from '@angular/forms';
-import { BasicEntitiesService } from 'src/app/services/basic-entities.service';
+import { BasicEntitiesService } from '../../../services/basic-entities.service';
 import { Router } from '@angular/router';
-import { JsonControllerException, LiteralsContainerDTO } from 'src/app/api-client/data-contracts';
-import { ViewStatusService } from 'src/app/services/view-status.service';
+import { JsonControllerException, LiteralsContainerDTO } from '../../../api-client/data-contracts';
 
 @Component({
     selector: 'app-login',

@@ -165,6 +165,14 @@ namespace cog1.Exceptions
             => new ErrorCode(5001, _LocaleCode, new Literals.ErrorCodes.Network.WIFI_DISCONNECT_ERROR(), HttpStatusCode.NotFound);
         public ErrorCode WIFI_FORGET_ERROR
             => new ErrorCode(5002, _LocaleCode, new Literals.ErrorCodes.Network.WIFI_FORGET_ERROR(), HttpStatusCode.NotFound);
+        public ErrorCode IP_CONFIG_READ_ERROR
+            => new ErrorCode(5003, _LocaleCode, new Literals.ErrorCodes.Network.IP_CONFIG_READ_ERROR(), HttpStatusCode.NotFound);
+        public ErrorCode IP_CONFIG_ERROR
+            => new ErrorCode(5004, _LocaleCode, new Literals.ErrorCodes.Network.IP_CONFIG_ERROR(), HttpStatusCode.NotFound);
+        public ErrorCode LINK_CONFIG_READ_ERROR
+            => new ErrorCode(5005, _LocaleCode, new Literals.ErrorCodes.Network.LINK_CONFIG_READ_ERROR(), HttpStatusCode.NotFound);
+        public ErrorCode LINK_CONFIG_ERROR
+            => new ErrorCode(5006, _LocaleCode, new Literals.ErrorCodes.Network.LINK_CONFIG_ERROR(), HttpStatusCode.NotFound);
     }
 
     /// <summary>
