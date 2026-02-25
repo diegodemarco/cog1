@@ -173,6 +173,30 @@ namespace cog1.Exceptions
             => new ErrorCode(5005, _LocaleCode, new Literals.ErrorCodes.Network.LINK_CONFIG_READ_ERROR(), HttpStatusCode.NotFound);
         public ErrorCode LINK_CONFIG_ERROR
             => new ErrorCode(5006, _LocaleCode, new Literals.ErrorCodes.Network.LINK_CONFIG_ERROR(), HttpStatusCode.NotFound);
+        public ErrorCode CANT_DO_IN_AP_MODE
+            => new ErrorCode(5007, _LocaleCode, new Literals.ErrorCodes.Network.CANT_DO_IN_AP_MODE(), HttpStatusCode.NotFound);
+        public ErrorCode CANNOT_ENABLE_ACCESS_POINT
+            => new ErrorCode(5008, _LocaleCode, new Literals.ErrorCodes.Network.CANNOT_ENABLE_ACCESS_POINT(), HttpStatusCode.NotFound);
+        public ErrorCode CANNOT_ENABLE_TEMPORARY_ACCESS_POINT
+            => new ErrorCode(5009, _LocaleCode, new Literals.ErrorCodes.Network.CANNOT_ENABLE_TEMPORARY_ACCESS_POINT(), HttpStatusCode.NotFound);
+        public ErrorCode CANNOT_DISABLE_ACCESS_POINT
+            => new ErrorCode(5010, _LocaleCode, new Literals.ErrorCodes.Network.CANNOT_DISABLE_ACCESS_POINT(), HttpStatusCode.NotFound);
+        public ErrorCode CANNOT_DISABLE_TEMPORARY_ACCESS_POINT
+            => new ErrorCode(5011, _LocaleCode, new Literals.ErrorCodes.Network.CANNOT_DISABLE_TEMPORARY_ACCESS_POINT(), HttpStatusCode.NotFound);
+    }
+
+    public class IntegrationsErrorCodes : ErrorCodesContainer         // Range 6000-6999
+    {
+        public IntegrationsErrorCodes(string localeCode) : base(localeCode) { }
+
+        public ErrorCode INVALID_OUTBOUND_INTEGRATION_ID
+            => new ErrorCode(6000, _LocaleCode, new Literals.ErrorCodes.Integrations.INVALID_OUTBOUND_INTEGRATION_ID(), HttpStatusCode.NotFound);
+
+        public ErrorCode INVALID_INTEGRATION_CONNECTION_ID
+            => new ErrorCode(6001, _LocaleCode, new Literals.ErrorCodes.Integrations.INVALID_INTEGRATION_CONNECTION_ID(), HttpStatusCode.NotFound);
+
+        public ErrorCode INTEGRATION_CONNECTION_IN_USE
+            => new ErrorCode(6002, _LocaleCode, new Literals.ErrorCodes.Integrations.INTEGRATION_CONNECTION_IN_USE(), HttpStatusCode.BadRequest);
     }
 
     /// <summary>
@@ -189,6 +213,7 @@ namespace cog1.Exceptions
         readonly Lazy<VariablesErrorCodes> _variablesErrorCodes;
         readonly Lazy<ModbusErrorCodes> _modbusErrorCodes;
         readonly Lazy<NetworkErrorCodes> _networkErrorCodes;
+        readonly Lazy<IntegrationsErrorCodes> _integrationsErrorCodes;
 
         public ErrorCodes(string localeCode)
         {
@@ -199,6 +224,7 @@ namespace cog1.Exceptions
             _variablesErrorCodes = new(() => new VariablesErrorCodes(localeCode));
             _modbusErrorCodes = new(() => new ModbusErrorCodes(localeCode));
             _networkErrorCodes = new(() => new NetworkErrorCodes(localeCode));
+            _integrationsErrorCodes = new(() => new IntegrationsErrorCodes(localeCode));
         }
 
         public GeneralErrorCodes General => _generalErrorCodes.Value;
@@ -207,6 +233,7 @@ namespace cog1.Exceptions
         public VariablesErrorCodes Variables => _variablesErrorCodes.Value;
         public ModbusErrorCodes Modbus => _modbusErrorCodes.Value;
         public NetworkErrorCodes Network => _networkErrorCodes.Value;
+        public IntegrationsErrorCodes Integrations => _integrationsErrorCodes.Value;
     }
 }
 

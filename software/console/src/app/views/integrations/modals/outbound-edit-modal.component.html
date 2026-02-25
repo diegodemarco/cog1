@@ -1,0 +1,102 @@
+<c-modal [(visible)]="visible" alignment="center" backdrop="static" keyboard="true">
+  <form cForm (submit)="saveChanges()">
+    <c-modal-header>
+        <h5 cModalTitle>{{ modalTitle }}</h5>
+        <button (click)="dismiss()" cButtonClose></button>
+    </c-modal-header>
+    <c-modal-body>
+      <c-tabs [(activeItemKey)]="activeTab">
+        <c-tabs-list variant="tabs">
+          <button cTab itemKey="general">{{ literals.integrations!.outboundIntegration! }}</button>
+          <button cTab itemKey="variables">{{ literals.variables!.variables! }}</button>
+          <button cTab itemKey="template">{{ literals.integrations!.template! }}</button>
+        </c-tabs-list>
+
+        <c-tabs-content>
+          <c-tab-panel class="p-3" itemKey="general">
+
+      <div class="mb-2">
+        <label cFormLabel>{{ literals.common!.description! }}</label>
+        <input cFormControl class="form-control" [(ngModel)]="current.description" name="description" />
+      </div>
+
+      <div class="mb-2">
+        <label cFormLabel>{{ literals.integrations!.connection! }}</label>
+        <select cFormControl class="form-select" [(ngModel)]="current.integrationConnectionId" name="integrationConnectionId">
+          @for (c of connections; track c.integrationConnectionId)
+          {
+            <option [ngValue]="c.integrationConnectionId">{{ c.description }}</option>
+          }
+        </select>
+      </div>
+
+      @if (selectedConnectionType == connectionTypeEnum.HTTPPost)
+      {
+      <div class="mb-2">
+        <label cFormLabel>{{ literals.integrations!.httpSubUrl! }}</label>
+        <input cFormControl class="form-control" [(ngModel)]="current.httpUrl" name="httpUrl" />
+      </div>
+      }
+
+      @if (selectedConnectionType == connectionTypeEnum.MQTT)
+      {
+      <div class="mb-2">
+        <label cFormLabel>{{ literals.integrations!.mqttSubTopic! }}</label>
+        <input cFormControl class="form-control" [(ngModel)]="current.mqttTopic" name="mqttTopic" />
+      </div>
+      }
+
+      <div class="mb-2">
+        <label cFormLabel>{{ literals.integrations!.sendIntervalSeconds! }}</label>
+        <input cFormControl class="form-control" type="number" [(ngModel)]="current.sendIntervalSeconds" name="sendIntervalSeconds" />
+      </div>
+
+      <div class="mb-2">
+        <label cFormLabel>{{ literals.integrations!.reportBufferingMinutes! }}</label>
+        <input cFormControl class="form-control" type="number" [(ngModel)]="current.reportBufferingMinutes" name="reportBufferingMinutes" />
+      </div>
+
+          </c-tab-panel>
+          <c-tab-panel class="p-3" itemKey="variables">
+
+            <div class="mb-2 d-flex gap-2">
+              <select cFormControl class="form-select" [(ngModel)]="selectedVariableId" name="addVariableSelect">
+                <option [ngValue]="0" disabled></option>
+                @for (v of availableVariables; track v.variableId)
+                {
+                  <option [ngValue]="v.variableId">{{ v.variableId }} - {{ v.description }}</option>
+                }
+              </select>
+              <button type="button" cButton size="sm" color="primary" (click)="addVariable()" [disabled]="!selectedVariableId">
+                <svg cIcon [name]="iconSubset.cilPlus" size="md"></svg>
+              </button>
+            </div>
+
+            @for (v of selectedVariables; track v.variableId)
+            {
+              <div class="d-flex align-items-center justify-content-between mb-1">
+                <span>{{ v.variableId }} - {{ v.description }}</span>
+                <button type="button" cButton size="sm" (click)="removeVariable(v.variableId!)">
+                  <svg cIcon [name]="iconSubset.cilTrash" size="md"></svg>
+                </button>
+              </div>
+            }
+
+          </c-tab-panel>
+          <c-tab-panel class="p-3" itemKey="template">
+
+      <div class="mb-2">
+        <label cFormLabel>{{ literals.integrations!.template! }}</label>
+        <textarea cFormControl class="form-control" [(ngModel)]="current.reportTemplate" name="reportTemplate" rows="12"></textarea>
+      </div>
+
+          </c-tab-panel>
+        </c-tabs-content>
+      </c-tabs>
+    </c-modal-body>
+    <c-modal-footer>
+      <button type="submit" cButton color="primary">{{literals.common!.buttonOk}}</button>
+      <button (click)="dismiss()" cButton color="secondary">{{literals.common!.buttonCancel}}</button>
+    </c-modal-footer>
+  </form>
+</c-modal>

@@ -9,6 +9,7 @@ namespace cog1
         public string ssid { get; set; }
         public int connectionState { get; set; }
         public bool isConnected { get; set; }
+        public WiFiMode mode { get; set; }
         public IpConfigurationDTO ipConfiguration { get; set; }
         public int rssi { get; set; }
         public int noise { get; set; }

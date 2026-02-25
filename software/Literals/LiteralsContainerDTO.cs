@@ -7,6 +7,7 @@
         private SecurityLiteralsContainer _security;
         private NetworkLiteralsContainer _network;
         private VariablesLiteralsContainer _variables;
+        private IntegrationsLiteralsContainer _integrations;
         private ModbusLiteralsContainer _modbus;
 
         public LiteralsContainerDTO() : base() 
@@ -70,6 +71,17 @@
                 if (_variables == null)
                     _variables = new VariablesLiteralsContainer(LocaleCode);
                 return _variables;
+            }
+            set { }
+        }
+
+        public IntegrationsLiteralsContainer Integrations
+        {
+            get
+            {
+                if (_integrations == null)
+                    _integrations = new IntegrationsLiteralsContainer(LocaleCode);
+                return _integrations;
             }
             set { }
         }

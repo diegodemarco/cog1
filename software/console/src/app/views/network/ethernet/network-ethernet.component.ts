@@ -7,12 +7,13 @@ import { BasicEntitiesService } from '../../../services/basic-entities.service';
 import { AuthService } from '../../../services/auth.service';
 import { ViewStatusService } from '../../../services/view-status.service';
 import { BackendService } from '../../../services/backend.service';
-import { JsonControllerException, LiteralsContainerDTO } from '../../../api-client/data-contracts';
+import { EthernetReportDTO, JsonControllerException, LiteralsContainerDTO } from '../../../api-client/data-contracts';
 import { IconSubset } from '../../../icons/icon-subset';
 import { CrudPageComponent } from '../../../shared/crud-page/crud-page.component'
 import { BaseViewComponent } from '../../base/base-view.component';
 import { IpConfigurationModalComponent } from '../modals/ip-configuration-modal.component';
 import { LinkConfigurationModalComponent } from '../modals/link-configuration-modal.component';
+import { ValuePair } from '../../../shared/value-pair';
 
 @Component({
   templateUrl: 'network-ethernet.component.html',
@@ -50,6 +51,35 @@ export class NetworkEthernetComponent extends BaseViewComponent implements OnIni
     this.reload();
   }
 
+  public static makeValuePairs(report: EthernetReportDTO, literals: LiteralsContainerDTO): ValuePair[]
+  {
+    let result: ValuePair[] = [];
+    let ln = literals!.network!;
+    let indent: string = "\u00a0\u00a0\u00a0";
+
+    result = [];
+    result.push({ key: ln.connection, value: "" });
+    result.push({ key: indent + ln.status, value: report.isConnected ? ln.connected : ln.disconnected});
+    result.push({ key: indent + ln.macAddress, value: report.macAddress });
+    if (report.isConnected) {
+      if (report.autoNegotiate) {
+        result.push({ key: indent + ln.speed + " (" + 
+          (report.fullDuplex ? ln.fullDuplex?.toLowerCase() : ln.halfDuplex?.toLowerCase()) + ")", 
+          value: "Auto (" + report.speed!.toString() + " Mb/s)"  });
+      } else {
+        result.push({ key: indent + ln.speed + " (" + 
+          (report.fullDuplex ? ln.fullDuplex?.toLowerCase() : ln.halfDuplex)?.toLowerCase() + ")", 
+          value: report.speed!.toString() + " Mb/s"  });
+      }
+      result.push({ key: "IP", value: "" });
+      result.push({ key: indent + ln.ipMethod, value: report.ipConfiguration?.dhcp ? "DHCP" : ln.ipFixed });
+      result.push({ key: indent + ln.ipAddress, value: report.ipConfiguration?.ipv4 + "/" + report.ipConfiguration?.netMask?.toString() });
+      result.push({ key: indent + ln.gateway, value: report.ipConfiguration?.gateway });
+      result.push({ key: indent + "DNS", value: report.ipConfiguration?.dns });
+    }  
+    return result;
+  }
+
   private reload()
   {
     if (this.destroying) return;
@@ -60,28 +90,8 @@ export class NetworkEthernetComponent extends BaseViewComponent implements OnIni
         let ln = this.literals.network!;
 
         // Ethernet
-        let eth = data.data.ethernet!;
-        this.ethernetValues = [];
-        this.ethernetValues.push({ key: ln.connection, value: "" });
-        this.ethernetValues.push({ key: this.indent + ln.status, value: eth.isConnected ? ln.connected : ln.disconnected});
-        this.ethernetValues.push({ key: this.indent + ln.macAddress, value: eth.macAddress });
-        this.isConnected = eth.isConnected!;
-        if (eth.isConnected) {
-          if (eth.autoNegotiate) {
-            this.ethernetValues.push({ key: this.indent + ln.speed + " (" + 
-              (eth.fullDuplex ? ln.fullDuplex?.toLowerCase() : ln.halfDuplex?.toLowerCase()) + ")", 
-              value: "Auto (" + eth.speed!.toString() + " Mb/s)"  });
-          } else {
-            this.ethernetValues.push({ key: this.indent + ln.speed + " (" + 
-              (eth.fullDuplex ? ln.fullDuplex?.toLowerCase() : ln.halfDuplex)?.toLowerCase() + ")", 
-              value: eth.speed!.toString() + " Mb/s"  });
-          }
-          this.ethernetValues.push({ key: "IP", value: "" });
-          this.ethernetValues.push({ key: this.indent + ln.ipMethod, value: eth.ipConfiguration?.dhcp ? "DHCP" : ln.ipFixed });
-          this.ethernetValues.push({ key: this.indent + ln.ipAddress, value: eth.ipConfiguration?.ipv4 + "/" + eth.ipConfiguration?.netMask?.toString() });
-          this.ethernetValues.push({ key: this.indent + ln.gateway, value: eth.ipConfiguration?.gateway });
-          this.ethernetValues.push({ key: this.indent + "DNS", value: eth.ipConfiguration?.dns });
-        }
+        this.isConnected = data.data.ethernet?.isConnected!;
+        this.ethernetValues = NetworkEthernetComponent.makeValuePairs(data.data.ethernet!, this.literals);
 
       });
   }
@@ -177,10 +187,4 @@ export class NetworkEthernetComponent extends BaseViewComponent implements OnIni
     }
   }
 
-}
-
-class ValuePair
-{
-  public key?: string | null;
-  public value?: string | null;
 }

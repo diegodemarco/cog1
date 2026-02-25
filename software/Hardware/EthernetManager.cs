@@ -63,7 +63,7 @@ namespace cog1.Hardware
 
         #region Ethernet status & information
 
-        public static EthernetReport GetStatus()
+        public static EthernetReportDTO GetStatus()
         {
             /*
             This is an example of what the output of "nmcli device show end0" looks like:
@@ -85,7 +85,7 @@ namespace cog1.Hardware
             const string IP_V4 = "IP4.ADDRESS[1]:";
             */
 
-            var result = new EthernetReport()
+            var result = new EthernetReportDTO()
             {
                 connectionState = 0,
                 isConnected = false,

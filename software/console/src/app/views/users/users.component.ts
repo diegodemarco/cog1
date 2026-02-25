@@ -9,9 +9,9 @@ import { BackendService } from '../../services/backend.service';
 import { JsonControllerException, LiteralsContainerDTO, UserDTO } from '../../api-client/data-contracts';
 import { CrudPageComponent } from '../../shared/crud-page/crud-page.component';
 import { UserEditModalComponent } from './modals/user-edit-modal.component';
-import { Utils } from 'src/app/utils';
-import { IconSubset } from 'src/app/icons/icon-subset';
-import { AuthService } from 'src/app/services/auth.service';
+import { Utils } from '../../utils';
+import { IconSubset } from '../../icons/icon-subset';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   templateUrl: 'users.component.html',
@@ -23,7 +23,7 @@ import { AuthService } from 'src/app/services/auth.service';
     UserEditModalComponent
     ]
 })
-export class DashboardComponent
+export class UsersComponent
 {
   readonly literals: LiteralsContainerDTO;
   readonly iconSubset = IconSubset;

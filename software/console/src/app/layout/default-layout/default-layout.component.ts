@@ -128,6 +128,21 @@ export class DefaultLayoutComponent implements AfterViewInit
         ]
       },
       {
+        name: this.literals.integrations!.integrations!,
+        url: '',
+        iconComponent: { name: IconSubset.cilSwapVertical },
+        children: [
+          {
+            name: this.literals.integrations!.connections!,
+            url: '/integrations/connections',
+          },
+          {
+            name: this.literals.integrations!.outboundIntegrations!,
+            url: '/integrations/outbound',
+          }
+        ]
+      },
+      {
         name: this.literals.security!.security!,
         url: '',
         iconComponent: { name: IconSubset.cilLockLocked },

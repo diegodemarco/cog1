@@ -26,6 +26,27 @@
   </c-col>
 </c-row>
 
+@if (authService.isAdmin) {
+    <c-row>
+        <c-col>
+            @if (wifiMode == WiFiMode.AccessPoint) {
+              <button cButton color="primary" (click)="doDisableAp()" class="mb-3">
+                  Disable access point
+              </button>
+            } 
+            @else 
+            {
+              <button cButton color="primary" (click)="doEnableAp()" class="mb-3">
+                  Enable access point
+              </button> 
+            }
+            <button cButton color="primary" (click)="doConfigureAp()" class="mb-3" style="margin-left: 8px;">
+                 Configure access point
+            </button> 
+        </c-col>
+    </c-row>
+}
+
 <c-row>
   <c-col>
     <c-card class="my-3">

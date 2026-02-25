@@ -12,6 +12,7 @@ namespace cog1.DTO
         public List<VariableSourceDTO> variableSources { get; set; }
         public List<ModbusRegisterTypeDTO> modbusRegisterTypes { get; set; }
         public List<ModbusDataTypeDTO> modbusDataTypes { get; set; }
+        public List<IntegrationConnectionTypeDTO> integrationConnectionTypes { get; set; }
 
     }
 }

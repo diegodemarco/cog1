@@ -11,6 +11,13 @@
  */
 
 /** @format int32 */
+export enum WiFiMode {
+  Station = 0,
+  AccessPoint = 1,
+  TemporaryAccessPoint = 2,
+}
+
+/** @format int32 */
 export enum VariableType {
   Unknown = 0,
   Binary = 1,
@@ -55,6 +62,13 @@ export enum ModbusDataType {
   Float32 = 6,
 }
 
+/** @format int32 */
+export enum IntegrationConnectionType {
+  Unknown = 0,
+  MQTT = 1,
+  HTTPPost = 2,
+}
+
 export interface AccessTokenInfoDTO {
   user?: UserDTO;
 }
@@ -67,9 +81,10 @@ export interface BasicEntitiesContainerDTO {
   variableSources?: VariableSourceDTO[] | null;
   modbusRegisterTypes?: ModbusRegisterTypeDTO[] | null;
   modbusDataTypes?: ModbusDataTypeDTO[] | null;
+  integrationConnectionTypes?: IntegrationConnectionTypeDTO[] | null;
 }
 
-export interface CPUReport {
+export interface CPUReportDTO {
   usage?: CPUUsage;
   architecture?: string | null;
   vendor?: string | null;
@@ -263,7 +278,7 @@ export interface DashboardLiteralsContainer {
   localeCode?: string | null;
 }
 
-export interface DateTimeReport {
+export interface DateTimeReportDTO {
   /** @format date-time */
   utc?: string;
   /** @format date-time */
@@ -273,7 +288,7 @@ export interface DateTimeReport {
   uptime?: number;
 }
 
-export interface DiskReport {
+export interface DiskReportDTO {
   /** @format int64 */
   bytesTotal?: number;
   /** @format int64 */
@@ -289,7 +304,7 @@ export interface EthernetLinkConfigurationDTO {
   speed?: number;
 }
 
-export interface EthernetReport {
+export interface EthernetReportDTO {
   macAddress?: string | null;
   /** @format int32 */
   connectionState?: number;
@@ -299,6 +314,68 @@ export interface EthernetReport {
   fullDuplex?: boolean;
   autoNegotiate?: boolean;
   ipConfiguration?: IpConfigurationDTO;
+}
+
+export interface IntegrationConnectionDTO {
+  /** @format int32 */
+  integrationConnectionId?: number;
+  connectionType?: IntegrationConnectionType;
+  description?: string | null;
+  httpBaseUrl?: string | null;
+  httpHeaders?: ValuePairDTO[] | null;
+  mqttHost?: string | null;
+  mqttBaseTopic?: string | null;
+  mqttServerCertificate?: string | null;
+  mqttClientCertificate?: string | null;
+  userName?: string | null;
+  password?: string | null;
+}
+
+export interface IntegrationConnectionTypeDTO {
+  integrationConnectionType?: IntegrationConnectionType;
+  description?: string | null;
+}
+
+export interface IntegrationsLiteralsContainer {
+  connection?: string | null;
+  connections?: string | null;
+  integrations?: string | null;
+  newConnection?: string | null;
+  editConnection?: string | null;
+  deleteConnection?: string | null;
+  deleteConnectionConfirmation?: string | null;
+  connectionId?: string | null;
+  connectionType?: string | null;
+  mqttHost?: string | null;
+  httpBaseUrl?: string | null;
+  mqttBaseTopic?: string | null;
+  httpHeaderName?: string | null;
+  httpHeaderValue?: string | null;
+  addHttpHeader?: string | null;
+  credentials?: string | null;
+  httpHeaders?: string | null;
+  mqttServerCertificate?: string | null;
+  mqttClientCertificate?: string | null;
+  noConnectionsToDisplay?: string | null;
+  connectionCreated?: string | null;
+  connectionUpdated?: string | null;
+  connectionDeleted?: string | null;
+  outboundIntegration?: string | null;
+  outboundIntegrations?: string | null;
+  newOutboundIntegration?: string | null;
+  editOutboundIntegration?: string | null;
+  deleteOutboundIntegration?: string | null;
+  deleteOutboundIntegrationConfirmation?: string | null;
+  outboundIntegrationDeleted?: string | null;
+  noOutboundIntegrationsToDisplay?: string | null;
+  mqttSubTopic?: string | null;
+  httpSubUrl?: string | null;
+  template?: string | null;
+  sendIntervalSeconds?: string | null;
+  reportBufferingMinutes?: string | null;
+  outboundIntegrationCreated?: string | null;
+  outboundIntegrationUpdated?: string | null;
+  localeCode?: string | null;
 }
 
 export interface IpConfigurationDTO {
@@ -323,6 +400,7 @@ export interface LiteralsContainerDTO {
   security?: SecurityLiteralsContainer;
   network?: NetworkLiteralsContainer;
   variables?: VariablesLiteralsContainer;
+  integrations?: IntegrationsLiteralsContainer;
   modbus?: ModbusLiteralsContainer;
   localeCode?: string | null;
 }
@@ -434,6 +512,22 @@ export interface NetworkLiteralsContainer {
   localeCode?: string | null;
 }
 
+export interface OutboundIntegrationDTO {
+  /** @format int32 */
+  integrationId?: number;
+  description?: string | null;
+  /** @format int32 */
+  integrationConnectionId?: number;
+  httpUrl?: string | null;
+  mqttTopic?: string | null;
+  /** @format int32 */
+  sendIntervalSeconds?: number;
+  variableChangeList?: number[] | null;
+  /** @format int32 */
+  reportBufferingMinutes?: number;
+  reportTemplate?: string | null;
+}
+
 export interface SecurityLiteralsContainer {
   basicUser?: string | null;
   operator?: string | null;
@@ -454,13 +548,13 @@ export interface SecurityLiteralsContainer {
 }
 
 export interface SystemStatsReport {
-  dateTime?: DateTimeReport;
-  cpuReport?: CPUReport;
+  dateTime?: DateTimeReportDTO;
+  cpuReport?: CPUReportDTO;
   memory?: MemoryReportDTO;
-  disk?: DiskReport;
+  disk?: DiskReportDTO;
   temperature?: TemperatureReport;
   wiFi?: WiFiReport;
-  ethernet?: EthernetReport;
+  ethernet?: EthernetReportDTO;
 }
 
 export interface TemperatureReport {
@@ -495,6 +589,11 @@ export interface UserDTO {
 export interface UserWithPasswordDTO {
   user?: UserDTO;
   password?: string | null;
+}
+
+export interface ValuePairDTO {
+  key?: string | null;
+  value?: string | null;
 }
 
 export interface VariableAccessTypeDTO {
@@ -577,6 +676,7 @@ export interface WiFiReport {
   /** @format int32 */
   connectionState?: number;
   isConnected?: boolean;
+  mode?: WiFiMode;
   ipConfiguration?: IpConfigurationDTO;
   /** @format int32 */
   rssi?: number;

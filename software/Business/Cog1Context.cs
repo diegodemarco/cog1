@@ -34,6 +34,9 @@ namespace cog1.Business
         private Lazy<VariableDao> variableDao;
         public VariableDao VariableDao => variableDao.Value;
 
+        private Lazy<IntegrationDao> integrationDao;
+        public IntegrationDao IntegrationDao => integrationDao.Value;
+
         //private Lazy<ModbusDao> modbusDao;
         //public ModbusDao ModbusDao => modbusDao.Value;
 
@@ -46,6 +49,8 @@ namespace cog1.Business
         public SecurityBusiness SecurityBusiness => securityBusiness.Value;
         private Lazy<VariableBusiness> variableBusiness;
         public VariableBusiness VariableBusiness => variableBusiness.Value;
+        private Lazy<IntegrationBusiness> integrationBusiness;
+        public IntegrationBusiness IntegrationBusiness => integrationBusiness.Value;
         //private Lazy<ModbusBusiness> modbusBusiness;
         //public ModbusBusiness ModbusBusiness => modbusBusiness.Value;
 
@@ -72,6 +77,7 @@ namespace cog1.Business
             // Dao
             userDao = new Lazy<UserDao>(() => new UserDao(this, logger));
             variableDao = new Lazy<VariableDao>(() => new VariableDao(this, logger));
+            integrationDao = new Lazy<IntegrationDao>(() => new IntegrationDao(this, logger));
             //modbusDao = new Lazy<ModbusDao>(() => new ModbusDao(this, logger));
 
             // Business
@@ -79,6 +85,7 @@ namespace cog1.Business
             userBusiness = new Lazy<UserBusiness>(() => new UserBusiness(this, logger));
             securityBusiness = new Lazy<SecurityBusiness>(() => new SecurityBusiness(this, logger));
             variableBusiness = new Lazy<VariableBusiness>(() => new VariableBusiness(this, logger));
+            integrationBusiness = new Lazy<IntegrationBusiness>(() => new IntegrationBusiness(this, logger));
             //modbusBusiness = new Lazy<ModbusBusiness>(() => new ModbusBusiness(this, logger));
         }
 

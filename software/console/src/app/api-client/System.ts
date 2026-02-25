@@ -174,6 +174,48 @@ export class System<
    * No description
    *
    * @tags System
+   * @name WiFiEnableAccessPoint
+   * @request POST:/api/system/wifi/enable-access-point
+   */
+  wiFiEnableAccessPoint = (params: RequestParams = {}) =>
+    this.request<any, JsonControllerException>({
+      path: `/api/system/wifi/enable-access-point`,
+      method: "POST",
+      format: "json",
+      ...params,
+    });
+  /**
+   * No description
+   *
+   * @tags System
+   * @name WiFiDisableAccessPoint
+   * @request POST:/api/system/wifi/disable-access-point
+   */
+  wiFiDisableAccessPoint = (params: RequestParams = {}) =>
+    this.request<any, JsonControllerException>({
+      path: `/api/system/wifi/disable-access-point`,
+      method: "POST",
+      format: "json",
+      ...params,
+    });
+  /**
+   * No description
+   *
+   * @tags System
+   * @name WiFiEnableTemporaryAccessPoint
+   * @request POST:/api/system/wifi/enable-temporary-access-point
+   */
+  wiFiEnableTemporaryAccessPoint = (params: RequestParams = {}) =>
+    this.request<any, JsonControllerException>({
+      path: `/api/system/wifi/enable-temporary-access-point`,
+      method: "POST",
+      format: "json",
+      ...params,
+    });
+  /**
+   * No description
+   *
+   * @tags System
    * @name EthernetGetIpConfiguration
    * @request GET:/api/system/ethernet/ip-configuration
    */

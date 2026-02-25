@@ -64,5 +64,49 @@ namespace cog1
             return BitConverter.ToString(bytes, 0, len).Replace("-", separator);
         }
 
+        public static bool ValidateHttpUrl(string url)
+        {
+            if (string.IsNullOrWhiteSpace(url))
+                return false;
+            if (!Uri.TryCreate(url, UriKind.Absolute, out var uri))
+                return false;
+            return (uri.Scheme == "http" || uri.Scheme == "https");
+        }
+
+        public static bool ValidateMqttHost(string host)
+        {
+            return SplitMqttHost(host, out _, out _);
+        }
+
+        public static bool SplitMqttHost(string host, out string hostName, out int port)
+        {
+            hostName = string.Empty;
+            port = 0;
+            if (string.IsNullOrWhiteSpace(host))
+                return false;
+            if (host.Contains("/") || host.Contains("?"))
+                return false;
+            if (host.Contains("/"))
+                return false;
+            if (!Uri.TryCreate("http://" + host, UriKind.Absolute, out _))
+                return false;
+            var parts = host.Split(':');
+            if (parts.Length == 1)
+            {
+                hostName = host;
+                port = 1883;
+                return true;
+            }
+            else if (parts.Length == 2)
+            {
+                hostName = parts[0];
+                return int.TryParse(parts[1], out port);
+            }
+            else
+            {
+                return false;
+            }
+        }
+
     }
 }

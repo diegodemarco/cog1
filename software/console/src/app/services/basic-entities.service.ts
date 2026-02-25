@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { BackendService } from './backend.service';
-import { LiteralsContainerDTO, LocaleDTO, ModbusDataType, ModbusDataTypeDTO, ModbusRegisterDTO, ModbusRegisterType, ModbusRegisterTypeDTO, VariableAccessType, VariableAccessTypeDTO, VariableSourceDTO, VariableType, VariableTypeDTO } from '../api-client/data-contracts';
+import { LiteralsContainerDTO, LocaleDTO, ModbusDataType, ModbusDataTypeDTO, ModbusRegisterDTO, ModbusRegisterType, ModbusRegisterTypeDTO, VariableAccessType, VariableAccessTypeDTO, VariableSourceDTO, VariableType, VariableTypeDTO, IntegrationConnectionType, IntegrationConnectionTypeDTO } from '../api-client/data-contracts';
 
 @Injectable({
   providedIn: 'root'
@@ -14,6 +14,7 @@ export class BasicEntitiesService {
   public variableSources!: VariableSourceDTO[];
   public modbusRegisterTypes!: ModbusRegisterTypeDTO[];
   public modbusDataTypes!: ModbusDataTypeDTO[];
+  public integrationConnectionTypes!: IntegrationConnectionTypeDTO[];
 
   constructor(private backend: BackendService) { }
 
@@ -28,6 +29,7 @@ export class BasicEntitiesService {
         this.variableSources = data.data.variableSources!;
         this.modbusRegisterTypes = data.data.modbusRegisterTypes!;
         this.modbusDataTypes = data.data.modbusDataTypes!;
+        this.integrationConnectionTypes = data.data.integrationConnectionTypes!;
       })
       .catch(error =>
       {
@@ -74,6 +76,14 @@ export class BasicEntitiesService {
     if (d)
       return d.description!;
     return "Unknown modbus data type " +dataType.toString();
+  }
+
+  getIntegrationConnectionTypeDescription(connectionType: IntegrationConnectionType): string
+  {
+    var d = this.integrationConnectionTypes.find(item => item.integrationConnectionType == connectionType);
+    if (d)
+      return d.description!;
+    return "Unknown integration connection type " + connectionType.toString();
   }
 
 }

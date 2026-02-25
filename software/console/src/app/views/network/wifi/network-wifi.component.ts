@@ -9,13 +9,14 @@ import { BasicEntitiesService } from '../../../services/basic-entities.service';
 import { AuthService } from '../../../services/auth.service';
 import { ViewStatusService } from '../../../services/view-status.service';
 import { BackendService } from '../../../services/backend.service';
-import { IpConfigurationDTO, JsonControllerException, LiteralsContainerDTO } from '../../../api-client/data-contracts';
+import { JsonControllerException, LiteralsContainerDTO, WiFiMode, WiFiReport } from '../../../api-client/data-contracts';
 import { IconSubset } from '../../../icons/icon-subset';
 import { CrudPageComponent } from '../../../shared/crud-page/crud-page.component'
 import { RouterModule } from '@angular/router';
 import { BaseViewComponent } from '../../base/base-view.component';
 import { WiFiPasswordModalComponent } from '../modals/wifi-password-modal.component';
 import { IpConfigurationModalComponent } from '../modals/ip-configuration-modal.component';
+import { ValuePair } from '../../../shared/value-pair';
 
 @Component({
   templateUrl: 'network-wifi.component.html',
@@ -32,11 +33,13 @@ export class NetworkWiFiComponent extends BaseViewComponent implements AfterView
   // Template data
   readonly iconSubset = IconSubset;
   readonly literals: LiteralsContainerDTO;
-  readonly indent: string = "\u00a0\u00a0\u00a0";
+  readonly WiFiMode = WiFiMode;
   private destroying: boolean = false;
+  private isConnected: boolean = false;
   public wifiValues: ValuePair[] = [];
   public networks: NetworkEntry[] = [];
   authService: AuthService;
+  wifiMode: WiFiMode = WiFiMode.Station;
   @ViewChild(WiFiPasswordModalComponent) passwordModal!: WiFiPasswordModalComponent;
   @ViewChild(IpConfigurationModalComponent) ipConfigurationModal!: IpConfigurationModalComponent;
 
@@ -62,6 +65,42 @@ export class NetworkWiFiComponent extends BaseViewComponent implements AfterView
     super.ngOnDestroy();
   }
 
+  public static makeValuePairs(report: WiFiReport, literals: LiteralsContainerDTO): ValuePair[]
+  {
+    let result: ValuePair[] = [];
+    let ln = literals!.network!;
+    let indent: string = "\u00a0\u00a0\u00a0";
+
+    result.push({ key: ln.connection, value: "" });
+    if (report.mode == WiFiMode.AccessPoint) {
+      result.push({ key: indent + ln.status, value: "AP mode" });
+    }
+    else if (report.mode == WiFiMode.TemporaryAccessPoint) {
+      result.push({ key: indent + ln.status, value: "Temporary AP mode" });
+    }
+    else {
+      result.push({ key: indent + ln.status, value: report.isConnected ? ln.connected : ln.disconnected});
+    }
+    result.push({ key: indent + ln.macAddress, value: report.macAddress });
+    if (report.isConnected || report.mode == WiFiMode.AccessPoint || report.mode == WiFiMode.TemporaryAccessPoint) 
+    {
+      result.push({ key: indent + "SSID", value: report.ssid });
+      result.push({ key: indent + ln.frequency, value: report.frequency?.toString() + " MHz" });
+      if (report.mode == WiFiMode.Station)
+        result.push({ key: indent + "RSSID", value: report.rssi?.toString() + " dBm" });
+      result.push({ key: "IP", value: "" });
+      if (report.mode == WiFiMode.Station)
+        result.push({ key: indent + ln.ipMethod, value: report.ipConfiguration?.dhcp ? "DHCP" : ln.ipFixed });
+      result.push({ key: indent + ln.ipAddress, value: report.ipConfiguration?.ipv4 + "/" + report.ipConfiguration?.netMask?.toString() });
+      if (report.mode == WiFiMode.Station)
+        result.push({ key: indent + ln.gateway, value: report.ipConfiguration?.gateway });
+      if (report.mode == WiFiMode.Station)
+        result.push({ key: indent + "DNS", value: report.ipConfiguration?.dns });
+    }
+
+    return result;
+  }
+
   reload()
   {
     if (this.destroying) return;
@@ -73,22 +112,11 @@ export class NetworkWiFiComponent extends BaseViewComponent implements AfterView
       .then(data =>
       {
         if (this.destroying) return;
+
         // Summary
-        let wifi = data.data.wiFi!;
-        this.wifiValues = [];
-        this.wifiValues.push({ key: ln.connection, value: "" });
-        this.wifiValues.push({ key: this.indent + ln.status, value: wifi.isConnected ? ln.connected : ln.disconnected});
-        this.wifiValues.push({ key: this.indent + ln.macAddress, value: wifi.macAddress });
-        if (wifi.isConnected) {
-          this.wifiValues.push({ key: this.indent + "SSID", value: wifi.ssid });
-          this.wifiValues.push({ key: this.indent + ln.frequency, value: wifi.frequency?.toString() + " MHz" });
-          this.wifiValues.push({ key: this.indent + "RSSID", value: wifi.rssi?.toString() + " dBm" });
-          this.wifiValues.push({ key: "IP", value: "" });
-          this.wifiValues.push({ key: this.indent + ln.ipMethod, value: wifi.ipConfiguration?.dhcp ? "DHCP" : ln.ipFixed });
-          this.wifiValues.push({ key: this.indent + ln.ipAddress, value: wifi.ipConfiguration?.ipv4 + "/" + wifi.ipConfiguration?.netMask?.toString() });
-          this.wifiValues.push({ key: this.indent + ln.gateway, value: wifi.ipConfiguration?.gateway });
-          this.wifiValues.push({ key: this.indent + "DNS", value: wifi.ipConfiguration?.dns });
-        }
+        this.wifiMode = data.data.wiFi!.mode!;
+        this.isConnected = data.data.wiFi!.isConnected!;
+        this.wifiValues = NetworkWiFiComponent.makeValuePairs(data.data.wiFi!, this.literals);
 
         // Scan networks
         return this.backend.system.getWiFiScan();
@@ -119,7 +147,7 @@ export class NetworkWiFiComponent extends BaseViewComponent implements AfterView
     if (this.destroying) return;
     if (n.isSaved)
     {
-      this.confirmChanges(true)
+      this.confirmChanges(this.isConnected)
         .then(() =>
         {
           if (this.destroying) return;
@@ -141,7 +169,7 @@ export class NetworkWiFiComponent extends BaseViewComponent implements AfterView
     }
     else 
     {
-      this.confirmChanges(true)
+      this.confirmChanges(this.isConnected)
         .then(() =>
         {
           if (this.destroying) return;
@@ -254,6 +282,57 @@ export class NetworkWiFiComponent extends BaseViewComponent implements AfterView
       });
   }
 
+  doEnableAp()
+  {
+    if (this.destroying) return;
+    this.confirmChanges(this.isConnected)
+      .then(() =>
+      {
+        if (this.destroying) return;
+        this.viewStatus.showProgressModal("Access point", this.literals.network?.connectingPleaseWait! + "...");
+        this.backend.system.wiFiEnableAccessPoint()
+          .catch(error => 
+          {
+            if (this.destroying) return;
+            let e: JsonControllerException = error.error;
+            this.viewStatus.showErrorToast(e.message!);
+          }).finally(() =>
+          {
+            if (this.destroying) return;
+            this.viewStatus.hideProgressModal();
+            this.reload();
+          });
+      });
+  }
+
+  doDisableAp()
+  {
+    if (this.destroying) return;
+    this.confirmChanges(true)
+      .then(() =>
+      {
+        if (this.destroying) return;
+        this.viewStatus.showProgressModal("Access point", this.literals.network?.disconnectingPleaseWait! + "...");
+        this.backend.system.wiFiDisableAccessPoint()
+          .catch(error => 
+          {
+            if (this.destroying) return;
+            let e: JsonControllerException = error.error;
+            this.viewStatus.showErrorToast(e.message!);
+          }).finally(() =>
+          {
+            if (this.destroying) return;
+            this.viewStatus.hideProgressModal();
+            this.reload();
+          });
+      });
+  }
+
+  doConfigureAp()
+  {
+    
+  }
+
   private confirmChanges(condition: boolean) : Promise<void>
   {
     if (condition)
@@ -266,12 +345,6 @@ export class NetworkWiFiComponent extends BaseViewComponent implements AfterView
     }
   }
 
-}
-
-class ValuePair
-{
-  public key?: string | null;
-  public value?: string | null;
 }
 
 class NetworkEntry

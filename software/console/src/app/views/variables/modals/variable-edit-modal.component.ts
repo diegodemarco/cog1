@@ -1,14 +1,13 @@
 import { Component, HostListener } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RowComponent, ColComponent, TextColorDirective, CardComponent, CardHeaderComponent,
-         CardBodyComponent, FormDirective, FormLabelDirective, FormControlDirective,
+import { FormDirective, FormControlDirective,
          ButtonDirective, FormSelectDirective, ButtonCloseDirective, ModalBodyComponent,
          ModalComponent, ModalFooterComponent, ModalHeaderComponent, ModalTitleDirective,
-         ModalToggleDirective, PopoverDirective, ThemeDirective, TooltipDirective,
-         TabDirective, TabsComponent, TabsListComponent, TabsContentComponent,
+         ThemeDirective,TabDirective, TabsComponent, TabsListComponent, TabsContentComponent,
          TabPanelComponent} from '@coreui/angular';
-import { JsonControllerException, LiteralsContainerDTO, ModbusDataType, ModbusDataTypeDTO, ModbusRegisterType, ModbusRegisterTypeDTO,
-         VariableAccessType, VariableAccessTypeDTO, VariableDTO, VariableSource, VariableSourceDTO, VariableType,
+import { JsonControllerException, LiteralsContainerDTO, ModbusDataType, ModbusDataTypeDTO, 
+         ModbusRegisterType, ModbusRegisterTypeDTO, VariableAccessType, VariableAccessTypeDTO, 
+         VariableDTO, VariableSource, VariableSourceDTO, VariableType, 
          VariableTypeDTO } from '../../../api-client/data-contracts';
 import { BackendService } from '../../../services/backend.service';
 import { BasicEntitiesService } from '../../../services/basic-entities.service';
@@ -36,6 +35,7 @@ export class VariableEditModalComponent {
   readonly modbusRegisterTypes: ModbusRegisterTypeDTO[];
   readonly modbusDataTypes: ModbusDataTypeDTO[];
   readonly slaveIds: number[];
+  
   variableSources: VariableSourceDTO[];
   modalTitle: string = '';
   activeTab: string = "var";

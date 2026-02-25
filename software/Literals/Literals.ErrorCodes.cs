@@ -331,6 +331,61 @@
                 public override string ES => "La configuración de link indicada no pudo ser aplicada";
             }
 
+            public class CANT_DO_IN_AP_MODE : LiteralConstant
+            {
+                public override string EN => "It is not possible to execute this operation while in access point mode";
+                public override string ES => "No es posible ejecutar esta operación estando en modo access point";
+            }
+
+            public class CANNOT_ENABLE_ACCESS_POINT : LiteralConstant
+            {
+                public override string EN => "An error occurred enabling the access point";
+                public override string ES => "Ocurrió un error al intentar activar el punto de acceso";
+            }
+
+            public class CANNOT_ENABLE_TEMPORARY_ACCESS_POINT : LiteralConstant
+            {
+                public override string EN => "An error occurred enabling the temporary access point";
+                public override string ES => "Ocurrió un error al intentar activar el punto de acceso temporario";
+            }
+
+            public class CANNOT_DISABLE_ACCESS_POINT : LiteralConstant
+            {
+                public override string EN => "An error occurred disabling the access point";
+                public override string ES => "Ocurrió un error al intentar desactivar el punto de acceso";
+            }
+
+            public class CANNOT_DISABLE_TEMPORARY_ACCESS_POINT : LiteralConstant
+            {
+                public override string EN => "An error occurred disabling the temporary access point";
+                public override string ES => "Ocurrió un error al intentar desactivar el punto de acceso temporario";
+            }
+
+        }
+
+        public static class Integrations
+        {
+            public class INVALID_OUTBOUND_INTEGRATION_ID : LiteralConstant
+            {
+                public override string EN => "The specified outbound integration ID is not valid.";
+                public override string ES => "El ID de integración saliente especificado no es válido.";
+                public override string PT => "O ID de integração de saída especificado não é válido.";
+            }
+
+            public class INVALID_INTEGRATION_CONNECTION_ID : LiteralConstant
+            {
+                public override string EN => "The specified integration connection ID is not valid.";
+                public override string ES => "El ID de conexión de integración especificado no es válido.";
+                public override string PT => "O ID de conexão de integração especificado não é válido.";
+            }
+
+            public class INTEGRATION_CONNECTION_IN_USE : LiteralConstant
+            {
+                public override string EN => "The integration connection cannot be deleted because it is referenced by one or more outbound integrations.";
+                public override string ES => "La conexión de integración no puede eliminarse porque está referenciada por una o más integraciones salientes.";
+                public override string PT => "A conexão de integração não pode ser excluída porque é referenciada por uma ou mais integrações de saída.";
+            }
+
         }
 
     }

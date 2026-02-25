@@ -2,12 +2,12 @@ namespace cog1
 {
     public class SystemStatsReport
     {
-        public DateTimeReport dateTime { get; set; }
-        public CPUReport cpuReport { get; set; }
+        public DateTimeReportDTO dateTime { get; set; }
+        public CPUReportDTO cpuReport { get; set; }
         public MemoryReportDTO memory { get; set; }
-        public DiskReport disk { get; set; }
+        public DiskReportDTO disk { get; set; }
         public TemperatureReport temperature { get; set; }
         public WiFiReport wiFi { get; set; }
-        public EthernetReport ethernet { get; set; }
+        public EthernetReportDTO ethernet { get; set; }
     }
 }

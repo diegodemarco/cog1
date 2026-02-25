@@ -12,6 +12,7 @@ namespace cog1
         {
             Startup.CreateSettings();
             EthernetManager.EnsureEthernetConnection();
+            WiFiManager.EnsureApConnection();
             try
             {
                 var host = CreateHostBuilder(args).Build();

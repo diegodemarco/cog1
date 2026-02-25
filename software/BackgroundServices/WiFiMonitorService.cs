@@ -32,23 +32,20 @@ namespace cog1.Hardware
             {
                 try
                 {
-                    if (!Global.IsDevelopment && WiFiManager.GetConnections().Count > 0)
+                    if (WiFiManager.NeedsReset())
                     {
-                        var wiFiStatus = WiFiManager.GetStatus();
+                        var status = WiFiManager.GetStatus();
                         var wiFiText =
                             DateTime.UtcNow.ToString("s") + Environment.NewLine +
                             Environment.NewLine +
                             WiFiManager.GetWifiDetails() + Environment.NewLine +
                             Environment.NewLine +
-                            JsonConvert.SerializeObject(wiFiStatus);
+                            JsonConvert.SerializeObject(status);
 
                         //File.WriteAllText($"./wifi_log/{DateTime.UtcNow.ToString("yyyyMMdd.HHmmss")}.txt", wiFiText);
 
-                        if (!wiFiStatus.isConnected)
-                        {
-                            ResetWiFi();
-                            File.WriteAllText($"./wifi_log/{DateTime.UtcNow.ToString("yyyyMMdd.HHmmss")}.reset.txt", wiFiText);
-                        }
+                        ResetWiFi();
+                        File.WriteAllText($"./wifi_log/{DateTime.UtcNow.ToString("yyyyMMdd.HHmmss")}.reset.txt", wiFiText);
                     }
 
                     // Wait for 60 seconds

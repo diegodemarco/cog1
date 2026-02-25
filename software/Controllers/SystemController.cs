@@ -155,6 +155,42 @@ namespace cog1.Controllers
             });
         }
 
+        [HttpPost]
+        [RequiresAdmin]
+        [Route("wifi/enable-access-point")]
+        public void WiFiEnableAccessPoint()
+        {
+            MethodPattern(() =>
+            {
+                if (!WiFiManager.EnableAccessPoint())
+                    throw new ControllerException(context.ErrorCodes.Network.CANNOT_ENABLE_ACCESS_POINT);
+            });
+        }
+
+        [HttpPost]
+        [RequiresAdmin]
+        [Route("wifi/disable-access-point")]
+        public void WiFiDisableAccessPoint()
+        {
+            MethodPattern(() =>
+            {
+                if (!WiFiManager.DisableAccessPoint())
+                    throw new ControllerException(context.ErrorCodes.Network.CANNOT_DISABLE_ACCESS_POINT);
+            });
+        }
+
+        [HttpPost]
+        [RequiresAdmin]
+        [Route("wifi/enable-temporary-access-point")]
+        public void WiFiEnableTemporaryAccessPoint()
+        {
+            MethodPattern(() =>
+            {
+                if (!WiFiManager.EnableTemporaryAccessPoint())
+                    throw new ControllerException(context.ErrorCodes.Network.CANNOT_ENABLE_TEMPORARY_ACCESS_POINT);
+            });
+        }
+
         #endregion
 
         #region Ethernet

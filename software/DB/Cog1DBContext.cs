@@ -291,6 +291,72 @@ namespace Cog1.DB
                     Console.WriteLine("Done");
                 }
 
+                //ctx.Execute("drop table integration_connections");
+                //ctx.Execute("drop table outbound_integrations");
+
+                // Integration connections table
+                try
+                {
+                    ctx.GetLong("select 1 from integration_connections");
+                }
+                catch
+                {
+                    Console.Write("Missing integration_connections table. Creating table... ");
+                    ctx.Execute(
+                        @"create table integration_connections
+                        (
+                            integration_connection_id integer not null primary key,
+                            connection_type integer not null,
+                            description text not null,
+
+                            http_base_url text null,
+                            http_headers text null,
+
+                            mqtt_host text null,
+                            mqtt_base_topic text null,
+                            mqtt_server_certificate text null,
+                            mqtt_client_certificate text null,
+
+                            user_name text null,
+                            password text null
+                        );
+                    ");
+                    Console.WriteLine("Done");
+                }
+
+                // Outbound integrations table
+                try
+                {
+                    ctx.GetLong("select 1 from outbound_integrations");
+                }
+                catch
+                {
+                    Console.Write("Missing outbound_integrations table. Creating table... ");
+                    ctx.Execute(
+                        @"create table outbound_integrations
+                        (
+                            integration_id integer not null primary key,
+                            integration_connection_id integer not null,
+                            description text not null,
+
+                            http_url text null,
+
+                            mqtt_topic text null,
+
+                            send_interval_seconds integer not null,
+
+                            variable_change_list text null,
+
+                            report_buffering_minutes integer not null,
+
+                            report_template text not null,
+
+                            FOREIGN KEY(integration_connection_id) REFERENCES integration_connections(integration_connection_id)
+                        );
+                    ");
+                    Console.WriteLine("Done");
+                }
+
                 // Done
                 ctx.Commit();
             }

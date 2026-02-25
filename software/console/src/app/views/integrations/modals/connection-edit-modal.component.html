@@ -1,0 +1,123 @@
+<c-modal [(visible)]="visible" alignment="center" backdrop="static" keyboard="true">
+  <form cForm (submit)="saveChanges()">
+    <c-modal-header>
+        <h5 cModalTitle>{{ modalTitle }}</h5>
+        <button (click)="dismiss()" cButtonClose></button>
+    </c-modal-header>
+    <c-modal-body>
+      <c-tabs [(activeItemKey)]="activeTab">
+        <c-tabs-list variant="tabs">
+          <button cTab itemKey="general">{{ literals.integrations!.connection! }}</button>
+          <button cTab itemKey="credentials">{{ literals.integrations!.credentials! }}</button>
+          @if (current.connectionType == connectionTypeEnum.HTTPPost) 
+          {
+          <button cTab itemKey="httpHeaders">{{ literals.integrations!.httpHeaders! }}</button>
+          }
+        </c-tabs-list>
+
+        <c-tabs-content>
+          <c-tab-panel class="p-3" itemKey="general">
+      <div class="mb-2">
+        <label cFormLabel>{{ literals.common!.description! }}</label>
+        <input cFormControl class="form-control" [(ngModel)]="current.description" name="description" />
+      </div>
+
+      <div class="mb-2">
+        <label cFormLabel>{{ literals.integrations!.connectionType! }}</label>
+        <select cFormControl class="form-select" [(ngModel)]="current.connectionType" name="connectionType" [disabled]="current.integrationConnectionId! > 0">
+          @for (ct of connectionTypes; track ct.integrationConnectionType)
+          {
+            <option [ngValue]="ct.integrationConnectionType">{{ ct.description }}</option>
+          }
+        </select>
+      </div>
+
+      @if (current.connectionType == connectionTypeEnum.HTTPPost) 
+      {
+
+        <div class="mb-2">
+            <label cFormLabel>{{ literals.integrations!.httpBaseUrl! }}</label>
+            <input cFormControl class="form-control" [(ngModel)]="current.httpBaseUrl" name="httpBaseUrl" />
+        </div>
+        }
+
+        @if (current.connectionType == connectionTypeEnum.MQTT) 
+        {
+
+        <div class="mb-2">
+            <label cFormLabel>{{ literals.integrations!.mqttHost! }}</label>
+            <input cFormControl class="form-control" [(ngModel)]="current.mqttHost" name="mqttHost" />
+        </div>
+
+        
+
+        <div class="mb-2">
+            <label cFormLabel>{{ literals.integrations!.mqttBaseTopic! }}</label>
+            <input cFormControl class="form-control" [(ngModel)]="current.mqttBaseTopic" name="mqttBaseTopic" />
+        </div>
+        }
+
+          </c-tab-panel>
+          <c-tab-panel class="p-3" itemKey="credentials">
+            <div class="mb-2">
+              <label cFormLabel>{{ literals.common!.username! }}</label>
+              <input cFormControl class="form-control" [(ngModel)]="current.userName" name="userName" />
+            </div>
+
+            <div class="mb-2">
+              <label cFormLabel>{{ literals.common!.password! }}</label>
+              <input cFormControl class="form-control" type="password" [(ngModel)]="current.password" name="password" />
+            </div>
+
+            @if (current.connectionType == connectionTypeEnum.MQTT) 
+            {
+            <div class="mb-2">
+              <label cFormLabel>{{ literals.integrations!.mqttServerCertificate! }}</label>
+              <textarea cFormControl class="form-control" [(ngModel)]="current.mqttServerCertificate" name="mqttServerCertificate" rows="4"></textarea>
+            </div>
+
+            <div class="mb-2">
+              <label cFormLabel>{{ literals.integrations!.mqttClientCertificate! }}</label>
+              <textarea cFormControl class="form-control" [(ngModel)]="current.mqttClientCertificate" name="mqttClientCertificate" rows="4"></textarea>
+            </div>
+            }
+          </c-tab-panel>
+          @if (current.connectionType == connectionTypeEnum.HTTPPost) 
+          {
+          <c-tab-panel class="p-3" itemKey="httpHeaders">
+            <div class="mb-2">
+                @for (header of current.httpHeaders; track $index)
+                {
+                  <div class="row mb-1">
+                    <div class="col">
+                      <input cFormControl class="form-control" placeholder="{{ literals.integrations!.httpHeaderName! }}" [(ngModel)]="header.key" [name]="'headerKey' + $index" />
+                    </div>
+                    <div class="col">
+                      <input cFormControl class="form-control" placeholder="{{ literals.integrations!.httpHeaderValue! }}" [(ngModel)]="header.value" [name]="'headerValue' + $index" />
+                    </div>
+                    <div class="col-auto">
+                        <button cButton size="sm" (click)="current.httpHeaders!.splice($index, 1)">
+                            <svg cIcon [name]="iconSubset.cilTrash" size="md"></svg>
+                        </button> 
+                    </div>
+                  </div>
+                }
+                <div class="row mb-1">
+                    <div class="col">
+                        <button type="button" cButton size="sm" (click)="current.httpHeaders!.push({key: '', value: ''})">
+                            {{ literals.integrations!.addHttpHeader! }}
+                        </button>
+                    </div>
+                </div>
+            </div>
+          </c-tab-panel>
+          }
+        </c-tabs-content>
+      </c-tabs>
+    </c-modal-body>
+    <c-modal-footer>
+      <button type="submit" cButton color="primary">{{literals.common!.buttonOk}}</button>
+      <button (click)="dismiss()" cButton color="secondary">{{literals.common!.buttonCancel}}</button>
+    </c-modal-footer>
+  </form>
+</c-modal>

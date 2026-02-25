@@ -111,6 +111,7 @@ import {
   cilWifiSignal4,
   cilHamburgerMenu,
   cilReload,
+  cilSwapVertical
 } from '@coreui/icons';
 
 import { signet } from './signet';
@@ -229,6 +230,7 @@ export const iconSubset = {
   cilWifiSignal4,
   cilHamburgerMenu,
   cilReload,
+  cilSwapVertical
 };
 
 export enum IconSubset {
@@ -346,5 +348,6 @@ export enum IconSubset {
   cilWifiSignal4 = 'cilWifiSignal4',
   cilHamburgerMenu = 'cilHamburgerMenu',
   cilReload = 'cilReload',
+  cilSwapVertical = 'cilSwapVertical'
 }
 

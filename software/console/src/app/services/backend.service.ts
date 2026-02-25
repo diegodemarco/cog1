@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { Security } from '../api-client/Security'
 import { Variables } from '../api-client/Variables'
 import { Entities } from '../api-client/Entities'
+import { Integrations } from '../api-client/Integrations'
 import { System } from '../api-client/System'
 import { ConfigService } from './config.service';
 import { ApiConfig } from '../api-client/http-client';
@@ -26,6 +27,7 @@ export class BackendService
   public variables: Variables = new Variables( this.apiConfig );
   public system: System = new  System( this.apiConfig );
   public entities: Entities = new Entities( this.apiConfig );
+  public integrations: Integrations = new Integrations( this.apiConfig );
 
   constructor (private config: ConfigService) {}
 
@@ -35,6 +37,7 @@ export class BackendService
       this.variables.baseUrl = this.config.apiBasePath;
       this.system.baseUrl = this.config.apiBasePath;
       this.entities.baseUrl = this.config.apiBasePath;
+      this.integrations.baseUrl = this.config.apiBasePath;
   }
 
   public updateCredentials(accessToken: string)

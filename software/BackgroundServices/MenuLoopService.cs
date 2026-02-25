@@ -69,7 +69,8 @@ namespace cog1.Display.Menu
                                 ProcessAction(currentPage.EncoderButtonUp(out newPage), newPage);
                                 break;
                             default:
-                                await Utils.CancellableDelay(100, stoppingToken);
+                                //await Utils.CancellableDelay(100, stoppingToken);
+                                Thread.Sleep(100);
                                 break;
                         }
                         if (sw.ElapsedMilliseconds > nextTick_second)
