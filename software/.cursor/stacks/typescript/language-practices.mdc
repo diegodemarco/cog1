@@ -1,0 +1,34 @@
+---
+title: "TypeScript Language Practices"
+description: "Standards for writing robust, readable TypeScript"
+tags: [typescript, language]
+---
+
+## Types and Interfaces
+- Prefer explicit function signatures and exported types.
+- Avoid `any`; use unions, generics, and discriminated unions.
+- Narrow types with type guards early; prefer `unknown` to `any` for inputs.
+
+## Control Flow
+- Use guard clauses and early returns.
+- Avoid deep nesting beyond two levels.
+- Handle errors meaningfully; avoid empty catches.
+
+## Modules and Imports
+- Use path aliases consistently; avoid relative path hell.
+- Keep module public APIs small and well-named.
+
+## Async and Promises
+- Use `async/await`; handle errors with `try/catch` or `.catch`.
+- Avoid floating promises; use `void` only where safe.
+
+## Linting and Formatting
+- Enforce ESLint with strict rules; Prettier for consistent formatting.
+- No unused variables or eslint disables without rationale.
+
+## Validation Checklist
+- [ ] Public APIs typed; no `any`
+- [ ] Errors handled; no silent failures
+- [ ] Imports clean and deduped
+- [ ] Lint passes; formatting consistent
+

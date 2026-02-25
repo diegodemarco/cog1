@@ -1,0 +1,55 @@
+alwaysApply: true
+---
+title: "General Development Guidelines"
+description: "Non-overridable engineering practices for maintainable, secure, and testable code"
+tags: [engineering, quality, security]
+---
+
+## Core Principles
+- Readability over cleverness; optimize for maintainability.
+- Fail fast with clear errors and actionable messages.
+- Prefer composition over inheritance unless clearly justified.
+- Guard clauses first; avoid deep nesting.
+- No dead code, commented-out blocks, or TODOs—implement or remove.
+
+## Testing
+- Unit tests cover core logic; integration/E2E where behavior spans boundaries.
+- Aim for meaningful coverage; avoid trivial tests.
+- Tests must be deterministic and isolated.
+
+## Security
+- Input validation and output encoding at boundaries.
+- Never log secrets; centralize secrets in a secure store.
+- Keep dependencies updated; pin versions and scan regularly.
+
+## Observability
+- Structured logs with correlation IDs.
+- Metrics for critical paths; health checks for services.
+
+## Git and Review
+- Conventional commits; atomic PRs with clear descriptions.
+- Include tests and documentation updates with code changes.
+- Require human review for AI-generated code.
+
+## Validation Checklist
+- [ ] Names are descriptive; magic values extracted as constants
+- [ ] Errors handled with actionable messages
+- [ ] Inputs validated; outputs sanitized
+- [ ] Tests added/updated; flakiness avoided
+- [ ] Logs/metrics appropriate and consistent
+- [ ] No dead code or unused dependencies
+
+## Additional Policies (Imported and Refined)
+- Use the latest stable language/runtime unless the project dictates otherwise (prefer LTS where applicable).
+- Never hardcode secrets or credentials. Use environment variables and secret managers (e.g., Vault, AWS Secrets Manager).
+- JSON and API conventions must follow the project standard. If none exists, prefer snake_case for backend APIs and camelCase for TypeScript/JS clients; document the choice.
+- SQL: treat datasets as large by default. Validate query plans, indexes, and limits. Prefer parameterized queries.
+- Logging: use appropriate levels (Debug in local/dev, Info in production by default). Never log secrets or PII.
+- Documentation: update `documentation/` or `docs/` when behavior changes materially; link to Jira ticket.
+- MCP/tools: review available tool integrations and use them consistently where they provide value.
+
+## Release and Versioning
+- Follow Semantic Versioning (https://semver.org). Tag releases in Git (e.g., `v1.2.3`).
+- Maintain a human‑readable `CHANGELOG.md` (Keep a Changelog format) or release notes in the repository.
+- Automate release builds and changelog generation where possible.
+

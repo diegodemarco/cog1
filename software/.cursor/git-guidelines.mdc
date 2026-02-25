@@ -1,0 +1,30 @@
+---
+title: "Git Guidelines"
+description: "Workflow, branching, and commit standards"
+tags: [git, workflow]
+---
+
+## Branching Strategy
+- main: always releasable
+- develop (optional): integration branch
+- feature/*, bugfix/*, hotfix/* per ticket
+
+## Commits
+- Conventional commits: feat, fix, docs, refactor, test, chore
+- Small, atomic commits tied to tickets
+
+## PRs
+- Keep PRs focused; <300 lines of reviewable changes when possible
+- Include context, screenshots (UI), and test plan
+
+## Releases and Versioning
+- Use Semantic Versioning (https://semver.org)
+- Tag releases with `vMAJOR.MINOR.PATCH`
+- Maintain `CHANGELOG.md` (Keep a Changelog)
+- Automate changelog and release tagging in CI where feasible
+
+## Validation Checklist
+- [ ] Branch named with ticket key and type
+- [ ] Commit messages conventional and meaningful
+- [ ] PR small, focused, with test plan
+

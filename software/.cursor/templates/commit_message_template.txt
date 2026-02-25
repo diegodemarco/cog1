@@ -1,0 +1,14 @@
+<type>(<scope>): <summary> [<TICKET-KEY>]
+
+Why:
+- <reason>
+
+What:
+- <change 1>
+- <change 2>
+
+How tested:
+- <tests>
+
+Notes:
+- AI-generated changes present? yes/no

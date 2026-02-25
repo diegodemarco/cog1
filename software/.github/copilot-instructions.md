@@ -1,0 +1,1 @@
+For instructions, use the configuration files in the folder ".cursor"

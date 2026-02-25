@@ -1,0 +1,31 @@
+---
+title: "C# Language Practices"
+description: "Standards for clear, safe C# code"
+tags: [csharp, language]
+---
+
+## Naming and Structure
+- PascalCase for methods; camelCase for fields and locals; _camelCase for private fields.
+- Small, cohesive classes; single responsibility.
+
+## Nullability and Errors
+- Enable nullable reference types; avoid `!` suppression.
+- Use guard clauses and specific exceptions.
+
+## Async
+- Use async/await; configure awaits carefully (`ConfigureAwait(false)` in libraries).
+
+## Collections and LINQ
+- Prefer explicit types over `var` when clarity improves.
+- Avoid multiple enumerations; materialize when needed.
+
+## Testing and DI
+- Constructor injection for dependencies.
+- Favor interfaces; avoid static singletons.
+
+## Validation Checklist
+- [ ] Nullable enabled; null-handling explicit
+- [ ] Exceptions meaningful and actionable
+- [ ] DI used; no hidden static state
+- [ ] Tests cover logic paths
+

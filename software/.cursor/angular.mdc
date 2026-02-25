@@ -1,0 +1,73 @@
+alwaysApply: true
+---
+title: "Angular Console App Standards"
+description: "Guidelines for developing and maintaining the Angular frontend in the console/ directory."
+tags: [angular, frontend, standards, typescript, coreui]
+---
+
+## Core Principles
+- Use Angular 18+ features, including standalone components and modern dependency injection.
+- Structure code by feature: use folders for views, modals, layout, shared, services, and utils.
+- Prefer CoreUI components for UI consistency and accessibility.
+- Use SCSS for styling; keep styles modular and component-scoped.
+- Use strict TypeScript settings and type everything explicitly.
+- Keep business logic in services, not components.
+- Use RxJS for async flows; prefer `takeUntilDestroyed` for subscriptions.
+- Use Angular Router for navigation; configure routes in `app.routes.ts`.
+
+## API & State Management
+- Use dedicated services for API communication (e.g., `BackendService`, `ConfigService`, `AuthService`).
+- Store credentials securely in localStorage/sessionStorage; never hardcode secrets.
+- API base path is loaded from `assets/app.config.json` via `ConfigService`.
+- Use DTOs for all backend communication; keep client-side models in sync with backend contracts.
+
+## UI & UX
+- Use CoreUI's `IconSetService` for icon management.
+- Set document title via `Title` service in root component.
+- Use color mode and theme management via CoreUI's `ColorModeService`.
+- Use modular, reusable components in `components/` and `shared/`.
+- Keep templates clean; avoid logic in HTML.
+
+## Testing
+- Use Karma/Jasmine for unit tests; place specs alongside components/services.
+- Test business logic in services, not components.
+- Keep tests deterministic and isolated.
+
+## Configuration
+- All configuration files (e.g., `app.config.json`) go in `assets/`.
+- Use `app.config.ts` for application-wide providers and initialization.
+
+## Code Quality
+- Use `editorconfig` and Prettier for formatting.
+- Follow Angular and TypeScript best practices for naming, structure, and imports.
+- Keep code DRY; extract repeated logic into utils or shared services.
+- Document complex logic with comments and JSDoc.
+
+## Commit & Review
+- Keep frontend changes in separate commits from backend.
+- Update this file when standards change or new patterns are introduced.
+
+## Example Directory Structure
+```
+console/
+  src/
+    app/
+      api-client/
+      components/
+      icons/
+      layout/
+      modals/
+      services/
+      shared/
+      utils.ts
+      views/
+    assets/
+    scss/
+    index.html
+    main.ts
+    test.ts
+  angular.json
+  package.json
+  tsconfig.json
+  karma.conf.js
+```

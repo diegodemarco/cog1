@@ -1,0 +1,20 @@
+---
+title: "ASP.NET API Practices"
+description: "Guidelines for ASP.NET (non-Core) APIs where applicable"
+tags: [csharp, aspnet]
+---
+
+## Controllers
+- Use attribute routing; return appropriate HTTP status codes.
+
+## Security
+- Enforce authentication/authorization; validate inputs; avoid over-posting.
+
+## Observability
+- Centralize logging; correlate requests.
+
+## Validation Checklist
+- [ ] Routing and status codes correct
+- [ ] AuthZ enforced; inputs validated
+- [ ] Logs consistent and useful
+

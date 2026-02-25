@@ -1,0 +1,33 @@
+---
+title: "ASP.NET Core Web API Practices"
+description: "Guidelines for building secure, testable Web APIs in ASP.NET Core"
+tags: [csharp, aspnetcore, webapi]
+---
+
+## Controllers and Endpoints
+- Keep controllers thin; delegate to services.
+- Use attribute routing; version APIs explicitly.
+- Return appropriate status codes and problem details.
+
+## Validation and Mapping
+- Use FluentValidation or data annotations; validate at the edges.
+- Map DTOs with explicit profiles (e.g., AutoMapper) where helpful.
+
+## Security
+- Enforce authentication and authorization via policies.
+- Validate inputs; protect against injection and over-posting.
+
+## Observability
+- Structured logging with correlation IDs.
+- Health checks and readiness/liveness endpoints.
+
+## Testing
+- Unit test services; integration test endpoints.
+
+## Validation Checklist
+- [ ] Controllers thin; business logic in services
+- [ ] Validation at boundaries; DTOs clean
+- [ ] AuthZ policies enforced; least privilege
+- [ ] Logs/health checks implemented
+- [ ] Integration tests cover critical paths
+
