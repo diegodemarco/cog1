@@ -6,12 +6,11 @@ import { IconDirective } from '@coreui/icons-angular';
 import { BasicEntitiesService } from '../../../services/basic-entities.service';
 import { ViewStatusService } from '../../../services/view-status.service';
 import { BackendService } from '../../../services/backend.service';
-import { LiteralsContainerDTO } from '../../../api-client/data-contracts';
+import { LiteralsContainerDTO, ValuePairDTO } from '../../../api-client/data-contracts';
 import { IconSubset } from '../../../icons/icon-subset';
 import { CrudPageComponent } from '../../../shared/crud-page/crud-page.component'
 import { NetworkWiFiComponent } from '../wifi/network-wifi.component';
 import { NetworkEthernetComponent } from '../ethernet/network-ethernet.component';
-import { ValuePair } from '../../../shared/value-pair';
 
 @Component({
   templateUrl: 'network-summary.component.html',
@@ -27,8 +26,8 @@ export class NetworkSummaryComponent implements OnInit
   readonly iconSubset = IconSubset;
   readonly literals: LiteralsContainerDTO;
   readonly indent: string = "\u00a0\u00a0\u00a0";
-  public ethernetValues: ValuePair[] = [];
-  public wifiValues: ValuePair[] = [];
+  public ethernetValues: ValuePairDTO[] = [];
+  public wifiValues: ValuePairDTO[] = [];
 
   constructor(private backend: BackendService, viewStatus: ViewStatusService, basicEntitiesService: BasicEntitiesService) 
   {

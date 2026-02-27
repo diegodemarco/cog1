@@ -24,6 +24,7 @@ namespace cog1.Dao
                 description = r.Field<string>("description"),
                 httpBaseUrl = r.Field<string>("http_base_url"),
                 httpHeaders = JsonConvert.DeserializeObject<List<ValuePairDTO>>(r.Field<string>("http_headers")),
+                mqttUseTls = r.Field<long>("mqtt_use_tls") != 0,
                 mqttHost = r.Field<string>("mqtt_host"),
                 mqttBaseTopic = r.Field<string>("mqtt_base_topic"),
                 mqttServerCertificate = r.Field<string>("mqtt_server_certificate"),
@@ -55,8 +56,8 @@ namespace cog1.Dao
                 dto.integrationConnectionId = (int)((Context.Db.GetLong("select coalesce(max(integration_connection_id),0) from integration_connections") ?? 0) + 1);
             }
             Context.Db.Execute(
-                "insert into integration_connections (integration_connection_id, connection_type, description, http_base_url, http_headers, mqtt_host, mqtt_base_topic, mqtt_server_certificate, mqtt_client_certificate, user_name, password) " +
-                "values (@integration_connection_id, @connection_type, @description, @http_base_url, @http_headers, @mqtt_host, @mqtt_base_topic, @mqtt_server_certificate, @mqtt_client_certificate, @user_name, @password)",
+                "insert into integration_connections (integration_connection_id, connection_type, description, http_base_url, http_headers, mqtt_use_tls, mqtt_host, mqtt_base_topic, mqtt_server_certificate, mqtt_client_certificate, user_name, password) " +
+                "values (@integration_connection_id, @connection_type, @description, @http_base_url, @http_headers, @mqtt_use_tls, @mqtt_host, @mqtt_base_topic, @mqtt_server_certificate, @mqtt_client_certificate, @user_name, @password)",
                 new()
                 {
                     { "@integration_connection_id", dto.integrationConnectionId },
@@ -64,6 +65,7 @@ namespace cog1.Dao
                     { "@description", string.IsNullOrWhiteSpace(dto.description) ? DBNull.Value : dto.description.Trim() },
                     { "@http_base_url", string.IsNullOrWhiteSpace(dto.httpBaseUrl) ? DBNull.Value : dto.httpBaseUrl.Trim() },
                     { "@http_headers", JsonConvert.SerializeObject(dto.httpHeaders) },
+                    { "@mqtt_use_tls", dto.mqttUseTls ? 1 : 0 },
                     { "@mqtt_host", string.IsNullOrWhiteSpace(dto.mqttHost) ? DBNull.Value : dto.mqttHost.Trim() },
                     { "@mqtt_base_topic", string.IsNullOrWhiteSpace(dto.mqttBaseTopic) ? DBNull.Value : dto.mqttBaseTopic.Trim() },
                     { "@mqtt_server_certificate", string.IsNullOrWhiteSpace(dto.mqttServerCertificate) ? DBNull.Value : dto.mqttServerCertificate.Trim() },
@@ -76,13 +78,14 @@ namespace cog1.Dao
         public void EditIntegrationConnection(IntegrationConnectionDTO dto)
         {
             Context.Db.Execute(
-                "update integration_connections set connection_type = @connection_type, description = @description, http_base_url = @http_base_url, http_headers = @http_headers, mqtt_host = @mqtt_host, mqtt_base_topic = @mqtt_base_topic, mqtt_server_certificate = @mqtt_server_certificate, mqtt_client_certificate = @mqtt_client_certificate, user_name = @user_name, password = @password where integration_connection_id = @integration_connection_id",
+                "update integration_connections set connection_type = @connection_type, description = @description, http_base_url = @http_base_url, http_headers = @http_headers, mqtt_use_tls = @mqtt_use_tls, mqtt_host = @mqtt_host, mqtt_base_topic = @mqtt_base_topic, mqtt_server_certificate = @mqtt_server_certificate, mqtt_client_certificate = @mqtt_client_certificate, user_name = @user_name, password = @password where integration_connection_id = @integration_connection_id",
                 new()
                 {
                     { "@connection_type", dto.connectionType },
                     { "@description", string.IsNullOrWhiteSpace(dto.description) ? DBNull.Value : dto.description.Trim() },
                     { "@http_base_url", string.IsNullOrWhiteSpace(dto.httpBaseUrl) ? DBNull.Value : dto.httpBaseUrl.Trim() },
                     { "@http_headers", JsonConvert.SerializeObject(dto.httpHeaders) },
+                    { "@mqtt_use_tls", dto.mqttUseTls ? 1 : 0 },
                     { "@mqtt_host", string.IsNullOrWhiteSpace(dto.mqttHost) ? DBNull.Value : dto.mqttHost.Trim() },
                     { "@mqtt_base_topic", string.IsNullOrWhiteSpace(dto.mqttBaseTopic) ? DBNull.Value : dto.mqttBaseTopic.Trim() },
                     { "@mqtt_server_certificate", string.IsNullOrWhiteSpace(dto.mqttServerCertificate) ? DBNull.Value : dto.mqttServerCertificate.Trim() },

@@ -55,6 +55,25 @@ export class OutboundComponent {
     return this.connectionsMap.get(connectionId)?.description || connectionId.toString();
   }
 
+  getFullPath(o: OutboundIntegrationDTO): string {
+    const conn = this.connectionsMap.get(o.integrationConnectionId!);
+    if (o.httpUrl !== undefined && o.httpUrl !== null && o.httpUrl !== '') {
+      const base = (conn?.httpBaseUrl || '').replace(/\/+$/, '');
+      const path = (o.httpUrl || '').replace(/^\/+/, '');
+      if (!base) return path;
+      if (!path) return base;
+      return base + '/' + path;
+    }
+    if (o.mqttTopic !== undefined && o.mqttTopic !== null && o.mqttTopic !== '') {
+      const base = (conn?.mqttBaseTopic || '').replace(/\/+$/, '');
+      const sub = (o.mqttTopic || '').replace(/^\/+/, '');
+      if (!base) return sub;
+      if (!sub) return base;
+      return base + '/' + sub;
+    }
+    return '';
+  }
+
   doNew() {
     this.editModal.showModal(null)
       .then(() => {

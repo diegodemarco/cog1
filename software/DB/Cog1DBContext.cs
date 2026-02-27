@@ -291,8 +291,8 @@ namespace Cog1.DB
                     Console.WriteLine("Done");
                 }
 
-                //ctx.Execute("drop table integration_connections");
                 //ctx.Execute("drop table outbound_integrations");
+                //ctx.Execute("drop table integration_connections");
 
                 // Integration connections table
                 try
@@ -314,6 +314,7 @@ namespace Cog1.DB
 
                             mqtt_host text null,
                             mqtt_base_topic text null,
+                            mqtt_use_tls boolean not null,
                             mqtt_server_certificate text null,
                             mqtt_client_certificate text null,
 

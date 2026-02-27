@@ -323,6 +323,7 @@ export interface IntegrationConnectionDTO {
   description?: string | null;
   httpBaseUrl?: string | null;
   httpHeaders?: ValuePairDTO[] | null;
+  mqttUseTls?: boolean;
   mqttHost?: string | null;
   mqttBaseTopic?: string | null;
   mqttServerCertificate?: string | null;
@@ -354,6 +355,7 @@ export interface IntegrationsLiteralsContainer {
   addHttpHeader?: string | null;
   credentials?: string | null;
   httpHeaders?: string | null;
+  mqttUseTls?: string | null;
   mqttServerCertificate?: string | null;
   mqttClientCertificate?: string | null;
   noConnectionsToDisplay?: string | null;

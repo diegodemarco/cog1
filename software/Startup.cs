@@ -91,6 +91,7 @@ namespace cog1
             services.AddHostedService<ModbusService>();
             services.AddHostedService<ModbusRtuService>();
             services.AddHostedService<ModbusTcpService>();
+            services.AddHostedService<OutboundIntegrationService>();
 
             // Add API controllers
             services.AddControllers();

@@ -67,9 +67,30 @@ export class OutboundEditModalComponent {
     Object.assign(this.current, this.empty);
   }
 
+  get selectedConnection(): IntegrationConnectionDTO | undefined {
+    return this.connections.find(c => c.integrationConnectionId === this.current.integrationConnectionId);
+  }
+
   get selectedConnectionType(): IntegrationConnectionType | undefined {
-    const conn = this.connections.find(c => c.integrationConnectionId === this.current.integrationConnectionId);
-    return conn?.connectionType;
+    return this.selectedConnection?.connectionType;
+  }
+
+  get fullHttpUrl(): string {
+    const base = (this.selectedConnection?.httpBaseUrl || '').replace(/\/+$/, '');
+    const path = (this.current.httpUrl || '').replace(/^\/+/, '');
+    if (!base && !path) return '';
+    if (!base) return path;
+    if (!path) return base;
+    return base + '/' + path;
+  }
+
+  get fullMqttTopic(): string {
+    const base = (this.selectedConnection?.mqttBaseTopic || '').replace(/\/+$/, '');
+    const sub = (this.current.mqttTopic || '').replace(/^\/+/, '');
+    if (!base && !sub) return '';
+    if (!base) return sub;
+    if (!sub) return base;
+    return base + '/' + sub;
   }
 
   addVariable() {

@@ -36,6 +36,7 @@ export class ConnectionEditModalComponent {
     description: '',
     httpBaseUrl: '',
     httpHeaders: [],
+    mqttUseTls: false,
     mqttHost: '',
     mqttBaseTopic: 'data',
     mqttServerCertificate: '',

@@ -1,11 +1,10 @@
 ﻿using cog1.Business;
-using cog1.Dao;
+using cog1.DTO;
 using cog1.Entities;
 using cog1.Hardware;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -31,20 +30,24 @@ namespace cog1.BackgroundServices
     /// </param>
     public class VariablePollingService(ILogger<VariablePollingService> logger, IServiceScopeFactory scopeFactory) : BackgroundService
     {
-        private class VariableDefEntry : VariableDao.BasicVariableDefinition
+        private class VariableDefEntry : VariableDTO
         {
             public long nextPoll;
         }
 
-        private long variablesSignature = 0;
         private Stopwatch stopWatch = Stopwatch.StartNew();
         private List<VariableDefEntry> variableDefs = new();
+        private VariableBusiness.VariableDefinitionChangeSubscription variableDefinitionChangeSubscription;
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             logger.LogInformation("VariablePolling service started");
 
-            //VariableBusiness.AddChangeHandler(this)
+            // Load initial variable definitions
+            UpdateVariableDefinitions();
+
+            // Subscribe to variable definition changes
+            variableDefinitionChangeSubscription = VariableBusiness.SubscribeToDefinitionChanges();
 
             // Signal that the background task has started, while postponing the first polling for 1 second
             await Utils.CancellableDelay(1000, stoppingToken);
@@ -55,8 +58,13 @@ namespace cog1.BackgroundServices
                 {
                     var nextPoll = PollVariables();
 
-                    // Wait for the next time when polling will be needed
-                    await Utils.CancellableDelay(nextPoll, stoppingToken);
+                    // Wait for either: a variable definition change, or the next poll timer
+                    if (WaitHandle.WaitAny(
+                        new[] { variableDefinitionChangeSubscription.ChangedEvent, stoppingToken.WaitHandle },
+                        nextPoll) == 0)
+                    {
+                            UpdateVariableDefinitions();
+                    };
                 }
                 catch (Exception ex)
                 {
@@ -65,57 +73,55 @@ namespace cog1.BackgroundServices
                 }
             }
 
+            // Unsubscribe from variable definition changes
+            VariableBusiness.UnsubscribeFromDefinitionChanges(variableDefinitionChangeSubscription);
+
             logger.LogInformation("VariablePolling service stopped");
-        }
-
-        private IServiceScope CreateCope()
-        {
-            return scopeFactory.CreateScope();
-        }
-
-        private Cog1Context CreateContext(IServiceScope scope)
-        {
-            return scope.ServiceProvider.GetService<Cog1Context>();
         }
 
         private void UpdateVariableDefinitions()
         {
-            var vars = VariableDao.GetInMemoryVariableDefinitions(ref variablesSignature);
-            if (vars == null)
-                // Nothing changed
-                return;
+            List<VariableDTO> vars;
+
+            using (var scope = scopeFactory.CreateScope())
+            {
+               using (var context = scope.ServiceProvider.GetService<Cog1Context>())
+               {
+                   vars = context.VariableBusiness.EnumerateVariables();
+               }
+            }
 
             // Remove deleted variable values from the IO manager
-            IOManager.UpdateVariableList(vars.Select(item => item.variableId).ToHashSet());
+            IOManager.RemoveMissingVariables(vars.Select(item => item.variableId).ToHashSet());
 
-            // Update existing variables, and add missing ones, considering
-            // only those that have a poll interval, i.e. those that need to be
-            // polled to update their values.
+            // Update existing variables to our in-memory list, and add missing ones,
+            // considering only those that have a poll interval, i.e. those that need
+            // to be polled to update their values.
             foreach (var v in vars.Where(item => item.pollIntervalMs > 0))
             {
-                var currentVar = variableDefs.Find(item => item.variableId == v.variableId);
-                if (currentVar == null)
-                {
-                    // New variable: add
-                    variableDefs.Add(new VariableDefEntry()
-                    {
-                        variableId = v.variableId,
-                        source = v.source,
-                        type = v.type,
-                        accessType = v.accessType,
-                        pollIntervalMs = v.pollIntervalMs,
-                        nextPoll = stopWatch.ElapsedMilliseconds + v.pollIntervalMs,
-                        modbusRegister = v.modbusRegister
-                    });
-                }
-                else
-                {
-                    // Existing variable: update
-                    currentVar.accessType = v.accessType;
-                    currentVar.pollIntervalMs = v.pollIntervalMs;
-                    currentVar.nextPoll = stopWatch.ElapsedMilliseconds + v.pollIntervalMs;
-                    currentVar.modbusRegister = v.modbusRegister;
-                }
+               var currentVar = variableDefs.Find(item => item.variableId == v.variableId);
+               if (currentVar == null)
+               {
+                   // New variable: add
+                   variableDefs.Add(new VariableDefEntry()
+                   {
+                       variableId = v.variableId,
+                       source = v.source,
+                       type = v.type,
+                       accessType = v.accessType,
+                       pollIntervalMs = v.pollIntervalMs,
+                       nextPoll = stopWatch.ElapsedMilliseconds + v.pollIntervalMs,
+                       modbusRegister = v.modbusRegister
+                   });
+               }
+               else
+               {
+                   // Existing variable: update
+                   currentVar.accessType = v.accessType;
+                   currentVar.pollIntervalMs = v.pollIntervalMs;
+                   currentVar.nextPoll = stopWatch.ElapsedMilliseconds + v.pollIntervalMs;
+                   currentVar.modbusRegister = v.modbusRegister;
+               }
 
             }
 
@@ -186,8 +192,6 @@ namespace cog1.BackgroundServices
 
         private int PollVariables()
         {
-            UpdateVariableDefinitions();
-
             if (variableDefs.Count <= 0)
                 return 1000;
 
@@ -210,7 +214,7 @@ namespace cog1.BackgroundServices
             }
 
             // Calculate next overall poll, from 100 ms to 1 s
-            var result = now - variableDefs.Select(item => item.nextPoll).Min();
+            var result = now - variableDefs.Min(item => item.nextPoll);
             if (result < 100)
                 result = 100;
             if (result > 1000)

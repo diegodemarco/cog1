@@ -72,6 +72,24 @@
             @if (current.connectionType == connectionTypeEnum.MQTT) 
             {
             <div class="mb-2">
+              <div class="form-check">
+                <input 
+                  class="form-check-input"
+                  name="mqttUseTls"
+                  id="mqttUseTls" 
+                  type="checkbox"
+                  [(ngModel)]="current.mqttUseTls"
+                />
+                <label class="form-check-label" for="mqttUseTls">
+                  {{ literals.integrations!.mqttUseTls! }}
+                </label>
+              </div>
+            </div>
+            }
+
+            @if (current.connectionType == connectionTypeEnum.MQTT) 
+            {
+            <div class="mb-2">
               <label cFormLabel>{{ literals.integrations!.mqttServerCertificate! }}</label>
               <textarea cFormControl class="form-control" [(ngModel)]="current.mqttServerCertificate" name="mqttServerCertificate" rows="4"></textarea>
             </div>

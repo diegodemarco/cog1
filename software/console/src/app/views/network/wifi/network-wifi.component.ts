@@ -9,14 +9,13 @@ import { BasicEntitiesService } from '../../../services/basic-entities.service';
 import { AuthService } from '../../../services/auth.service';
 import { ViewStatusService } from '../../../services/view-status.service';
 import { BackendService } from '../../../services/backend.service';
-import { JsonControllerException, LiteralsContainerDTO, WiFiMode, WiFiReport } from '../../../api-client/data-contracts';
+import { JsonControllerException, LiteralsContainerDTO, ValuePairDTO, WiFiMode, WiFiReport } from '../../../api-client/data-contracts';
 import { IconSubset } from '../../../icons/icon-subset';
 import { CrudPageComponent } from '../../../shared/crud-page/crud-page.component'
 import { RouterModule } from '@angular/router';
 import { BaseViewComponent } from '../../base/base-view.component';
 import { WiFiPasswordModalComponent } from '../modals/wifi-password-modal.component';
 import { IpConfigurationModalComponent } from '../modals/ip-configuration-modal.component';
-import { ValuePair } from '../../../shared/value-pair';
 
 @Component({
   templateUrl: 'network-wifi.component.html',
@@ -36,7 +35,7 @@ export class NetworkWiFiComponent extends BaseViewComponent implements AfterView
   readonly WiFiMode = WiFiMode;
   private destroying: boolean = false;
   private isConnected: boolean = false;
-  public wifiValues: ValuePair[] = [];
+  public wifiValues: ValuePairDTO[] = [];
   public networks: NetworkEntry[] = [];
   authService: AuthService;
   wifiMode: WiFiMode = WiFiMode.Station;
@@ -65,9 +64,9 @@ export class NetworkWiFiComponent extends BaseViewComponent implements AfterView
     super.ngOnDestroy();
   }
 
-  public static makeValuePairs(report: WiFiReport, literals: LiteralsContainerDTO): ValuePair[]
+  public static makeValuePairs(report: WiFiReport, literals: LiteralsContainerDTO): ValuePairDTO[]
   {
-    let result: ValuePair[] = [];
+    let result: ValuePairDTO[] = [];
     let ln = literals!.network!;
     let indent: string = "\u00a0\u00a0\u00a0";
 

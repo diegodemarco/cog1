@@ -240,7 +240,7 @@ namespace cog1.BackgroundServices
 
         #region Read operations
 
-        public static long QueueRead(VariableDao.BasicVariableDefinition v)
+        public static long QueueRead(VariableDTO v)
         {
             lock (_lock)
             {

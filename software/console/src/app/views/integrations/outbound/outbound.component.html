@@ -21,7 +21,7 @@
               {{getConnectionDescription(o.integrationConnectionId)}}
             </c-col>
             <c-col lg="6">
-              {{o.httpUrl || o.mqttTopic}}
+              {{getFullPath(o)}}
             </c-col>
           </c-row>
         </c-col>

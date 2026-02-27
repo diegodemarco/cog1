@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Data;
 using cog1.Business;
 using cog1.DTO;
@@ -8,7 +9,6 @@ using Microsoft.Extensions.Logging;
 using System;
 using cog1.Exceptions;
 using cog1.Hardware;
-using static cog1.Literals.ModbusLiterals;
 
 namespace cog1.Dao
 {
@@ -17,18 +17,7 @@ namespace cog1.Dao
     /// </summary>
     public class VariableDao : DaoBase
     {
-        public class BasicVariableDefinition
-        {
-            public int variableId;
-            public VariableType type;
-            public VariableAccessType accessType;
-            public VariableSource source;
-            public int pollIntervalMs;
-            public ModbusRegisterDTO modbusRegister;
-        }
-
         private static object _lock = new object();
-        private static long variablesSignature = 1;
         private static Dictionary<int, VariableDTO> variables = null;
 
         public VariableDao(Cog1Context context, ILogger logger) : base(context, logger)
@@ -126,9 +115,6 @@ namespace cog1.Dao
                         .AsEnumerable()
                         .Select(row => MakeVariable(row))
                         .ToDictionary(item => item.variableId);
-
-                    // Update signature to signal the change
-                    variablesSignature++;
                 }
             }
         }
@@ -193,46 +179,6 @@ namespace cog1.Dao
                     { "@modbus_data_type", md == null ? DBNull.Value : (int)md.dataType },
                     { "@variable_id", variableId },
                 });
-        }
-
-        #endregion
-
-        #region In-memory variable definitions
-
-        public static List<BasicVariableDefinition> GetInMemoryVariableDefinitions(ref long currentSignature)
-        {
-            lock (_lock)
-            {
-                if (currentSignature == variablesSignature || variables == null)
-                    return null;
-
-                // Return a cloned list with the basic data of the variables
-                currentSignature = variablesSignature;
-                return variables.Values.Select(item =>
-                {
-                    var result = new BasicVariableDefinition()
-                    {
-                        variableId = item.variableId,
-                        source = item.source,
-                        type = item.type,
-                        accessType = item.accessType,
-                        pollIntervalMs = item.pollIntervalMs
-                    };
-                    if (result.source == VariableSource.Modbus)
-                    {
-                        result.modbusRegister = new ModbusRegisterDTO()
-                        {
-                            tcpHost = item.modbusRegister.tcpHost,
-                            slaveId = item.modbusRegister.slaveId,
-                            registerAddress = item.modbusRegister.registerAddress,
-                            registerType = item.modbusRegister.registerType,
-                            dataType = item.modbusRegister.dataType,
-                        };
-                    }
-                    return result;
-                })
-                .ToList();
-            }
         }
 
         #endregion

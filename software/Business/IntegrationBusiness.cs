@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 
 namespace cog1.Business
 {
@@ -16,6 +17,124 @@ namespace cog1.Business
         public IntegrationBusiness(Cog1Context context, ILogger logger) : base(context, logger)
         {
         }
+
+        #region Outbound integration change subscriptions
+
+        /// <summary>
+        /// Represents a subscriber that wants to be notified when the outbound
+        /// integration configuration changes (create, edit or delete).
+        /// </summary>
+        public class OutboundIntegrationChangeSubscription
+        {
+            /// <summary>
+            /// Signalled whenever an outbound integration is created, edited or deleted.
+            /// Subscribers can wait on this event to react promptly to changes.
+            /// </summary>
+            public AutoResetEvent ChangedEvent { get; } = new(false);
+        }
+
+        private static readonly List<OutboundIntegrationChangeSubscription> outboundChangeSubscriptions = new();
+
+        /// <summary>
+        /// Subscribe to outbound integration change notifications.
+        /// Returns a subscription object whose ChangedEvent will be signalled
+        /// whenever an outbound integration is created, edited or deleted.
+        /// </summary>
+        public static OutboundIntegrationChangeSubscription SubscribeToOutboundIntegrationChanges()
+        {
+            var sub = new OutboundIntegrationChangeSubscription();
+            lock (outboundChangeSubscriptions)
+            {
+                outboundChangeSubscriptions.Add(sub);
+            }
+            return sub;
+        }
+
+        /// <summary>
+        /// Unsubscribe from outbound integration change notifications.
+        /// </summary>
+        public static void UnsubscribeFromOutboundIntegrationChanges(OutboundIntegrationChangeSubscription subscription)
+        {
+            lock (outboundChangeSubscriptions)
+            {
+                outboundChangeSubscriptions.Remove(subscription);
+            }
+        }
+
+        /// <summary>
+        /// Notify all subscribers that the outbound integration configuration has changed.
+        /// </summary>
+        private static void NotifyOutboundIntegrationChange()
+        {
+            lock (outboundChangeSubscriptions)
+            {
+                foreach (var sub in outboundChangeSubscriptions)
+                {
+                    sub.ChangedEvent.Set();
+                }
+            }
+        }
+
+        #endregion
+
+        #region Integration connection change subscriptions
+
+        /// <summary>
+        /// Represents a subscriber that wants to be notified when the integration
+        /// connection configuration changes (create, edit or delete).
+        /// </summary>
+        public class IntegrationConnectionChangeSubscription
+        {
+            /// <summary>
+            /// Signalled whenever an integration connection is created, edited or deleted.
+            /// Subscribers can wait on this event to react promptly to changes.
+            /// </summary>
+            public AutoResetEvent ChangedEvent { get; } = new(false);
+        }
+
+        private static readonly List<IntegrationConnectionChangeSubscription> connectionChangeSubscriptions = new();
+
+        /// <summary>
+        /// Subscribe to integration connection change notifications.
+        /// Returns a subscription object whose ChangedEvent will be signalled
+        /// whenever an integration connection is created, edited or deleted.
+        /// </summary>
+        public static IntegrationConnectionChangeSubscription SubscribeToIntegrationConnectionChanges()
+        {
+            var sub = new IntegrationConnectionChangeSubscription();
+            lock (connectionChangeSubscriptions)
+            {
+                connectionChangeSubscriptions.Add(sub);
+            }
+            return sub;
+        }
+
+        /// <summary>
+        /// Unsubscribe from integration connection change notifications.
+        /// </summary>
+        public static void UnsubscribeFromIntegrationConnectionChanges(IntegrationConnectionChangeSubscription subscription)
+        {
+            lock (connectionChangeSubscriptions)
+            {
+                connectionChangeSubscriptions.Remove(subscription);
+            }
+        }
+
+        /// <summary>
+        /// Notify all subscribers that the integration connection configuration has changed.
+        /// </summary>
+        private static void NotifyIntegrationConnectionChange()
+        {
+            lock (connectionChangeSubscriptions)
+            {
+                foreach (var sub in connectionChangeSubscriptions)
+                {
+                    sub.ChangedEvent.Set();
+                }
+            }
+        }
+
+        #endregion
 
         #region Integration connections
 
@@ -92,6 +211,7 @@ namespace cog1.Business
         {
             ValidateIntegrationConnection(dto);
             Context.IntegrationDao.CreateIntegrationConnection(dto);
+            NotifyIntegrationConnectionChange();
             return Context.IntegrationDao.GetIntegrationConnection(dto.integrationConnectionId);
         }
 
@@ -100,6 +220,7 @@ namespace cog1.Business
             GetIntegrationConnection(dto.integrationConnectionId);
             ValidateIntegrationConnection(dto);
             Context.IntegrationDao.EditIntegrationConnection(dto);
+            NotifyIntegrationConnectionChange();
             return GetIntegrationConnection(dto.integrationConnectionId);
         }
 
@@ -109,6 +230,7 @@ namespace cog1.Business
             if (Context.IntegrationDao.HasOutboundIntegrations(integrationConnectionId))
                 throw new ControllerException(Context.ErrorCodes.Integrations.INTEGRATION_CONNECTION_IN_USE);
             Context.IntegrationDao.DeleteIntegrationConnection(integrationConnectionId);
+            NotifyIntegrationConnectionChange();
         }
 
         #endregion
@@ -142,6 +264,7 @@ namespace cog1.Business
         {
             ValidateOutboundIntegration(dto);
             Context.IntegrationDao.CreateOutboundIntegration(dto);
+            NotifyOutboundIntegrationChange();
             return Context.IntegrationDao.GetOutboundIntegration(dto.integrationId);
         }
 
@@ -152,13 +275,14 @@ namespace cog1.Business
                 throw new ControllerException(Context.ErrorCodes.General.INVALID_PARAMETER_VALUE("integrationId", dto.integrationId.ToString()));
             ValidateOutboundIntegration(dto);
             Context.IntegrationDao.EditOutboundIntegration(dto);
+            NotifyOutboundIntegrationChange();
             return Context.IntegrationDao.GetOutboundIntegration(dto.integrationId);
         }
 
         public void DeleteOutboundIntegration(int integrationId)
         {
-
             Context.IntegrationDao.DeleteOutboundIntegration(integrationId);
+            NotifyOutboundIntegrationChange();
         }
 
         #endregion

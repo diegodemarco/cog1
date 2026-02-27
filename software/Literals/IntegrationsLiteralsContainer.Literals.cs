@@ -123,6 +123,13 @@ namespace cog1.Literals
             public override string PT => "Cabeçalhos HTTP";
         }
 
+        public class MqttUseTls : LiteralConstant
+        {
+            public override string EN => "Use TLS";
+            public override string ES => "Usar TLS";
+            public override string PT => "Usar TLS";
+        }
+
         public class MqttServerCertificate : LiteralConstant
         {
             public override string EN => "MQTT Server Certificate";

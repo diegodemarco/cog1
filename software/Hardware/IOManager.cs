@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -33,6 +34,72 @@ namespace cog1.Hardware
         private static bool persistNeeded = false;
         private static string VARIABLE_VALUES_FILE = Path.Combine(Global.DataDirectory, "variable_values.json");
         private static Dictionary<int, VariableValueDTO> variableValues = new();
+
+        #region Variable change notifications
+
+        /// <summary>
+        /// Represents a subscriber that wants to be notified when variable values change.
+        /// Each subscriber has a concurrent queue where variable change events are posted.
+        /// </summary>
+        public class VariableChangeSubscription
+        {
+            /// <summary>
+            /// Set of variable IDs whose values have changed since last drain.
+            /// Uses ConcurrentDictionary as a thread-safe set (values are unused).
+            /// This is better than using a queue, so that when a variable changes 
+            /// multiple times before the subscriber drains the changes, it will 
+            /// only be listed once.
+            /// </summary>
+            public ConcurrentDictionary<int, byte> Changes { get; } = new();
+
+            /// <summary>
+            /// Signalled whenever one or more variable changes are enqueued.
+            /// Subscribers can wait on this event to react promptly to changes
+            /// instead of polling.
+            /// </summary>
+            public AutoResetEvent ChangedEvent { get; } = new(false);
+        }
+
+        private static readonly List<VariableChangeSubscription> variableChangeSubscriptions = new();
+
+        /// <summary>
+        /// Subscribe to variable change notifications. Returns a subscription object
+        /// whose Changes queue will receive variable IDs whenever their values are updated.
+        /// </summary>
+        public static VariableChangeSubscription SubscribeToVariableChanges()
+        {
+            var sub = new VariableChangeSubscription();
+            lock (variableChangeSubscriptions)
+            {
+                variableChangeSubscriptions.Add(sub);
+            }
+            return sub;
+        }
+
+        /// <summary>
+        /// Unsubscribe from variable change notifications.
+        /// </summary>
+        public static void UnsubscribeFromVariableChanges(VariableChangeSubscription subscription)
+        {
+            lock (variableChangeSubscriptions)
+            {
+                variableChangeSubscriptions.Remove(subscription);
+            }
+        }
+
+        private static void NotifyVariableChanged(int variableId)
+        {
+            lock (variableChangeSubscriptions)
+            {
+                foreach (var sub in variableChangeSubscriptions)
+                {
+                    sub.Changes.TryAdd(variableId, 0);
+                    sub.ChangedEvent.Set();
+                }
+            }
+        }
+
+        #endregion
 
         #region Variable IDs
 
@@ -166,37 +233,6 @@ namespace cog1.Hardware
                         ioLib.io_deinit();
                         Console.WriteLine("iolib.so deinit successful");
                     }
-                }
-            }
-        }
-
-        private static bool GetVariableValue(int variable_id, out double? value, out DateTime? lastUpdateUtc)
-        {
-            lock (_lock)
-            {
-                if (variableValues.TryGetValue(variable_id, out var entry))
-                {
-                    value = entry.value;
-                    lastUpdateUtc = entry.lastUpdateUtc;
-                    return true;
-                }
-                value = null;
-                lastUpdateUtc = null;
-                return false;
-            }
-        }
-
-        private static void DeserializeVariableValues()
-        {
-            lock (_lock)
-            {
-                if (File.Exists(VARIABLE_VALUES_FILE))
-                {
-                    variableValues = JsonConvert.DeserializeObject<Dictionary<int, VariableValueDTO>>(File.ReadAllText(VARIABLE_VALUES_FILE));
-                }
-                else
-                {
-                    variableValues = new();
                 }
             }
         }
@@ -571,6 +607,22 @@ namespace cog1.Hardware
 
         #region Variable values
 
+        private static bool GetVariableValue(int variable_id, out double? value, out DateTime? lastUpdateUtc)
+        {
+            lock (_lock)
+            {
+                if (variableValues.TryGetValue(variable_id, out var entry))
+                {
+                    value = entry.value;
+                    lastUpdateUtc = entry.lastUpdateUtc;
+                    return true;
+                }
+                value = null;
+                lastUpdateUtc = null;
+                return false;
+            }
+        }
+
         public static bool SetVariableValue(int variableId, double value)
         {
             lock (_lock)
@@ -601,8 +653,12 @@ namespace cog1.Hardware
                     lastUpdateUtc = DateTime.UtcNow
                 };
                 PersistNeeded();
-                return true;
             }
+
+            // Notify subscribers outside the lock to avoid potential deadlocks
+            NotifyVariableChanged(variableId);
+
+            return true;
         }
 
         public static Dictionary<int, VariableValueDTO> GetVariableValues()
@@ -629,11 +685,11 @@ namespace cog1.Hardware
                 SetVariableValue(variableId, value);
         }
 
-        public static void UpdateVariableList(HashSet<int> varIds)
+        public static void RemoveMissingVariables(HashSet<int> currentVariables)
         {
             lock (_lock)
             {
-                var idsToRemove = variableValues.Select(item => item.Key).Where(item => !varIds.Contains(item));
+                var idsToRemove = variableValues.Select(item => item.Key).Where(item => !currentVariables.Contains(item));
                 foreach (var item in idsToRemove)
                     variableValues.Remove(item);
             }
@@ -642,6 +698,22 @@ namespace cog1.Hardware
         #endregion
 
         #region Data persistence
+
+        private static void DeserializeVariableValues()
+        {
+            lock (_lock)
+            {
+                if (File.Exists(VARIABLE_VALUES_FILE))
+                {
+                    variableValues = JsonConvert.DeserializeObject<Dictionary<int, VariableValueDTO>>(File.ReadAllText(VARIABLE_VALUES_FILE));
+                }
+                else
+                {
+                    variableValues = new();
+                }
+            }
+        }
+
 
         private static void PersistNeeded()
         {

@@ -7,13 +7,12 @@ import { BasicEntitiesService } from '../../../services/basic-entities.service';
 import { AuthService } from '../../../services/auth.service';
 import { ViewStatusService } from '../../../services/view-status.service';
 import { BackendService } from '../../../services/backend.service';
-import { EthernetReportDTO, JsonControllerException, LiteralsContainerDTO } from '../../../api-client/data-contracts';
+import { EthernetReportDTO, JsonControllerException, LiteralsContainerDTO, ValuePairDTO } from '../../../api-client/data-contracts';
 import { IconSubset } from '../../../icons/icon-subset';
 import { CrudPageComponent } from '../../../shared/crud-page/crud-page.component'
 import { BaseViewComponent } from '../../base/base-view.component';
 import { IpConfigurationModalComponent } from '../modals/ip-configuration-modal.component';
 import { LinkConfigurationModalComponent } from '../modals/link-configuration-modal.component';
-import { ValuePair } from '../../../shared/value-pair';
 
 @Component({
   templateUrl: 'network-ethernet.component.html',
@@ -32,7 +31,7 @@ export class NetworkEthernetComponent extends BaseViewComponent implements OnIni
   readonly indent: string = "\u00a0\u00a0\u00a0";
   private destroying: boolean = false;
   private isConnected: boolean = false;
-  public ethernetValues: ValuePair[] = [];
+  public ethernetValues: ValuePairDTO[] = [];
   authService: AuthService;
   @ViewChild(IpConfigurationModalComponent) ipConfigurationModal!: IpConfigurationModalComponent;
   @ViewChild(LinkConfigurationModalComponent) linkConfigurationModal!: LinkConfigurationModalComponent;
@@ -51,9 +50,9 @@ export class NetworkEthernetComponent extends BaseViewComponent implements OnIni
     this.reload();
   }
 
-  public static makeValuePairs(report: EthernetReportDTO, literals: LiteralsContainerDTO): ValuePair[]
+  public static makeValuePairs(report: EthernetReportDTO, literals: LiteralsContainerDTO): ValuePairDTO[]
   {
-    let result: ValuePair[] = [];
+    let result: ValuePairDTO[] = [];
     let ln = literals!.network!;
     let indent: string = "\u00a0\u00a0\u00a0";
 

@@ -21,7 +21,7 @@
                         {{ basicEntitiesService.getIntegrationConnectionTypeDescription(c.connectionType!) }}
                     </c-col>
                     <c-col lg="6">
-                        {{ c.httpBaseUrl || c.mqttHost }}
+                        {{ c.httpBaseUrl || (c.mqttHost! + '/' + c.mqttBaseTopic!) }}
                     </c-col>
                 </c-row>
             </c-col>

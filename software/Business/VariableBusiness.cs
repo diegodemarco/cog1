@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using System.Threading;
 
 namespace cog1.Business
 {
@@ -21,6 +22,64 @@ namespace cog1.Business
         {
 
         }
+
+        #region Variable definition change subscriptions
+
+        /// <summary>
+        /// Represents a subscriber that wants to be notified when variable definitions change
+        /// (i.e. when variables are created, edited or deleted).
+        /// </summary>
+        public class VariableDefinitionChangeSubscription
+        {
+            /// <summary>
+            /// Signalled whenever the variable definitions are modified.
+            /// Subscribers can wait on this event to react promptly to changes
+            /// instead of polling.
+            /// </summary>
+            public AutoResetEvent ChangedEvent { get; } = new(false);
+        }
+
+        private static readonly List<VariableDefinitionChangeSubscription> definitionChangeSubscriptions = new();
+
+        /// <summary>
+        /// Subscribe to variable definition change notifications. Returns a subscription 
+        /// object whose ChangedEvent will be signalled whenever variable definitions are
+        /// created, edited or deleted.
+        /// </summary>
+        public static VariableDefinitionChangeSubscription SubscribeToDefinitionChanges()
+        {
+            var sub = new VariableDefinitionChangeSubscription();
+            lock (definitionChangeSubscriptions)
+            {
+                definitionChangeSubscriptions.Add(sub);
+            }
+            return sub;
+        }
+
+        /// <summary>
+        /// Unsubscribe from variable definition change notifications.
+        /// </summary>
+        public static void UnsubscribeFromDefinitionChanges(VariableDefinitionChangeSubscription subscription)
+        {
+            lock (definitionChangeSubscriptions)
+            {
+                definitionChangeSubscriptions.Remove(subscription);
+            }
+        }
+
+        /// <summary>
+        /// Notify all subscribers that the variable definitions have changed.
+        /// </summary>
+        private static void NotifyDefinitionChanged()
+        {
+            lock (definitionChangeSubscriptions)
+            {
+                foreach (var sub in definitionChangeSubscriptions)
+                    sub.ChangedEvent.Set();
+            }
+        }
+
+        #endregion
 
         #region private
 
@@ -359,7 +418,9 @@ namespace cog1.Business
             if (v.source == VariableSource.BuiltIn)
                 throw new ControllerException(Context.ErrorCodes.General.INVALID_PARAMETER_VALUE(Context.Literals.Variables.VariableSource, v.source.ToString()));
             ValidateVariable(v);
-            return Context.VariableDao.CreateVariable(v);
+            var result = Context.VariableDao.CreateVariable(v);
+            NotifyDefinitionChanged();
+            return result;
         }
 
         public VariableDTO EditVariable(VariableDTO v)
@@ -367,7 +428,9 @@ namespace cog1.Business
             // Make sure variable exists, and validate data
             GetVariable(v.variableId);
             ValidateVariable(v);
-            return Context.VariableDao.EditVariable(v);
+            var result = Context.VariableDao.EditVariable(v);
+            NotifyDefinitionChanged();
+            return result;
         }
 
         public void DeleteVariable(int variableId)
@@ -375,6 +438,7 @@ namespace cog1.Business
             // Make sure variable exists
             GetVariable(variableId);
             Context.VariableDao.DeleteVariable(variableId);
+            NotifyDefinitionChanged();
         }
 
         #endregion

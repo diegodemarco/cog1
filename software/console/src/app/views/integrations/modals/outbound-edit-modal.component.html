@@ -35,6 +35,9 @@
       <div class="mb-2">
         <label cFormLabel>{{ literals.integrations!.httpSubUrl! }}</label>
         <input cFormControl class="form-control" [(ngModel)]="current.httpUrl" name="httpUrl" />
+        @if (fullHttpUrl) {
+          <small class="text-body-secondary">{{ fullHttpUrl }}</small>
+        }
       </div>
       }
 
@@ -43,6 +46,9 @@
       <div class="mb-2">
         <label cFormLabel>{{ literals.integrations!.mqttSubTopic! }}</label>
         <input cFormControl class="form-control" [(ngModel)]="current.mqttTopic" name="mqttTopic" />
+        @if (fullMqttTopic) {
+          <small class="text-body-secondary">{{ fullMqttTopic }}</small>
+        }
       </div>
       }
 

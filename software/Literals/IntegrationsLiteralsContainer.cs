@@ -22,6 +22,7 @@ namespace cog1.Literals
         public virtual string AddHttpHeader { get => new IntegrationsLiterals.AddHttpHeader().ExtractLiteral(LocaleCode); set { } }
         public virtual string Credentials { get => new IntegrationsLiterals.Credentials().ExtractLiteral(LocaleCode); set { } }
         public virtual string HttpHeaders { get => new IntegrationsLiterals.HttpHeaders().ExtractLiteral(LocaleCode); set { } }
+        public virtual string MqttUseTls { get => new IntegrationsLiterals.MqttUseTls().ExtractLiteral(LocaleCode); set { } }
         public virtual string MqttServerCertificate { get => new IntegrationsLiterals.MqttServerCertificate().ExtractLiteral(LocaleCode); set { } }
         public virtual string MqttClientCertificate { get => new IntegrationsLiterals.MqttClientCertificate().ExtractLiteral(LocaleCode); set { } }
         public virtual string NoConnectionsToDisplay { get => new IntegrationsLiterals.NoConnectionsToDisplay().ExtractLiteral(LocaleCode); set { } }

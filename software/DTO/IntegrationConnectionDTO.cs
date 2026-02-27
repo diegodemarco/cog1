@@ -35,6 +35,11 @@ namespace cog1.DTO
         public List<ValuePairDTO> httpHeaders { get; set; }
 
         /// <summary>
+        /// Whether to use TLS when connecting to the MQTT broker.
+        /// </summary>
+        public bool mqttUseTls { get; set; }
+
+        /// <summary>
         /// Hostname or IP address of the MQTT broker, and port. If the port is
         /// specified, it must be in the format host:port. When the port is ommitted,
         /// the default MQTT port 1883 is assumed.
