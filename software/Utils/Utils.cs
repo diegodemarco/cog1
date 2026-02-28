@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.Contracts;
 using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
@@ -21,6 +22,11 @@ namespace cog1
             return celsius.Value * 9 / 5 + 32;
         }
 
+        public static void CancellableDelay(int milliseconds, CancellationToken ct)
+        {
+            ct.WaitHandle.WaitOne(milliseconds);
+        }
+
         public static string HashPassword(int user_id, string password)
         {
             using (var sha256 = SHA256.Create())
@@ -29,11 +35,6 @@ namespace cog1
                 byte[] bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(user_id.ToString() + password));
                 return Convert.ToBase64String(bytes);
             }
-        }
-
-        public static async Task CancellableDelay(int milliseconds, CancellationToken ct)
-        {
-            await Task.Delay(milliseconds, ct).ContinueWith(task => { });
         }
 
         public static string DateTimeToSql(DateTime? dt)

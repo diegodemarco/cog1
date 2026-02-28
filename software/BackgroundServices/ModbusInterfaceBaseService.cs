@@ -33,21 +33,36 @@ namespace cog1.BackgroundServices
         {
             logger.LogInformation($"{Description} service started");
 
-            // Signal that the background task has started, while postponing the first polling for 1 second
-            await Utils.CancellableDelay(1000, stoppingToken);
+            // Signal that the background task has started
+            await Task.Yield();
 
-            while (!stoppingToken.IsCancellationRequested)
+            // Subscribe to queue notifications
+            var subscription = ModbusService.SubscribeToQueue();
+            try
             {
-                try
+                while (!stoppingToken.IsCancellationRequested)
                 {
-                    if (!CheckQueue())
-                        await Utils.CancellableDelay(100, stoppingToken);
+                    try
+                    {
+                        // Process all pending items in the queue
+                        while (CheckQueue())
+                        { }
+
+                        // Wait for new operations to be queued, with a timeout of 5 seconds
+                        // to allow periodic checks even if no new operations are queued.
+                        WaitHandle.WaitAny([subscription.QueuedEvent, 
+                            stoppingToken.WaitHandle], 5000);
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.LogError($"Error in {Description} service: {ex}");
+                        Utils.CancellableDelay(5000, stoppingToken);
+                    }
                 }
-                catch (Exception ex)
-                {
-                    logger.LogError($"Error in {Description} service: {ex}");
-                    await Utils.CancellableDelay(5000, stoppingToken);
-                }
+            }
+            finally
+            {
+                ModbusService.UnsubscribeFromQueue(subscription);
             }
 
             logger.LogInformation($"{Description} service stopped");

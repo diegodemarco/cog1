@@ -27,7 +27,7 @@ namespace cog1.Display.Menu
                 logger.LogInformation("Display menu loop service started");
 
                 // Signal that the background task has started
-                await Utils.CancellableDelay(1000, stoppingToken);
+                await Task.Yield();
 
                 try
                 {

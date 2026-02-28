@@ -27,7 +27,7 @@ namespace cog1.Telemetry
                 var nextSec = 1000;
 
                 // Signal that the background task has started
-                await Utils.CancellableDelay(1000, stoppingToken);
+                await Task.Yield();
 
                 while (!stoppingToken.IsCancellationRequested)
                 {
@@ -35,11 +35,11 @@ namespace cog1.Telemetry
                     {
                         if (Global.IsDevelopment)
                         {
-                            await Utils.CancellableDelay(1000, stoppingToken);
+                            Utils.CancellableDelay(1000, stoppingToken);
                         }
                         else
                         {
-                            await Utils.CancellableDelay(800, stoppingToken);
+                            Utils.CancellableDelay(800, stoppingToken);
                             if (!stoppingToken.IsCancellationRequested)
                             {
                                 while (sw.ElapsedMilliseconds < nextSec)
@@ -52,7 +52,7 @@ namespace cog1.Telemetry
                     catch (Exception ex)
                     {
                         logger.LogError($"Background telemetry error: {ex}");
-                        await Utils.CancellableDelay(1000, stoppingToken);
+                        Utils.CancellableDelay(1000, stoppingToken);
                     }
                 }
 

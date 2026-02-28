@@ -26,7 +26,7 @@ namespace cog1.Hardware
                 Directory.CreateDirectory("./wifi_log");
 
             // Signal that the background task has started
-            await Utils.CancellableDelay(1000, stoppingToken);
+            await Task.Yield();
 
             while (!stoppingToken.IsCancellationRequested)
             {
@@ -49,12 +49,12 @@ namespace cog1.Hardware
                     }
 
                     // Wait for 60 seconds
-                    await Utils.CancellableDelay(60000, stoppingToken);
+                    Utils.CancellableDelay(60000, stoppingToken);
                 }
                 catch (Exception ex)
                 {
                     logger.LogInformation($"Error in WiFi monitor service: {ex}");
-                    await Utils.CancellableDelay(1000, stoppingToken);
+                    Utils.CancellableDelay(1000, stoppingToken);
                 }
             }
 

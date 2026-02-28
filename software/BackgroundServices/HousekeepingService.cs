@@ -31,9 +31,9 @@ namespace cog1.BackgroundServices
 
             DoStartupFixes();
 
-            // Signal that the background task has started, and
-            // postpone the first housekeeping for 15 seconds
-            await Utils.CancellableDelay(15000, stoppingToken);
+            // Signal that the background task has started, and postpone the first housekeeping for 15 seconds
+            await Task.Yield();
+            Utils.CancellableDelay(15000, stoppingToken);
 
             while (!stoppingToken.IsCancellationRequested)
             {
@@ -42,12 +42,12 @@ namespace cog1.BackgroundServices
                     DoHousekeeping();
 
                     // Do housekeeing every 60 minutes
-                    await Utils.CancellableDelay(60 * 60 * 1000, stoppingToken);
+                    Utils.CancellableDelay(60 * 60 * 1000, stoppingToken);
                 }
                 catch (Exception ex)
                 {
                     logger.LogError($"Error in housekeeping service: {ex}");
-                    await Utils.CancellableDelay(30000, stoppingToken);
+                    Utils.CancellableDelay(30000, stoppingToken);
                 }
             }
 

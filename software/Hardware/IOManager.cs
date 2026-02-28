@@ -146,7 +146,7 @@ namespace cog1.Hardware
                 lock (_lock)
                 {
                     // IO ISR
-                    var del = new IOISRDelegate(EncoderISR);
+                    var del = new IOISRDelegate(IO_ISR);
                     p_fnISISR = Marshal.GetFunctionPointerForDelegate(del);
                     gchIOISR = GCHandle.Alloc(del);
 
@@ -303,7 +303,7 @@ namespace cog1.Hardware
 
         #region Digital input ISR
 
-        private static void EncoderISR(int eventBitmap)
+        private static void IO_ISR(int eventBitmap)
         {
             // Encoder events
             if ((eventBitmap & IO_EVENT_ENCODER) != 0)

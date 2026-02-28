@@ -1,5 +1,4 @@
-﻿using cog1.Dao;
-using cog1.DTO;
+﻿using cog1.DTO;
 using cog1.Hardware;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -31,6 +30,64 @@ namespace cog1.BackgroundServices
         private static object _lock = new();
         private static List<ModbusQueueEntry> modbusQueue = new();
 
+        #region Queue operation notifications
+
+        /// <summary>
+        /// Represents a subscriber that wants to be notified when modbus operations
+        /// are queued. Each subscriber has a concurrent queue where operation IDs are
+        /// posted.
+        /// </summary>
+        public class ModbusOperationQueuedSubscription
+        {
+            /// <summary>
+            /// Signalled whenever one or more operations are enqueued.
+            /// Subscribers can wait on this event to react promptly to new
+            /// operations instead of polling.
+            /// </summary>
+            public AutoResetEvent QueuedEvent { get; } = new(false);
+        }
+
+        private static readonly List<ModbusOperationQueuedSubscription> queueSubscriptions = new();
+
+        /// <summary>
+        /// Subscribe to modbus queue notifications. Returns a subscription object
+        /// whose QueuedOperations set will receive operation IDs whenever new
+        /// read or write operations are queued.
+        /// </summary>
+        public static ModbusOperationQueuedSubscription SubscribeToQueue()
+        {
+            var sub = new ModbusOperationQueuedSubscription();
+            lock (queueSubscriptions)
+            {
+                queueSubscriptions.Add(sub);
+            }
+            return sub;
+        }
+
+        /// <summary>
+        /// Unsubscribe from modbus queue notifications.
+        /// </summary>
+        public static void UnsubscribeFromQueue(ModbusOperationQueuedSubscription subscription)
+        {
+            lock (queueSubscriptions)
+            {
+                queueSubscriptions.Remove(subscription);
+            }
+        }
+
+        private static void NotifyOperationQueued()
+        {
+            lock (queueSubscriptions)
+            {
+                foreach (var sub in queueSubscriptions)
+                {
+                    sub.QueuedEvent.Set();
+                }
+            }
+        }
+
+        #endregion
+
         private enum ModbusQueueItemState
         {
             Pending = 0,
@@ -61,8 +118,8 @@ namespace cog1.BackgroundServices
         {
             logger.LogInformation("Modbus manager service started");
 
-            // Signal that the background task has started, while postponing the first polling for 1 second
-            await Utils.CancellableDelay(1000, stoppingToken);
+            // Signal that the background task has started
+            await Task.Yield();
 
             while (!stoppingToken.IsCancellationRequested)
             {
@@ -73,13 +130,13 @@ namespace cog1.BackgroundServices
                     //{
                     //    Console.WriteLine($"Modbus queue size: {modbusQueue.Count}");
                     //}
-                    await Utils.CancellableDelay(1000, stoppingToken);
+                    Utils.CancellableDelay(1000, stoppingToken);
 
                 }
                 catch (Exception ex)
                 {
                     logger.LogError($"Error in Modbus manager service: {ex}");
-                    await Utils.CancellableDelay(5000, stoppingToken);
+                    Utils.CancellableDelay(5000, stoppingToken);
                 }
             }
 
@@ -255,6 +312,7 @@ namespace cog1.BackgroundServices
                     modbusRegister = v.modbusRegister
                 };
                 modbusQueue.Add(item);
+                NotifyOperationQueued();
                 return item.operationId;
             }
         }
@@ -275,6 +333,7 @@ namespace cog1.BackgroundServices
                     value = value
                 };
                 modbusQueue.Add(item);
+                NotifyOperationQueued();
                 return item.operationId;
             }
         }

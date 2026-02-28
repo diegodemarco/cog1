@@ -23,18 +23,20 @@ namespace cog1.Hardware
             {
                 logger.LogInformation("Analog polling service started");
 
+                // Signal that the background task has started
+                await Task.Yield();
+
                 while (!stoppingToken.IsCancellationRequested)
                 {
                     try
                     {
                         IOManager.AnalogRead();
-                        await Utils.CancellableDelay(1000, stoppingToken);
                     }
                     catch (Exception ex)
                     {
                         logger.LogError($"Error in analog polling service: {ex}");
-                        await Utils.CancellableDelay(1000, stoppingToken);
                     }
+                    Utils.CancellableDelay(1000, stoppingToken);
                 }
 
                 logger.LogInformation("Analog polling service stopped");

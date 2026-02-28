@@ -66,12 +66,12 @@ namespace cog1.BackgroundServices
         {
             logger.LogInformation("Outbound integration service started");
 
+            // Signal that the background task has started
+            await Task.Yield();
+
             // Subscribe to outbound integration and connection configuration changes
             outboundChangeSubscription = IntegrationBusiness.SubscribeToOutboundIntegrationChanges();
             connectionChangeSubscription = IntegrationBusiness.SubscribeToIntegrationConnectionChanges();
-
-            // Small initial delay to let other services start up
-            await Utils.CancellableDelay(3000, stoppingToken);
 
             try
             {
@@ -91,7 +91,7 @@ namespace cog1.BackgroundServices
                     catch (Exception ex)
                     {
                         logger.LogError($"Error in outbound integration service: {ex}");
-                        await Utils.CancellableDelay(5000, stoppingToken);
+                        Utils.CancellableDelay(5000, stoppingToken);
                     }
                 }
             }
@@ -285,7 +285,7 @@ namespace cog1.BackgroundServices
                 catch (Exception ex)
                 {
                     logger.LogError($"Error in outbound integration worker {integration.integrationId}: {ex.Message}");
-                    try { await Utils.CancellableDelay(5000, ct); } catch { break; }
+                    Utils.CancellableDelay(5000, ct);
                 }
             }
 

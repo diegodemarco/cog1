@@ -32,7 +32,7 @@ namespace cog1.Hardware
                 logger.LogInformation("Heartbeat service started");
 
                 // Signal that the background task has started
-                await Utils.CancellableDelay(1000, stoppingToken);
+                await Task.Yield();
 
                 while (!stoppingToken.IsCancellationRequested)
                 {
@@ -40,7 +40,7 @@ namespace cog1.Hardware
                     {
                         if (Global.IsDevelopment)
                         {
-                            await Utils.CancellableDelay(100, stoppingToken);
+                            Utils.CancellableDelay(100, stoppingToken);
                         }
                         else
                         {
@@ -64,13 +64,13 @@ namespace cog1.Hardware
                             ioLib.heartbeat(1);
                             Thread.Sleep(short_sleep);
                             ioLib.heartbeat(0);
-                            await Utils.CancellableDelay(inter_sleep, stoppingToken);
+                            Utils.CancellableDelay(inter_sleep, stoppingToken);
                         }
                     }
                     catch (Exception ex)
                     {
                         logger.LogError($"Error in heartbeat service: {ex}");
-                        await Utils.CancellableDelay(1000, stoppingToken);
+                        Utils.CancellableDelay(1000, stoppingToken);
                     }
                 }
 

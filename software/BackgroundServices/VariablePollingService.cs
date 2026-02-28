@@ -49,8 +49,9 @@ namespace cog1.BackgroundServices
             // Subscribe to variable definition changes
             variableDefinitionChangeSubscription = VariableBusiness.SubscribeToDefinitionChanges();
 
-            // Signal that the background task has started, while postponing the first polling for 1 second
-            await Utils.CancellableDelay(1000, stoppingToken);
+            // Signal that the background task has started, and postpone the first polling for 1 second
+            await Task.Yield();
+            Utils.CancellableDelay(1000, stoppingToken);
 
             while (!stoppingToken.IsCancellationRequested)
             {
@@ -69,7 +70,7 @@ namespace cog1.BackgroundServices
                 catch (Exception ex)
                 {
                     logger.LogError($"Error in VariablePolling service: {ex}");
-                    await Utils.CancellableDelay(30000, stoppingToken);
+                    Utils.CancellableDelay(30000, stoppingToken);
                 }
             }
 
