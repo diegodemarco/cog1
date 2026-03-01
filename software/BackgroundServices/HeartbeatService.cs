@@ -3,9 +3,9 @@ using Microsoft.Extensions.Logging;
 using System.Threading.Tasks;
 using System.Threading;
 using System;
-using cog1.Telemetry;
+using cog1.System;
 
-namespace cog1.Hardware
+namespace cog1.System
 {
     public static partial class IOManager
     {

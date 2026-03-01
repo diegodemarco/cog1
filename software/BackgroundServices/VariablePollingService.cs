@@ -1,7 +1,7 @@
 ﻿using cog1.Business;
 using cog1.DTO;
 using cog1.Entities;
-using cog1.Hardware;
+using cog1.System;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;

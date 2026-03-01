@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace cog1
 {
-    public class TemperatureReport
+    public class TemperatureReportDTO
     {
         public double? maxTemperatureC { get; set; }
         public bool? isCritical { get; set; }

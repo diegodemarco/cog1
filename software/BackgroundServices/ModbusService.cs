@@ -1,5 +1,5 @@
 ﻿using cog1.DTO;
-using cog1.Hardware;
+using cog1.System;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System;

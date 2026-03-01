@@ -1,5 +1,6 @@
-﻿using cog1.Hardware;
+﻿using cog1.System;
 using System.Collections.Generic;
+using System.Threading;
 
 namespace cog1.Display.Menu
 {
@@ -18,6 +19,7 @@ namespace cog1.Display.Menu
         private static int pageIndex = 0;
         private static Stack<DisplayStackItem> pageStack = new();
         private static Queue<EncoderEventType> encoderEvents = new();
+        private static AutoResetEvent encoderEvent = new(false);
 
         private static List<DisplayMenuPage> pages = new()
         {
@@ -48,6 +50,7 @@ namespace cog1.Display.Menu
         public static void EncoderEvent(EncoderEventType eventType)
         {
             const int EVENT_QUEUE_LIMIT = 2;
+            encoderEvent.Set();
 
             switch (eventType)
             {

@@ -16,7 +16,7 @@ namespace cog1
         static Global()
         {
             // Get the directory of the main executable
-            using (var p = System.Diagnostics.Process.GetCurrentProcess())
+            using (var p = global::System.Diagnostics.Process.GetCurrentProcess())
                 exeDir = Path.GetDirectoryName(p.MainModule.FileName);
 
             // Calculate all other relative paths

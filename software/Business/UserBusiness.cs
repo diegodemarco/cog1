@@ -55,7 +55,7 @@ namespace cog1.Business
                 throw new ControllerException(Context.ErrorCodes.General.INVALID_MANDATORY_DATA(Context.Literals.Common.Username));
             if (user.localeCode == null)
                 throw new ControllerException(Context.ErrorCodes.General.INVALID_MANDATORY_DATA(Context.Literals.Common.Language));
-            var loc = Context.MasterEntityBusiness.EnumerateLocales().FirstOrDefault(item => item.localeCode.Equals(user.localeCode.Trim(), System.StringComparison.OrdinalIgnoreCase));
+            var loc = Context.MasterEntityBusiness.EnumerateLocales().FirstOrDefault(item => item.localeCode.Equals(user.localeCode.Trim(), global::System.StringComparison.OrdinalIgnoreCase));
             if (loc == null)
                 throw new ControllerException(Context.ErrorCodes.General.INVALID_MANDATORY_DATA(Context.Literals.Common.Language));
             user.localeCode = loc.localeCode;

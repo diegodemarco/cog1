@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace cog1
 {
-    public class WiFiReport
+    public class WiFiReportDTO
     {
         public string macAddress { get; set; }
         public string ssid { get; set; }

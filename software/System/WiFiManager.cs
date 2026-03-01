@@ -2,11 +2,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
-using static cog1.Literals.CommonLiterals;
-using static cog1.Literals.ErrorCodes;
 
-namespace cog1.Hardware
+namespace cog1.System
 {
     public static class WiFiManager
     {
@@ -82,7 +79,7 @@ namespace cog1.Hardware
 
         #region WiFi status & information
 
-        public static WiFiReport GetStatus()
+        public static WiFiReportDTO GetStatus()
         {
             /*
             This is an example of what the output of "nmcli device show wlan0" looks like:
@@ -104,7 +101,7 @@ namespace cog1.Hardware
             const string IP_V4 = "IP4.ADDRESS[1]:";
             */
 
-            var result = new WiFiReport()
+            var result = new WiFiReportDTO()
             {
                 ssid = null,
                 connectionState = 0,

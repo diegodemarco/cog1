@@ -1,11 +1,10 @@
-﻿using cog1.Hardware;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-namespace cog1.Telemetry
+namespace cog1.System
 {
     public static partial class SystemStats
     {
@@ -42,13 +41,13 @@ namespace cog1.Telemetry
         private static object _lock = new();
         private static List<CpuMeasurement> cpu1SecMeasurements = new();
 
-        public static TemperatureReport GetTemps()
+        public static TemperatureReportDTO GetTemps()
         {
             var output = OSUtils.RunWithOutput("sensors", "-j");
 
             // Parse the output
             var jsonData = JsonConvert.DeserializeObject<Dictionary<string, SensorsDataEntry>>(output);
-            var result = new TemperatureReport()
+            var result = new TemperatureReportDTO()
             {
                 details = new List<TemperatureReportEntry>()
             };

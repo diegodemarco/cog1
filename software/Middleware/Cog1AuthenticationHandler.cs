@@ -120,7 +120,7 @@ namespace cog1.Middleware
 
             // Create ticket
             var identity = new ClaimsIdentity(claims, Scheme.Name);
-            var principal = new System.Security.Principal.GenericPrincipal(identity, null);
+            var principal = new global::System.Security.Principal.GenericPrincipal(identity, null);
             var ticket = new AuthenticationTicket(principal, Scheme.Name);
 
             // Done

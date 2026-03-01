@@ -5,7 +5,7 @@ using System.Threading;
 using System;
 using System.Diagnostics;
 
-namespace cog1.Telemetry
+namespace cog1.System
 {
     public static partial class SystemStats
     {

@@ -2,9 +2,9 @@ using cog1.BackgroundServices;
 using cog1.Business;
 using cog1.Display.Menu;
 using cog1.Exceptions;
-using cog1.Hardware;
+using cog1.System;
 using cog1.Middleware;
-using cog1.Telemetry;
+using cog1.System;
 using Cog1.DB;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -68,7 +68,7 @@ namespace cog1
 
             // Initialize hardware i/o
             if (!IOManager.Init())
-                throw new System.Exception("Failed startup: could not initialize hardware");
+                throw new global::System.Exception("Failed startup: could not initialize hardware");
 
             // HttpContext is used by the cog1 context
             services.AddHttpContextAccessor();

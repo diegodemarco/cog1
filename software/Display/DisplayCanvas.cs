@@ -12,7 +12,7 @@
 
 using System;
 using System.Text;
-using cog1.Hardware;
+using cog1.System;
 
 namespace cog1
 {

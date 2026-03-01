@@ -1,5 +1,5 @@
 ﻿using cog1.DTO;
-using cog1.Hardware;
+using cog1.System;
 using static cog1.Literals.NetworkLiterals;
 
 namespace cog1.Display.Menu

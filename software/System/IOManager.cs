@@ -11,7 +11,7 @@ using cog1.DTO;
 using cog1.Entities;
 using Newtonsoft.Json;
 
-namespace cog1.Hardware
+namespace cog1.System
 {
     public enum BootReason
     {

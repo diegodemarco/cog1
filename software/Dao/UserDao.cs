@@ -95,7 +95,7 @@ namespace cog1.Dao
             LoadUsers();
             lock (_lock)
             {
-                return users.Values.FirstOrDefault(item => string.Equals(item.userName, userName, System.StringComparison.OrdinalIgnoreCase));
+                return users.Values.FirstOrDefault(item => string.Equals(item.userName, userName, global::System.StringComparison.OrdinalIgnoreCase));
             }
         }
 

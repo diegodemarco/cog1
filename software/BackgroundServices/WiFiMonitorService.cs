@@ -6,7 +6,7 @@ using System;
 using Newtonsoft.Json;
 using System.IO;
 
-namespace cog1.Hardware
+namespace cog1.System
 {
     /// <summary>
     /// The WiFi monitor service lives inside the WiFiManager singleton, to 

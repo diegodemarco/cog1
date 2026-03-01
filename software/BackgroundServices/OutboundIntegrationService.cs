@@ -1,6 +1,6 @@
 using cog1.Business;
 using cog1.DTO;
-using cog1.Hardware;
+using cog1.System;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -525,7 +525,7 @@ namespace cog1.BackgroundServices
             if (!string.IsNullOrWhiteSpace(connection.userName))
             {
                 var credentials = Convert.ToBase64String(Encoding.UTF8.GetBytes($"{connection.userName}:{connection.password ?? ""}"));
-                client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", credentials);
+                client.DefaultRequestHeaders.Authorization = new global::System.Net.Http.Headers.AuthenticationHeaderValue("Basic", credentials);
             }
 
             return client;

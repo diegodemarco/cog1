@@ -1,6 +1,6 @@
 ﻿using System;
-using cog1.Hardware;
-using cog1.Telemetry;
+using cog1.System;
+using cog1.System;
 
 namespace cog1.Display.Menu
 {

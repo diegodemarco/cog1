@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using System.Threading;
 using System;
 using System.Diagnostics;
-using cog1.Hardware;
+using cog1.System;
 
 namespace cog1.Display.Menu
 {
@@ -69,11 +69,12 @@ namespace cog1.Display.Menu
                                 ProcessAction(currentPage.EncoderButtonUp(out newPage), newPage);
                                 break;
                             default:
-                                //await Utils.CancellableDelay(100, stoppingToken);
-                                Thread.Sleep(100);
+                                // Wait for an encoder event or until the next second elapses, whatever happens first.
+                                var sleepTime = (int)Math.Max(1000, nextTick_second - sw.ElapsedMilliseconds);
+                                WaitHandle.WaitAny([encoderEvent, stoppingToken.WaitHandle], sleepTime);
                                 break;
                         }
-                        if (sw.ElapsedMilliseconds > nextTick_second)
+                        if (sw.ElapsedMilliseconds >= nextTick_second)
                         {
                             nextTick_second += tick_interval_second;
                             currentPage.TickSecond();

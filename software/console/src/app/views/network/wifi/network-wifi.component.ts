@@ -9,7 +9,7 @@ import { BasicEntitiesService } from '../../../services/basic-entities.service';
 import { AuthService } from '../../../services/auth.service';
 import { ViewStatusService } from '../../../services/view-status.service';
 import { BackendService } from '../../../services/backend.service';
-import { JsonControllerException, LiteralsContainerDTO, ValuePairDTO, WiFiMode, WiFiReport } from '../../../api-client/data-contracts';
+import { JsonControllerException, LiteralsContainerDTO, ValuePairDTO, WiFiMode, WiFiReportDTO } from '../../../api-client/data-contracts';
 import { IconSubset } from '../../../icons/icon-subset';
 import { CrudPageComponent } from '../../../shared/crud-page/crud-page.component'
 import { RouterModule } from '@angular/router';
@@ -64,7 +64,7 @@ export class NetworkWiFiComponent extends BaseViewComponent implements AfterView
     super.ngOnDestroy();
   }
 
-  public static makeValuePairs(report: WiFiReport, literals: LiteralsContainerDTO): ValuePairDTO[]
+  public static makeValuePairs(report: WiFiReportDTO, literals: LiteralsContainerDTO): ValuePairDTO[]
   {
     let result: ValuePairDTO[] = [];
     let ln = literals!.network!;

@@ -7,7 +7,7 @@ using cog1.Entities;
 using Microsoft.Extensions.Logging;
 using System;
 using cog1.Exceptions;
-using cog1.Hardware;
+using cog1.System;
 
 namespace cog1.Dao
 {
@@ -208,7 +208,7 @@ namespace cog1.Dao
                 if (string.IsNullOrWhiteSpace(variableCode)) 
                     return null;
                 variableCode = variableCode.Trim();
-                return variables.Values.FirstOrDefault(item => string.Equals(item.variableCode, variableCode, System.StringComparison.OrdinalIgnoreCase));
+                return variables.Values.FirstOrDefault(item => string.Equals(item.variableCode, variableCode, global::System.StringComparison.OrdinalIgnoreCase));
             }
         }
 

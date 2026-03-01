@@ -1,9 +1,9 @@
 ﻿using cog1.Business;
 using cog1.DTO;
 using cog1.Exceptions;
-using cog1.Hardware;
+using cog1.System;
 using cog1.Middleware;
-using cog1.Telemetry;
+using cog1.System;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -38,7 +38,7 @@ namespace cog1.Controllers
                 }
                 catch (Exception ex)
                 {
-                    System.IO.File.WriteAllText("err.txt", ex.ToString());
+                    global::System.IO.File.WriteAllText("err.txt", ex.ToString());
                     throw;
                 }
             });
@@ -56,7 +56,7 @@ namespace cog1.Controllers
                 }
                 catch (Exception ex)
                 {
-                    System.IO.File.WriteAllText("err.txt", ex.ToString());
+                    global::System.IO.File.WriteAllText("err.txt", ex.ToString());
                     throw;
                 }
             });
@@ -76,7 +76,7 @@ namespace cog1.Controllers
                 }
                 catch (Exception ex)
                 {
-                    System.IO.File.WriteAllText("err.txt", ex.ToString());
+                    global::System.IO.File.WriteAllText("err.txt", ex.ToString());
                     throw;
                 }
             });

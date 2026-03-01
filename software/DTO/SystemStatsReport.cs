@@ -6,8 +6,8 @@ namespace cog1
         public CPUReportDTO cpuReport { get; set; }
         public MemoryReportDTO memory { get; set; }
         public DiskReportDTO disk { get; set; }
-        public TemperatureReport temperature { get; set; }
-        public WiFiReport wiFi { get; set; }
+        public TemperatureReportDTO temperature { get; set; }
+        public WiFiReportDTO wiFi { get; set; }
         public EthernetReportDTO ethernet { get; set; }
     }
 }

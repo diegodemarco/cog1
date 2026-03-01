@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using System.Threading;
 using System;
 
-namespace cog1.Hardware
+namespace cog1.System
 {
     public static partial class IOManager
     {

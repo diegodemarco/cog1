@@ -6,7 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 
-namespace cog1.Hardware
+namespace cog1.System
 {
     public static class EthernetManager
     {

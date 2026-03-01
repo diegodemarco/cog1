@@ -554,12 +554,12 @@ export interface SystemStatsReport {
   cpuReport?: CPUReportDTO;
   memory?: MemoryReportDTO;
   disk?: DiskReportDTO;
-  temperature?: TemperatureReport;
-  wiFi?: WiFiReport;
+  temperature?: TemperatureReportDTO;
+  wiFi?: WiFiReportDTO;
   ethernet?: EthernetReportDTO;
 }
 
-export interface TemperatureReport {
+export interface TemperatureReportDTO {
   /** @format double */
   maxTemperatureC?: number | null;
   isCritical?: boolean | null;
@@ -672,7 +672,7 @@ export interface WiFiConnectRequestDTO {
   password?: string | null;
 }
 
-export interface WiFiReport {
+export interface WiFiReportDTO {
   macAddress?: string | null;
   ssid?: string | null;
   /** @format int32 */
