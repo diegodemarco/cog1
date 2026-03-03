@@ -13,6 +13,8 @@ namespace cog1.DTO
         public List<ModbusRegisterTypeDTO> modbusRegisterTypes { get; set; }
         public List<ModbusDataTypeDTO> modbusDataTypes { get; set; }
         public List<IntegrationConnectionTypeDTO> integrationConnectionTypes { get; set; }
+        public List<LogCategoryDTO> logCategories { get; set; }
+        public List<LogLevelDTO> logLevels { get; set; }
 
     }
 }

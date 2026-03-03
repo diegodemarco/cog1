@@ -1,10 +1,12 @@
-﻿using Microsoft.Extensions.Hosting;
+﻿using cog1.BackgroundServices;
+using cog1.DTO;
 using Microsoft.Extensions.Logging;
 using System.Threading.Tasks;
 using System.Threading;
 using System;
 using System.Diagnostics;
 using cog1.System;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace cog1.Display.Menu
 {
@@ -19,16 +21,12 @@ namespace cog1.Display.Menu
         /// DisplayMenu fields and methods.
         /// </summary>
         /// <param name="logger">logger used by the background service</param>
-        public class MenuLoopService(ILogger<MenuLoopService> logger) : BackgroundService
+        public class MenuLoopService(ILogger<MenuLoopService> logger, IServiceScopeFactory scopeFactory) : BaseBackgroundService(logger, scopeFactory, "Menu loop", LogCategory.System)
         {
 
-            protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+            protected override async Task Run(CancellationToken stoppingToken)
             {
-                logger.LogInformation("Display menu loop service started");
-
-                // Signal that the background task has started
                 await Task.Yield();
-
                 try
                 {
                     const int tick_interval_second = 1000;
@@ -96,8 +94,6 @@ namespace cog1.Display.Menu
                 {
                     logger.LogError($"Display menu loop error: {ex}");
                 }
-
-                logger.LogInformation("Display menu loop service stopped");
             }
         }
     }

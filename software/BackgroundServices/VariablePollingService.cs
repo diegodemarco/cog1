@@ -28,7 +28,7 @@ namespace cog1.BackgroundServices
     /// Scope factory used to create new scopes as needed, mostly to instantiate contexts 
     /// to access the database.
     /// </param>
-    public class VariablePollingService(ILogger<VariablePollingService> logger, IServiceScopeFactory scopeFactory) : BackgroundService
+    public class VariablePollingService(ILogger<VariablePollingService> logger, IServiceScopeFactory scopeFactory) : BaseBackgroundService(logger, scopeFactory, "Variable polling", LogCategory.Variables)
     {
         private class VariableDefEntry : VariableDTO
         {
@@ -39,17 +39,15 @@ namespace cog1.BackgroundServices
         private List<VariableDefEntry> variableDefs = new();
         private VariableBusiness.VariableDefinitionChangeSubscription variableDefinitionChangeSubscription;
 
-        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+        protected override async Task Run(CancellationToken stoppingToken)
         {
-            logger.LogInformation("VariablePolling service started");
-
             // Load initial variable definitions
             UpdateVariableDefinitions();
 
             // Subscribe to variable definition changes
             variableDefinitionChangeSubscription = VariableBusiness.SubscribeToDefinitionChanges();
 
-            // Signal that the background task has started, and postpone the first polling for 1 second
+            // Postpone the first polling for 1 second
             await Task.Yield();
             Utils.CancellableDelay(1000, stoppingToken);
 
@@ -69,15 +67,13 @@ namespace cog1.BackgroundServices
                 }
                 catch (Exception ex)
                 {
-                    logger.LogError($"Error in VariablePolling service: {ex}");
+                    LogError($"Error in VariablePolling service: {ex}");
                     Utils.CancellableDelay(30000, stoppingToken);
                 }
             }
 
             // Unsubscribe from variable definition changes
             VariableBusiness.UnsubscribeFromDefinitionChanges(variableDefinitionChangeSubscription);
-
-            logger.LogInformation("VariablePolling service stopped");
         }
 
         private void UpdateVariableDefinitions()
@@ -130,7 +126,7 @@ namespace cog1.BackgroundServices
             variableDefs.RemoveAll(item => !vars.Any(x => x.variableId == item.variableId));
 
             // Done
-            logger.LogInformation($"Updated variable definitions, change detected");
+            LogInformation($"Updated variable definitions, change detected");
         }
 
         private void PollBuiltInVariable(int variableId)

@@ -14,6 +14,9 @@ import {
   EthernetLinkConfigurationDTO,
   IpConfigurationDTO,
   JsonControllerException,
+  LogCategory,
+  LogEntryDTO,
+  LogLevel,
   SystemStatsReport,
   WiFiConnectRequestDTO,
   WiFiSetIpConfigurationDTO,
@@ -275,6 +278,27 @@ export class System<
       method: "POST",
       body: data,
       type: ContentType.Json,
+      format: "json",
+      ...params,
+    });
+  /**
+   * No description
+   *
+   * @tags System
+   * @name GetLogEntries
+   * @request GET:/api/system/logs
+   */
+  getLogEntries = (
+    query?: {
+      category?: LogCategory;
+      level?: LogLevel;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<LogEntryDTO[], JsonControllerException>({
+      path: `/api/system/logs`,
+      method: "GET",
+      query: query,
       format: "json",
       ...params,
     });

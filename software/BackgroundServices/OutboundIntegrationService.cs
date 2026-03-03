@@ -8,7 +8,6 @@ using MQTTnet;
 using MQTTnet.Protocol;
 using Newtonsoft.Json;
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -33,9 +32,7 @@ namespace cog1.BackgroundServices
     /// subscribing to change notifications via
     /// <see cref="IntegrationBusiness.SubscribeToOutboundIntegrationChanges"/>.
     /// </summary>
-    public class OutboundIntegrationService(
-        ILogger<OutboundIntegrationService> logger,
-        IServiceScopeFactory scopeFactory) : BackgroundService
+    public class OutboundIntegrationService(ILogger<OutboundIntegrationService> logger, IServiceScopeFactory scopeFactory) : BaseBackgroundService(logger, scopeFactory, "Outbound integrations", LogCategory.Integrations)
     {
         #region Config change subscriptions
 
@@ -62,19 +59,15 @@ namespace cog1.BackgroundServices
 
         #endregion
 
-        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+        protected override async Task Run(CancellationToken stoppingToken)
         {
-            logger.LogInformation("Outbound integration service started");
-
-            // Signal that the background task has started
-            await Task.Yield();
-
             // Subscribe to outbound integration and connection configuration changes
             outboundChangeSubscription = IntegrationBusiness.SubscribeToOutboundIntegrationChanges();
             connectionChangeSubscription = IntegrationBusiness.SubscribeToIntegrationConnectionChanges();
 
             try
             {
+                await Task.Yield();
                 while (!stoppingToken.IsCancellationRequested)
                 {
                     try
@@ -90,7 +83,7 @@ namespace cog1.BackgroundServices
                     }
                     catch (Exception ex)
                     {
-                        logger.LogError($"Error in outbound integration service: {ex}");
+                        LogError($"Error in outbound integration service: {ex}");
                         Utils.CancellableDelay(5000, stoppingToken);
                     }
                 }
@@ -102,8 +95,6 @@ namespace cog1.BackgroundServices
                 IntegrationBusiness.UnsubscribeFromOutboundIntegrationChanges(outboundChangeSubscription);
                 IntegrationBusiness.UnsubscribeFromIntegrationConnectionChanges(connectionChangeSubscription);
             }
-
-            logger.LogInformation("Outbound integration service stopped");
         }
 
         #region Worker reconciliation
@@ -132,7 +123,7 @@ namespace cog1.BackgroundServices
             var toRemove = workers.Keys.Where(id => !desiredIds.Contains(id)).ToList();
             foreach (var id in toRemove)
             {
-                logger.LogInformation($"Stopping outbound integration worker for integration {id} (deleted)");
+                LogInformation($"Stopping outbound integration worker for integration {id} (deleted)");
                 StopWorker(id);
             }
 
@@ -143,7 +134,7 @@ namespace cog1.BackgroundServices
                     // Connection not found; skip (and stop existing worker if any)
                     if (workers.ContainsKey(integration.integrationId))
                     {
-                        logger.LogWarning($"Stopping outbound integration worker for integration {integration.integrationId}: connection {integration.integrationConnectionId} not found");
+                        LogWarning($"Stopping outbound integration worker for integration {integration.integrationId}: connection {integration.integrationConnectionId} not found");
                         StopWorker(integration.integrationId);
                     }
                     continue;
@@ -154,7 +145,7 @@ namespace cog1.BackgroundServices
                     // Check if the configuration changed
                     if (IntegrationConfigChanged(existing, integration, connection))
                     {
-                        logger.LogInformation($"Restarting outbound integration worker for integration {integration.integrationId} (configuration changed)");
+                        LogInformation($"Restarting outbound integration worker for integration {integration.integrationId} (configuration changed)");
                         StopWorker(integration.integrationId);
                         StartWorker(integration, connection);
                     }
@@ -162,7 +153,7 @@ namespace cog1.BackgroundServices
                 else
                 {
                     // New integration — start a worker
-                    logger.LogInformation($"Starting outbound integration worker for integration {integration.integrationId}");
+                    LogInformation($"Starting outbound integration worker for integration {integration.integrationId}");
                     StartWorker(integration, connection);
                 }
             }
@@ -226,7 +217,7 @@ namespace cog1.BackgroundServices
             var sendIntervalMs = (long)integration.sendIntervalSeconds * 1000;
             var watchesVariables = integration.variableChangeList != null && integration.variableChangeList.Count > 0;
 
-            logger.LogInformation($"Outbound integration worker {integration.integrationId} ({integration.description}) running");
+            LogInformation($"Outbound integration worker {integration.integrationId} ({integration.description}) running");
 
             // Create a shared HttpClient for the lifetime of this worker (only for HTTP connections)
             using var httpClient = connection.connectionType == IntegrationConnectionType.HTTPPost
@@ -266,7 +257,7 @@ namespace cog1.BackgroundServices
                     {
                         if (changedSet.Any(id => integration.variableChangeList.Contains(id)))
                         {
-                            logger.LogInformation($"Outbound integration {integration.integrationId}: triggered by variable changes ({string.Join(", ", changedSet)})");
+                            LogInformation($"Outbound integration {integration.integrationId}: triggered by variable changes ({string.Join(", ", changedSet)})");
                             shouldSend = true;
                         }
                     }
@@ -284,12 +275,12 @@ namespace cog1.BackgroundServices
                 }
                 catch (Exception ex)
                 {
-                    logger.LogError($"Error in outbound integration worker {integration.integrationId}: {ex.Message}");
+                    LogError($"Error in outbound integration worker {integration.integrationId}: {ex.Message}");
                     Utils.CancellableDelay(5000, ct);
                 }
             }
 
-            logger.LogInformation($"Outbound integration worker {integration.integrationId} stopped");
+            LogInformation($"Outbound integration worker {integration.integrationId} stopped");
         }
 
         /// <summary>
@@ -367,7 +358,7 @@ namespace cog1.BackgroundServices
         /// </summary>
         private async Task SendPayload(OutboundIntegrationDTO integration, IntegrationConnectionDTO connection, string payload, HttpClient httpClient, IMqttClient mqttClient, MqttClientOptions mqttOptions, CancellationToken ct)
         {
-            logger.LogInformation($"Outbound integration {integration.integrationId}: sending payload via {connection.connectionType}");
+            LogInformation($"Outbound integration {integration.integrationId}: sending payload via {connection.connectionType}");
             switch (connection.connectionType)
             {
                 case IntegrationConnectionType.HTTPPost:
@@ -377,7 +368,7 @@ namespace cog1.BackgroundServices
                     await SendMqtt(integration, connection, payload, mqttClient, mqttOptions, ct);
                     break;
                 default:
-                    logger.LogWarning($"Outbound integration {integration.integrationId}: unknown connection type {connection.connectionType}");
+                    LogWarning($"Outbound integration {integration.integrationId}: unknown connection type {connection.connectionType}");
                     break;
             }
         }
@@ -396,7 +387,7 @@ namespace cog1.BackgroundServices
             if (!response.IsSuccessStatusCode)
             {
                 var body = await response.Content.ReadAsStringAsync(ct);
-                logger.LogWarning($"Outbound integration {integration.integrationId} HTTP POST to {url} returned {(int)response.StatusCode}: {body}");
+                LogWarning($"Outbound integration {integration.integrationId} HTTP POST to {url} returned {(int)response.StatusCode}: {body}");
             }
         }
 
@@ -417,7 +408,7 @@ namespace cog1.BackgroundServices
                     var result = await client.ConnectAsync(mqttOptions, ct);
                     if (result.ResultCode != MqttClientConnectResultCode.Success)
                     {
-                        logger.LogWarning($"Outbound integration {integration.integrationId} MQTT client failed to connect: {result.ResultCode}");
+                        LogWarning($"Outbound integration {integration.integrationId} MQTT client failed to connect: {result.ResultCode}");
                         return;
                     }
                 }
@@ -431,7 +422,7 @@ namespace cog1.BackgroundServices
             }
             catch (Exception ex)
             {
-                logger.LogWarning($"Outbound integration {integration.integrationId} MQTT publish to {topic} failed: {ex.Message}");
+                LogWarning($"Outbound integration {integration.integrationId} MQTT publish to {topic} failed: {ex.Message}");
             }
         }
 
@@ -448,7 +439,7 @@ namespace cog1.BackgroundServices
         {
             if (!Utils.SplitMqttHost(connection.mqttHost, out var host, out var port))
             {
-                logger.LogWarning($"Outbound integration {integration.integrationId}: invalid MQTT host '{connection.mqttHost}'");
+                LogWarning($"Outbound integration {integration.integrationId}: invalid MQTT host '{connection.mqttHost}'");
                 return (null, null);
             }
 

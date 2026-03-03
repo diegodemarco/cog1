@@ -3,7 +3,6 @@ using cog1.DTO;
 using cog1.Exceptions;
 using cog1.System;
 using cog1.Middleware;
-using cog1.System;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -242,6 +241,20 @@ namespace cog1.Controllers
             {
                 if (!EthernetManager.SetLinkConfiguration(configuration, context.ErrorCodes))
                     throw new ControllerException(context.ErrorCodes.Network.LINK_CONFIG_ERROR);
+            });
+        }
+
+        #endregion
+
+        #region Logging
+
+        [HttpGet]
+        [Route("logs")]
+        public List<LogEntryDTO> GetLogEntries([FromQuery] LogCategory? category = null, [FromQuery] DTO.LogLevel? level = null)
+        {
+            return MethodPattern(() =>
+            {
+                return context.LoggingBusiness.GetEntries(category, level);
             });
         }
 

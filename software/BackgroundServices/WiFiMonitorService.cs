@@ -1,10 +1,12 @@
-﻿using Microsoft.Extensions.Hosting;
+﻿using cog1.BackgroundServices;
+using cog1.DTO;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using System.Threading.Tasks;
-using System.Threading;
-using System;
 using Newtonsoft.Json;
+using System;
 using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace cog1.System
 {
@@ -16,18 +18,14 @@ namespace cog1.System
     /// WiFiManager fields and methods.
     /// </summary>
     /// <param name="logger">logger used by the background service</param>
-    public class WiFiMonitorService(ILogger<WiFiMonitorService> logger) : BackgroundService
+    public class WiFiMonitorService(ILogger<WiFiMonitorService> logger, IServiceScopeFactory scopeFactory) : BaseBackgroundService(logger, scopeFactory, "WiFi monitor", LogCategory.System)
     {
-        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+        protected override async Task Run(CancellationToken stoppingToken)
         {
-            logger.LogInformation("WiFi monitor service started");
-
             if (!Directory.Exists("./wifi_log"))
                 Directory.CreateDirectory("./wifi_log");
 
-            // Signal that the background task has started
             await Task.Yield();
-
             while (!stoppingToken.IsCancellationRequested)
             {
                 try
@@ -57,8 +55,6 @@ namespace cog1.System
                     Utils.CancellableDelay(1000, stoppingToken);
                 }
             }
-
-            logger.LogInformation("WiFi monitor service stopped");
         }
 
         private static bool ResetWiFi()

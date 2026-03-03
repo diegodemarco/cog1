@@ -1,5 +1,6 @@
 ﻿using cog1.DTO;
 using cog1.Modbus;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System;
@@ -17,29 +18,24 @@ namespace cog1.BackgroundServices
     /// <param name="logger">
     /// Logger used by the background service.
     /// </param>
-    public abstract class ModbusInterfaceBaseService(ILogger logger) : BackgroundService
+    public abstract class ModbusInterfaceBaseService(ILogger logger, IServiceScopeFactory scopeFactory, string serviceName) : BaseBackgroundService(logger, scopeFactory, serviceName, LogCategory.Modbus)
     {
         private ModbusServer server;
 
         #region Abstract
         
-        protected abstract string Description { get; }
         protected abstract long Dequeue(out ModbusRegisterDTO modbusRegister, out bool isRead, out double value);
         protected abstract ModbusServer CreateServer();
 
         #endregion
 
-        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+        protected override async Task Run(CancellationToken stoppingToken)
         {
-            logger.LogInformation($"{Description} service started");
-
-            // Signal that the background task has started
-            await Task.Yield();
-
             // Subscribe to queue notifications
             var subscription = ModbusService.SubscribeToQueue();
             try
             {
+                await Task.Yield();
                 while (!stoppingToken.IsCancellationRequested)
                 {
                     try
@@ -55,7 +51,7 @@ namespace cog1.BackgroundServices
                     }
                     catch (Exception ex)
                     {
-                        logger.LogError($"Error in {Description} service: {ex}");
+                        LogError($"Error in {ServiceName} service: {ex}");
                         Utils.CancellableDelay(5000, stoppingToken);
                     }
                 }
@@ -64,8 +60,6 @@ namespace cog1.BackgroundServices
             {
                 ModbusService.UnsubscribeFromQueue(subscription);
             }
-
-            logger.LogInformation($"{Description} service stopped");
         }
 
         private void EnsureServer()

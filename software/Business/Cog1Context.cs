@@ -51,6 +51,8 @@ namespace cog1.Business
         public VariableBusiness VariableBusiness => variableBusiness.Value;
         private Lazy<IntegrationBusiness> integrationBusiness;
         public IntegrationBusiness IntegrationBusiness => integrationBusiness.Value;
+        private Lazy<LoggingBusiness> loggingBusiness;
+        public LoggingBusiness LoggingBusiness => loggingBusiness.Value;
         //private Lazy<ModbusBusiness> modbusBusiness;
         //public ModbusBusiness ModbusBusiness => modbusBusiness.Value;
 
@@ -78,7 +80,6 @@ namespace cog1.Business
             userDao = new Lazy<UserDao>(() => new UserDao(this, logger));
             variableDao = new Lazy<VariableDao>(() => new VariableDao(this, logger));
             integrationDao = new Lazy<IntegrationDao>(() => new IntegrationDao(this, logger));
-            //modbusDao = new Lazy<ModbusDao>(() => new ModbusDao(this, logger));
 
             // Business
             masterEntityBusiness = new Lazy<MasterEntityBusiness>(() => new MasterEntityBusiness(this, logger));
@@ -86,7 +87,7 @@ namespace cog1.Business
             securityBusiness = new Lazy<SecurityBusiness>(() => new SecurityBusiness(this, logger));
             variableBusiness = new Lazy<VariableBusiness>(() => new VariableBusiness(this, logger));
             integrationBusiness = new Lazy<IntegrationBusiness>(() => new IntegrationBusiness(this, logger));
-            //modbusBusiness = new Lazy<ModbusBusiness>(() => new ModbusBusiness(this, logger));
+            loggingBusiness = new Lazy<LoggingBusiness>(() => new LoggingBusiness(this, logger));
         }
 
         protected virtual Exceptions.ErrorCodes GetErrorCodes()

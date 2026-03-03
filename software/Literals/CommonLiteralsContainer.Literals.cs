@@ -1288,6 +1288,13 @@ namespace cog1.Literals
             public override string ES => "Hecho";
         }
 
+        public class System : LiteralConstant
+        {
+            public override string EN => "System";
+            public override string ES => "Sistema";
+            public override string PT => "Sistema";
+        }
+
     }
 
 }

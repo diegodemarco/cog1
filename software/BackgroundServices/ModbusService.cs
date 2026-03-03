@@ -1,6 +1,6 @@
 ﻿using cog1.DTO;
 using cog1.System;
-using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -24,7 +24,7 @@ namespace cog1.BackgroundServices
     /// Scope factory used to create new scopes as needed, mostly to instantiate contexts 
     /// to access the database.
     /// </param>
-    public class ModbusService(ILogger<ModbusService> logger) : BackgroundService
+    public class ModbusService(ILogger<ModbusService> logger, IServiceScopeFactory scopeFactory) : BaseBackgroundService(logger, scopeFactory, "Modbus manager", LogCategory.Modbus)
     {
         private static long lastId = 1;
         private static object _lock = new();
@@ -114,13 +114,9 @@ namespace cog1.BackgroundServices
             public string errorMessage;
         }
 
-        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+        protected override async Task Run(CancellationToken stoppingToken)
         {
-            logger.LogInformation("Modbus manager service started");
-
-            // Signal that the background task has started
             await Task.Yield();
-
             while (!stoppingToken.IsCancellationRequested)
             {
                 try
@@ -139,8 +135,6 @@ namespace cog1.BackgroundServices
                     Utils.CancellableDelay(5000, stoppingToken);
                 }
             }
-
-            logger.LogInformation("Modbus manager service stopped");
         }
 
         private static void CheckCompletedItems()

@@ -1,9 +1,12 @@
-﻿using Microsoft.Extensions.Hosting;
+﻿using cog1.BackgroundServices;
+using cog1.DTO;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using System.Threading.Tasks;
-using System.Threading;
 using System;
 using System.Diagnostics;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace cog1.System
 {
@@ -17,18 +20,14 @@ namespace cog1.System
         /// SystemStats fields and methods.
         /// </summary>
         /// <param name="logger">logger used by the background service</param>
-        public class BackgroundTelemetryService(ILogger<BackgroundTelemetryService> logger) : BackgroundService
+        public class BackgroundTelemetryService(ILogger<BackgroundTelemetryService> logger, IServiceScopeFactory scopeFactory) : BaseBackgroundService(logger, scopeFactory, "Background telemetry", LogCategory.System)
         {
-            protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+            protected override async Task Run(CancellationToken stoppingToken)
             {
-                logger.LogInformation("Background telemetry service started");
-
                 var sw = Stopwatch.StartNew();
                 var nextSec = 1000;
 
-                // Signal that the background task has started
                 await Task.Yield();
-
                 while (!stoppingToken.IsCancellationRequested)
                 {
                     try
@@ -55,8 +54,6 @@ namespace cog1.System
                         Utils.CancellableDelay(1000, stoppingToken);
                     }
                 }
-
-                logger.LogInformation("Background telemetry service stopped");
             }
         }
 

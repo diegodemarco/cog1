@@ -4,7 +4,6 @@ using cog1.Display.Menu;
 using cog1.Exceptions;
 using cog1.System;
 using cog1.Middleware;
-using cog1.System;
 using Cog1.DB;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -81,12 +80,12 @@ namespace cog1
                 .AddScheme<Cog1AuthenticationOptions, Cog1AuthenticationHandler>("cog1", null);
 
             // Register background services
+            services.AddHostedService<HousekeepingService>();                       // Run this one first so that it runs startup fixes as necessary
             services.AddHostedService<IOManager.HeartbeatService>();
             services.AddHostedService<IOManager.AnalogInputPollerService>();
             services.AddHostedService<SystemStats.BackgroundTelemetryService>();
             services.AddHostedService<WiFiMonitorService>();
             services.AddHostedService<DisplayMenu.MenuLoopService>();
-            services.AddHostedService<HousekeepingService>();
             services.AddHostedService<VariablePollingService>();
             services.AddHostedService<ModbusService>();
             services.AddHostedService<ModbusRtuService>();

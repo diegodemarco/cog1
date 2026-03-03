@@ -153,6 +153,17 @@ export class DefaultLayoutComponent implements AfterViewInit
           }       
         ]
       },
+      {
+        name: this.literals.common?.system!,
+        url: '',
+        iconComponent: { name: IconSubset.cilSettings },
+        children: [
+          {
+            name: this.literals.logging!.logs!,
+            url: '/logs',
+          }
+        ]
+      },
 /*
       {
         name: 'Notifications',

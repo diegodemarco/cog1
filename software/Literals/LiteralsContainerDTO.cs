@@ -9,6 +9,7 @@
         private VariablesLiteralsContainer _variables;
         private IntegrationsLiteralsContainer _integrations;
         private ModbusLiteralsContainer _modbus;
+        private LoggingLiteralsContainer _logging;
 
         public LiteralsContainerDTO() : base() 
         {
@@ -93,6 +94,17 @@
                 if (_modbus == null)
                     _modbus = new ModbusLiteralsContainer(LocaleCode);
                 return _modbus;
+            }
+            set { }
+        }
+
+        public LoggingLiteralsContainer Logging
+        {
+            get
+            {
+                if (_logging == null)
+                    _logging = new LoggingLiteralsContainer(LocaleCode);
+                return _logging;
             }
             set { }
         }

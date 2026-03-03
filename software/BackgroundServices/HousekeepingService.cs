@@ -1,4 +1,5 @@
 ﻿using cog1.Business;
+using cog1.DTO;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -22,16 +23,14 @@ namespace cog1.BackgroundServices
     /// mostly to instantiate contexts to work on startup fixes and periodic
     /// housekeeping tasks
     /// </param>
-    public class HousekeepingService(ILogger<HousekeepingService> logger, IServiceScopeFactory scopeFactory) : BackgroundService
+    public class HousekeepingService(ILogger<HousekeepingService> logger, IServiceScopeFactory scopeFactory) : BaseBackgroundService(logger, scopeFactory, "Housekeeping", LogCategory.System)
     {
 
-        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+        protected override async Task Run(CancellationToken stoppingToken)
         {
-            logger.LogInformation("Housekeeping service started");
-
             DoStartupFixes();
 
-            // Signal that the background task has started, and postpone the first housekeeping for 15 seconds
+            // Postpone the first housekeeping for 15 seconds
             await Task.Yield();
             Utils.CancellableDelay(15000, stoppingToken);
 
@@ -50,8 +49,6 @@ namespace cog1.BackgroundServices
                     Utils.CancellableDelay(30000, stoppingToken);
                 }
             }
-
-            logger.LogInformation("housekeeping service stopped");
         }
 
         private void DoStartupFixes()

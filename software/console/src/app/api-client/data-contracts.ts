@@ -63,6 +63,23 @@ export enum ModbusDataType {
 }
 
 /** @format int32 */
+export enum LogLevel {
+  Information = 0,
+  Warning = 1,
+  Error = 2,
+}
+
+/** @format int32 */
+export enum LogCategory {
+  General = 0,
+  Modbus = 1,
+  Variables = 2,
+  Security = 3,
+  Integrations = 4,
+  System = 5,
+}
+
+/** @format int32 */
 export enum IntegrationConnectionType {
   Unknown = 0,
   MQTT = 1,
@@ -82,6 +99,8 @@ export interface BasicEntitiesContainerDTO {
   modbusRegisterTypes?: ModbusRegisterTypeDTO[] | null;
   modbusDataTypes?: ModbusDataTypeDTO[] | null;
   integrationConnectionTypes?: IntegrationConnectionTypeDTO[] | null;
+  logCategories?: LogCategoryDTO[] | null;
+  logLevels?: LogLevelDTO[] | null;
 }
 
 export interface CPUReportDTO {
@@ -264,6 +283,7 @@ export interface CommonLiteralsContainer {
   result?: string | null;
   results?: string | null;
   success?: string | null;
+  system?: string | null;
   localeCode?: string | null;
 }
 
@@ -404,12 +424,52 @@ export interface LiteralsContainerDTO {
   variables?: VariablesLiteralsContainer;
   integrations?: IntegrationsLiteralsContainer;
   modbus?: ModbusLiteralsContainer;
+  logging?: LoggingLiteralsContainer;
   localeCode?: string | null;
 }
 
 export interface LocaleDTO {
   localeCode?: string | null;
   description?: string | null;
+}
+
+export interface LogCategoryDTO {
+  logCategory?: LogCategory;
+  description?: string | null;
+}
+
+export interface LogEntryDTO {
+  category?: LogCategory;
+  /** @format date-time */
+  timestampUtc?: string;
+  level?: LogLevel;
+  text?: string | null;
+}
+
+export interface LogLevelDTO {
+  logLevel?: LogLevel;
+  description?: string | null;
+}
+
+export interface LoggingLiteralsContainer {
+  logs?: string | null;
+  category?: string | null;
+  level?: string | null;
+  allCategories?: string | null;
+  allLevels?: string | null;
+  timestamp?: string | null;
+  message?: string | null;
+  noLogEntriesToDisplay?: string | null;
+  information?: string | null;
+  warning?: string | null;
+  error?: string | null;
+  general?: string | null;
+  modbus?: string | null;
+  variables?: string | null;
+  security?: string | null;
+  integrations?: string | null;
+  system?: string | null;
+  localeCode?: string | null;
 }
 
 export interface LoginRequestDTO {

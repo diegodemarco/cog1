@@ -1,5 +1,6 @@
 ﻿using cog1.DTO;
 using cog1.Modbus;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace cog1.BackgroundServices
@@ -13,14 +14,13 @@ namespace cog1.BackgroundServices
     /// <param name="logger">
     /// Logger used by the background service.
     /// </param>
-    public class ModbusTcpService(ILogger<ModbusTcpService> logger) : ModbusInterfaceBaseService(logger)
+    public class ModbusTcpService(ILogger<ModbusTcpService> logger, IServiceScopeFactory scopeFactory) : ModbusInterfaceBaseService(logger, scopeFactory, "Modbus TCP")
     {
-        protected override string Description => "Modbus TCP";
 
         protected override ModbusServer CreateServer()
         {
             var result = new ModbusTcpServer();
-            logger.LogInformation($"Successfully started Modbus TCP server");
+            LogInformation($"Successfully started Modbus TCP server");
             return result;
         }
 

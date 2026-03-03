@@ -40,6 +40,11 @@ export const routes: Routes = [
         loadChildren: () => import('./views/integrations/routes').then((m) => m.routes),
         canActivate: [AuthGuard]
       },
+      {
+        path: 'logs',
+        loadChildren: () => import('./views/logs/routes').then((m) => m.routes),
+        canActivate: [AuthGuard]
+      },
       // {
       //   path: 'theme',
       //   loadChildren: () => import('./views/theme/routes').then((m) => m.routes)

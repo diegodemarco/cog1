@@ -1,5 +1,6 @@
 ﻿using cog1.DTO;
 using cog1.Modbus;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace cog1.BackgroundServices
@@ -13,9 +14,8 @@ namespace cog1.BackgroundServices
     /// <param name="logger">
     /// Logger used by the background service.
     /// </param>
-    public class ModbusRtuService(ILogger<ModbusRtuService> logger) : ModbusInterfaceBaseService(logger)
+    public class ModbusRtuService(ILogger<ModbusRtuService> logger, IServiceScopeFactory scopeFactory) : ModbusInterfaceBaseService(logger, scopeFactory, "Modbus RTU")
     {
-        protected override string Description => "Modbus RTU";
 
         protected override ModbusServer CreateServer()
         {
@@ -25,7 +25,7 @@ namespace cog1.BackgroundServices
                 Config.ModbusRtuDataBits,
                 Config.ModbusRtuStopBits,
                 Config.ModbusRtuParity);
-            logger.LogInformation($"Successfully started Modbus RTU server on {Config.ModbusRtuSerialPort}. Port setup: {Config.ModbusRtuBaudRate},{Config.ModbusRtuDataBits},{Config.ModbusRtuParity},{Config.ModbusRtuStopBits}");
+            LogInformation($"Successfully started Modbus RTU server on {Config.ModbusRtuSerialPort}. Port setup: {Config.ModbusRtuBaudRate},{Config.ModbusRtuDataBits},{Config.ModbusRtuParity},{Config.ModbusRtuStopBits}");
             return result;
         }
 

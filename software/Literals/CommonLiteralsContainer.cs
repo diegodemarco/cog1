@@ -381,6 +381,8 @@ namespace cog1.Literals
 
         public virtual string Success { get => new CommonLiterals.Success().ExtractLiteral(LocaleCode); set { } }
 
+        public virtual string System { get => new CommonLiterals.System().ExtractLiteral(LocaleCode); set { } }
+
     }
 
 }

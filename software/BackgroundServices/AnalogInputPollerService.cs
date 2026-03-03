@@ -1,8 +1,11 @@
-﻿using Microsoft.Extensions.Hosting;
+﻿using cog1.BackgroundServices;
+using cog1.DTO;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System.Threading.Tasks;
 using System.Threading;
 using System;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace cog1.System
 {
@@ -16,16 +19,12 @@ namespace cog1.System
         /// IOManager fields and methods.
         /// </summary>
         /// <param name="logger">logger used by the background service</param>
-        public class AnalogInputPollerService(ILogger<AnalogInputPollerService> logger) : BackgroundService
+        public class AnalogInputPollerService(ILogger<AnalogInputPollerService> logger, IServiceScopeFactory scopeFactory) : BaseBackgroundService(logger, scopeFactory, "Analog input poller", LogCategory.Variables)
         {
 
-            protected async override Task ExecuteAsync(CancellationToken stoppingToken)
+            protected async override Task Run(CancellationToken stoppingToken)
             {
-                logger.LogInformation("Analog polling service started");
-
-                // Signal that the background task has started
                 await Task.Yield();
-
                 while (!stoppingToken.IsCancellationRequested)
                 {
                     try
@@ -38,8 +37,6 @@ namespace cog1.System
                     }
                     Utils.CancellableDelay(1000, stoppingToken);
                 }
-
-                logger.LogInformation("Analog polling service stopped");
             }
 
         }

@@ -35,6 +35,8 @@ namespace cog1.Controllers
                     modbusRegisterTypes = Context.VariableBusiness.EnumerateModbusRegisterTypes(),
                     modbusDataTypes = Context.VariableBusiness.EnumerateModbusDataTypes(),
                     integrationConnectionTypes = Context.IntegrationBusiness.EnumerateIntegrationConnectionTypes(),
+                    logCategories = Context.LoggingBusiness.EnumerateLogCategories(),
+                    logLevels = Context.LoggingBusiness.EnumerateLogLevels(),
                 };
             });
         }

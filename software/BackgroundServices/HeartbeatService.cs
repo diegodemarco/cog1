@@ -1,9 +1,12 @@
-﻿using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using System.Threading.Tasks;
-using System.Threading;
-using System;
+﻿using cog1.BackgroundServices;
+using cog1.DTO;
 using cog1.System;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using System;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace cog1.System
 {
@@ -18,9 +21,9 @@ namespace cog1.System
         /// IOManager fields and methods.
         /// </summary>
         /// <param name="logger">logger used by the background service</param>
-        public class HeartbeatService(ILogger<HeartbeatService> logger) : BackgroundService
+        public class HeartbeatService(ILogger<HeartbeatService> logger, IServiceScopeFactory scopeFactory) : BaseBackgroundService(logger, scopeFactory, "Heartbeat", LogCategory.System)
         {
-            protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+            protected override async Task Run(CancellationToken stoppingToken)
             {
                 const int short_sleep_min = 40;
                 const int short_sleep_max = 100;
@@ -29,11 +32,7 @@ namespace cog1.System
                 int long_sleep;
                 int inter_sleep;
 
-                logger.LogInformation("Heartbeat service started");
-
-                // Signal that the background task has started
                 await Task.Yield();
-
                 while (!stoppingToken.IsCancellationRequested)
                 {
                     try
@@ -73,8 +72,6 @@ namespace cog1.System
                         Utils.CancellableDelay(1000, stoppingToken);
                     }
                 }
-
-                logger.LogInformation("Heartbeat service stopped");
             }
         }
 

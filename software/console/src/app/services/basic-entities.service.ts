@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { BackendService } from './backend.service';
-import { LiteralsContainerDTO, LocaleDTO, ModbusDataType, ModbusDataTypeDTO, ModbusRegisterDTO, ModbusRegisterType, ModbusRegisterTypeDTO, VariableAccessType, VariableAccessTypeDTO, VariableSourceDTO, VariableType, VariableTypeDTO, IntegrationConnectionType, IntegrationConnectionTypeDTO } from '../api-client/data-contracts';
+import { LiteralsContainerDTO, LocaleDTO, LogCategoryDTO, LogLevelDTO, ModbusDataType, ModbusDataTypeDTO, ModbusRegisterDTO, ModbusRegisterType, ModbusRegisterTypeDTO, VariableAccessType, VariableAccessTypeDTO, VariableSourceDTO, VariableType, VariableTypeDTO, IntegrationConnectionType, IntegrationConnectionTypeDTO } from '../api-client/data-contracts';
 
 @Injectable({
   providedIn: 'root'
@@ -15,6 +15,8 @@ export class BasicEntitiesService {
   public modbusRegisterTypes!: ModbusRegisterTypeDTO[];
   public modbusDataTypes!: ModbusDataTypeDTO[];
   public integrationConnectionTypes!: IntegrationConnectionTypeDTO[];
+  public logCategories!: LogCategoryDTO[];
+  public logLevels!: LogLevelDTO[];
 
   constructor(private backend: BackendService) { }
 
@@ -30,6 +32,8 @@ export class BasicEntitiesService {
         this.modbusRegisterTypes = data.data.modbusRegisterTypes!;
         this.modbusDataTypes = data.data.modbusDataTypes!;
         this.integrationConnectionTypes = data.data.integrationConnectionTypes!;
+        this.logCategories = data.data.logCategories!;
+        this.logLevels = data.data.logLevels!;
       })
       .catch(error =>
       {
