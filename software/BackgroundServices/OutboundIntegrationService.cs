@@ -260,6 +260,7 @@ namespace cog1.BackgroundServices
                     {
                         if (changedSet.Any(id => integration.variableChangeList.Contains(id)))
                         {
+                            sw.Restart();
                             LogInformation($"Outbound integration {integration.integrationId}: triggered by variable changes ({string.Join(", ", changedSet)})");
                             shouldSend = true;
                         }
