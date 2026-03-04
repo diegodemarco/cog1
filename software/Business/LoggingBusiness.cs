@@ -137,7 +137,7 @@ namespace cog1.Business
                 }
 
                 return result
-                    .OrderBy(e => e.timestampUtc)
+                    .OrderByDescending(e => e.timestampUtc)
                     .ToList();
             }
         }

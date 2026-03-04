@@ -249,7 +249,10 @@ namespace cog1.BackgroundServices
 
                     // Check if a periodic send is due
                     if (sw.ElapsedMilliseconds >= sendIntervalMs)
+                    {
+                        sw.Restart();
                         shouldSend = true;
+                    }
 
                     // Check for variable change triggers
                     var changedSet = DrainVariableChanges(state.VariableSubscription);
@@ -266,7 +269,6 @@ namespace cog1.BackgroundServices
                     {
                         var payload = BuildPayload(integration);
                         await SendPayload(integration, connection, payload, httpClient, mqttClient, mqttOptions, ct);
-                        sw.Restart();
                     }
                 }
                 catch (OperationCanceledException)

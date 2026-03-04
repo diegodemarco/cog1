@@ -141,7 +141,6 @@ namespace cog1.BackgroundServices
         private static void CheckCompletedItems()
         {
             var varsToUpdate = new Dictionary<int, double>();
-            var varsWithErrors = new List<(int variableId, string errorMessage)>();
 
             // Process items in the queue that are completed or ready to be purged
             lock (_lock)
@@ -162,7 +161,6 @@ namespace cog1.BackgroundServices
                                 break;
                             case ModbusQueueItemState.Error:
                                 item.state = ModbusQueueItemState.Purge;
-                                varsWithErrors.Add((item.variableId, item.errorMessage));
                                 break;
                         }
                     }
@@ -171,18 +169,7 @@ namespace cog1.BackgroundServices
 
             // Update variable value in the IO Manager
             foreach (var item in varsToUpdate)
-            {
                 IOManager.SetVariableValue(item.Key, item.Value);
-                LoggingBusiness.Log(LogCategory.Modbus, DTO.LogLevel.Information, 
-                  $"Updated variable {item.Key} using  Modbus");
-            }
-
-            // Log errors
-            foreach (var item in varsWithErrors)
-            {
-                LoggingBusiness.Log(LogCategory.Modbus, DTO.LogLevel.Error,
-                    $"Error reading variable {item.variableId} using Modbus: {item.errorMessage}");
-            }
         }
 
         private static long DequeueOperation(Func<ModbusQueueEntry, bool> func, out ModbusRegisterDTO modbusRegister, out bool isRead, out double value)
@@ -281,12 +268,15 @@ namespace cog1.BackgroundServices
                 {
                     item.state = ModbusQueueItemState.Success;
                     item.value = value;
+                    LoggingBusiness.Log(LogCategory.Modbus, DTO.LogLevel.Information, 
+                      $"Modbus {(item.operationType == ModbusOperationType.Read ? "read" : "write")} operation for variable {item.variableId} succeeded");
                 }
                 else
                 {
                     item.state = ModbusQueueItemState.Error;
                     item.errorMessage = error;
-                    Console.WriteLine($"Modbus operation id {operationId} finished with error: {error}");
+                    LoggingBusiness.Log(LogCategory.Modbus, DTO.LogLevel.Warning, 
+                      $"Modbus {(item.operationType == ModbusOperationType.Read ? "read" : "write")} operation for variable {item.variableId} failed: {error}");
                 }
             }
             CheckCompletedItems();
