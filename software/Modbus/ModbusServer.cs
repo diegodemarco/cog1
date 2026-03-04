@@ -119,6 +119,7 @@ namespace cog1.Modbus
             if (!ReadChars(socket, buffer, ref index, 2))
             {
                 Console.WriteLine($"Timeout reading device address and function code => [{Utils.BytesToHex(buffer, index)}]");
+                SetErrorInfoTimeout();
                 return false;
             }
             var functionCode = buffer[1];
@@ -130,6 +131,7 @@ namespace cog1.Modbus
                 if (!ReadChars(socket, buffer, ref index, 1 + (useChecksum ? 2 : 0)))
                 {
                     Console.WriteLine($"Timeout reading error details => [{Utils.BytesToHex(buffer, index)}]");
+                    SetErrorInfoTimeout();
                     return false;
                 }
                 Console.WriteLine($"Error => [{Utils.BytesToHex(buffer, index)}]");
@@ -147,6 +149,7 @@ namespace cog1.Modbus
                     if (!ReadChars(socket, buffer, ref index, 1))
                     {
                         Console.WriteLine($"Timeout reading number of bytes => [{Utils.BytesToHex(buffer, index)}]");
+                        SetErrorInfoTimeout();
                         return false;
                     }
                     var byteCount = buffer[index - 1];
@@ -154,6 +157,7 @@ namespace cog1.Modbus
                     if (!ReadChars(socket, buffer, ref index, byteCount + (useChecksum ? 2 : 0)))    // Data bytes + checksum
                     {
                         Console.WriteLine($"Timeout reading specified number of bytes => [{Utils.BytesToHex(buffer, index)}]");
+                        SetErrorInfoTimeout();
                         return false;
                     }
                     return StripChecksum(buffer, index, out responseData);
@@ -163,6 +167,7 @@ namespace cog1.Modbus
                     if (!ReadChars(socket, buffer, ref index, 2 + 2 + (useChecksum ? 2 : 0)))        // Register address + register value + checksum
                     {
                         Console.WriteLine($"Timeout reading write single coil bytes => [{Utils.BytesToHex(buffer, index)}]");
+                        SetErrorInfoTimeout();
                         return false;
                     }
                     return StripChecksum(buffer, index, out responseData);
@@ -172,6 +177,7 @@ namespace cog1.Modbus
                     if (!ReadChars(socket, buffer, ref index, 2 + 2 + (useChecksum ? 2 : 0)))        // Register address + register value + checksum
                     {
                         Console.WriteLine($"Timeout reading write single holding register bytes => [{Utils.BytesToHex(buffer, index)}]");
+                        SetErrorInfoTimeout();
                         return false;
                     }
                     return StripChecksum(buffer, index, out responseData);
@@ -181,6 +187,7 @@ namespace cog1.Modbus
                     if (!ReadChars(socket, buffer, ref index, 2 + 2 + (useChecksum ? 2 : 0)))        // Register address + register count + checksum
                     {
                         Console.WriteLine($"Timeout reading write multiple holding register bytes => [{Utils.BytesToHex(buffer, index)}]");
+                        SetErrorInfoTimeout();
                         return false;
                     }
                     return StripChecksum(buffer, index, out responseData);

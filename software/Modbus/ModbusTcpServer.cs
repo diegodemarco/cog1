@@ -115,6 +115,7 @@ namespace cog1.Modbus
                 {
                     responseData = Array.Empty<byte>();
                     Console.WriteLine($"Timeout reading 6 byte tcp response header => [{Utils.BytesToHex(buffer, index)}]");
+                    SetErrorInfoTimeout();
                     return false;
                 }
 
@@ -122,7 +123,7 @@ namespace cog1.Modbus
                 if (buffer[0] != newArray[0] || buffer[1] != newArray[1] || buffer[2] != newArray[2] || buffer[3] != newArray[3])
                 {
                     responseData = Array.Empty<byte>();
-                    Console.WriteLine($"header mismatch: {Utils.BytesToHex(buffer, " ")} / {Utils.BytesToHex(newArray, " ")}");
+                    Console.WriteLine($"Header mismatch: {Utils.BytesToHex(buffer, " ")} / {Utils.BytesToHex(newArray, " ")}");
                     SetErrorInfo("Reponse header does not match request header");
                     return false;
                 }
@@ -131,7 +132,7 @@ namespace cog1.Modbus
                 //    Console.WriteLine("Header check Ok");
                 //}
 
-                // Read the response
+                // Read the response. This sets error information if necessary.
                 var result = ReadResponseMessage(socket, out responseData, false);
 
                 // If everything went well, the tcp slave can continue to be used

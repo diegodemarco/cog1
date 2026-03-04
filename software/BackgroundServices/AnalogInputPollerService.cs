@@ -1,6 +1,5 @@
 ﻿using cog1.BackgroundServices;
 using cog1.DTO;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System.Threading.Tasks;
 using System.Threading;

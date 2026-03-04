@@ -133,7 +133,7 @@ namespace cog1.Business
 
                 if (level.HasValue)
                 {
-                    result = result.Where(e => e.level >= level.Value);
+                    result = result.Where(e => e.level == level.Value);
                 }
 
                 return result

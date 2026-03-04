@@ -35,7 +35,7 @@ namespace cog1.BackgroundServices
         {
             LogInformation($"{ServiceName} service started");
 
-            await Run(stoppingToken);
+            await Task.Run(() => Run(stoppingToken));
 
             LogInformation($"{ServiceName} service stopped");
         }

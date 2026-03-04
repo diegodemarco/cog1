@@ -1,4 +1,5 @@
-﻿using cog1.DTO;
+﻿using cog1.Business;
+using cog1.DTO;
 using cog1.System;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -140,6 +141,7 @@ namespace cog1.BackgroundServices
         private static void CheckCompletedItems()
         {
             var varsToUpdate = new Dictionary<int, double>();
+            var varsWithErrors = new List<(int variableId, string errorMessage)>();
 
             // Process items in the queue that are completed or ready to be purged
             lock (_lock)
@@ -159,8 +161,8 @@ namespace cog1.BackgroundServices
                                 item.state = ModbusQueueItemState.Purge;
                                 break;
                             case ModbusQueueItemState.Error:
-                                // Do something with the error
                                 item.state = ModbusQueueItemState.Purge;
+                                varsWithErrors.Add((item.variableId, item.errorMessage));
                                 break;
                         }
                     }
@@ -169,7 +171,18 @@ namespace cog1.BackgroundServices
 
             // Update variable value in the IO Manager
             foreach (var item in varsToUpdate)
+            {
                 IOManager.SetVariableValue(item.Key, item.Value);
+                LoggingBusiness.Log(LogCategory.Modbus, DTO.LogLevel.Information, 
+                  $"Updated variable {item.Key} using  Modbus");
+            }
+
+            // Log errors
+            foreach (var item in varsWithErrors)
+            {
+                LoggingBusiness.Log(LogCategory.Modbus, DTO.LogLevel.Error,
+                    $"Error reading variable {item.variableId} using Modbus: {item.errorMessage}");
+            }
         }
 
         private static long DequeueOperation(Func<ModbusQueueEntry, bool> func, out ModbusRegisterDTO modbusRegister, out bool isRead, out double value)
