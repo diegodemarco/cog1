@@ -16,6 +16,7 @@ using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using static cog1.Literals.CommonLiterals;
 
 namespace cog1.BackgroundServices
 {
@@ -217,7 +218,14 @@ namespace cog1.BackgroundServices
             var sendIntervalMs = (long)integration.sendIntervalSeconds * 1000;
             var watchesVariables = integration.variableChangeList != null && integration.variableChangeList.Count > 0;
 
-            LogInformation($"Outbound integration worker {integration.integrationId} ({integration.description}) running");
+            if (connection.connectionType == IntegrationConnectionType.MQTT && connection.mqttUseTls && string.IsNullOrWhiteSpace(connection.mqttServerCertificate))
+            {
+                LogWarning($"Outbound integration worker {integration.integrationId} ({integration.description}) running without server certificate validation");
+            }
+            else
+            {
+                LogInformation($"Outbound integration worker {integration.integrationId} ({integration.description}) running");
+            }
 
             // Create a shared HttpClient for the lifetime of this worker (only for HTTP connections)
             using var httpClient = connection.connectionType == IntegrationConnectionType.HTTPPost
@@ -361,7 +369,6 @@ namespace cog1.BackgroundServices
         /// </summary>
         private async Task SendPayload(OutboundIntegrationDTO integration, IntegrationConnectionDTO connection, string payload, HttpClient httpClient, IMqttClient mqttClient, MqttClientOptions mqttOptions, CancellationToken ct)
         {
-            LogInformation($"Outbound integration {integration.integrationId}: sending payload via {connection.connectionType}");
             switch (connection.connectionType)
             {
                 case IntegrationConnectionType.HTTPPost:
@@ -411,7 +418,7 @@ namespace cog1.BackgroundServices
                     var result = await client.ConnectAsync(mqttOptions, ct);
                     if (result.ResultCode != MqttClientConnectResultCode.Success)
                     {
-                        LogWarning($"Outbound integration {integration.integrationId} MQTT client failed to connect: {result.ResultCode}");
+                        LogWarning($"Outbound integration {integration.integrationId} ({integration.description}) failed to connect: {result.ResultCode}");
                         return;
                     }
                 }
@@ -422,10 +429,11 @@ namespace cog1.BackgroundServices
                     .WithQualityOfServiceLevel(MqttQualityOfServiceLevel.AtLeastOnce)
                     .Build();
                 await client.PublishAsync(message, ct);
+                LogInformation($"Outbound integration {integration.integrationId} ({integration.description}) succeeded to send report via MQTT");
             }
             catch (Exception ex)
             {
-                LogWarning($"Outbound integration {integration.integrationId} MQTT publish to {topic} failed: {ex.Message}");
+                LogWarning($"Outbound integration {integration.integrationId} ({integration.description}) failed to publish report to {topic}: {ex.Message}");
             }
         }
 
@@ -462,24 +470,27 @@ namespace cog1.BackgroundServices
                 bool hasClientCert = !string.IsNullOrWhiteSpace(connection.mqttClientCertificate);
                 optionsBuilder.WithTlsOptions(tls =>
                 {
-                    if (hasServerCert)
+                    // Trust the server CA certificate provided in PEM format
+                    tls.WithCertificateValidationHandler(args =>
                     {
-                        // Trust the server CA certificate provided in PEM format
-                        var caCert = X509Certificate2.CreateFromPem(connection.mqttServerCertificate);
-                        tls.WithCertificateValidationHandler(args =>
+                        // Accept the server certificate if it matches the provided CA
+                        if (args.Certificate != null)
                         {
-                            // Accept the server certificate if it matches the provided CA
-                            if (args.Certificate != null)
+                            if (hasServerCert)
                             {
+                                var caCert = X509Certificate2.CreateFromPem(connection.mqttServerCertificate);
                                 using var chain = new X509Chain();
                                 chain.ChainPolicy.ExtraStore.Add(caCert);
                                 chain.ChainPolicy.RevocationMode = X509RevocationMode.NoCheck;
                                 chain.ChainPolicy.VerificationFlags = X509VerificationFlags.AllowUnknownCertificateAuthority;
                                 return chain.Build(new X509Certificate2(args.Certificate));
                             }
-                            return false;
-                        });
-                    }
+                            // No CA certificate provided, we allow the connection
+                            // without validating the cerver certificate.
+                            return true;
+                        }
+                        return false;
+                    });
 
                     if (hasClientCert)
                     {
