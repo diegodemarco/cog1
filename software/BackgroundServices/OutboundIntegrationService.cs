@@ -2,7 +2,6 @@ using cog1.Business;
 using cog1.DTO;
 using cog1.System;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using MQTTnet;
 using MQTTnet.Protocol;
@@ -16,22 +15,20 @@ using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using static cog1.Literals.CommonLiterals;
 
 namespace cog1.BackgroundServices
 {
     /// <summary>
-    /// Background service that manages outbound integrations. Each outbound
-    /// integration runs in its own dedicated thread, sending data to the cloud
-    /// via HTTP POST or MQTT depending on the connection configuration.
-    /// 
-    /// Integrations send data:
-    ///   - Periodically, based on <c>sendIntervalSeconds</c>.
-    ///   - When one or more variables in <c>variableChangeList</c> change value.
-    /// 
-    /// The service reacts to CRUD operations on outbound integrations by
-    /// subscribing to change notifications via
-    /// <see cref="IntegrationBusiness.SubscribeToOutboundIntegrationChanges"/>.
+    /// Background service that manages outbound integrations.
+    ///
+    /// Each outbound integration runs with two independent workers:
+    ///   - A report creation worker that builds reports on schedule / variable changes
+    ///     and stores them in a report store.
+    ///   - A report sending worker that reads previously stored reports and sends
+    ///     them via HTTP POST or MQTT.
+    ///
+    /// This separation allows buffering and retry logic to be handled by the
+    /// report store implementation.
     /// </summary>
     public class OutboundIntegrationService(ILogger<OutboundIntegrationService> logger, IServiceScopeFactory scopeFactory) : BaseBackgroundService(logger, scopeFactory, "Outbound integrations", LogCategory.Integrations)
     {
@@ -45,15 +42,17 @@ namespace cog1.BackgroundServices
         #region Worker tracking
 
         /// <summary>
-        /// Holds the state for a single outbound-integration worker thread.
+        /// Holds the state for a single outbound integration worker pair.
         /// </summary>
         private class WorkerState
         {
             public OutboundIntegrationDTO Integration { get; set; }
             public IntegrationConnectionDTO Connection { get; set; }
             public CancellationTokenSource Cts { get; set; }
-            public Task Task { get; set; }
+            public Task ReportCreationTask { get; set; }
+            public Task ReportSendingTask { get; set; }
             public IOManager.VariableChangeSubscription VariableSubscription { get; set; }
+            public AutoResetEvent ReportAvailableEvent { get; set; }
         }
 
         private readonly Dictionary<int, WorkerState> workers = new();
@@ -171,6 +170,7 @@ namespace cog1.BackgroundServices
         {
             var cts = new CancellationTokenSource();
             var subscription = IOManager.SubscribeToVariableChanges();
+            var reportAvailableEvent = new AutoResetEvent(false);
 
             var state = new WorkerState
             {
@@ -178,9 +178,11 @@ namespace cog1.BackgroundServices
                 Connection = connection,
                 Cts = cts,
                 VariableSubscription = subscription,
+                ReportAvailableEvent = reportAvailableEvent,
             };
 
-            state.Task = Task.Run(() => WorkerLoop(state, cts.Token));
+            state.ReportCreationTask = Task.Run(() => ReportCreationLoop(state, cts.Token));
+            state.ReportSendingTask = Task.Run(() => ReportSendingLoop(state, cts.Token));
             workers[integration.integrationId] = state;
         }
 
@@ -189,9 +191,11 @@ namespace cog1.BackgroundServices
             if (workers.TryGetValue(integrationId, out var state))
             {
                 state.Cts.Cancel();
+                state.ReportAvailableEvent.Set();
                 IOManager.UnsubscribeFromVariableChanges(state.VariableSubscription);
-                try { state.Task.Wait(TimeSpan.FromSeconds(5)); } catch { /* expected */ }
+                try { Task.WaitAll(new[] { state.ReportCreationTask, state.ReportSendingTask }, TimeSpan.FromSeconds(5)); } catch { /* expected */ }
                 state.Cts.Dispose();
+                state.ReportAvailableEvent.Dispose();
                 workers.Remove(integrationId);
             }
         }
@@ -204,35 +208,113 @@ namespace cog1.BackgroundServices
 
         #endregion
 
-        #region Worker loop
+        #region Worker loops
+
+        private const int SendRetryIntervalMs = 5000;
 
         /// <summary>
-        /// Main loop for a single outbound integration worker.
-        /// Sends data periodically and also when watched variables change.
+        /// Main loop for report creation.
+        ///
+        /// Creates reports periodically and when watched variables change,
+        /// then stores them in the database via IntegrationBusiness.
         /// </summary>
-        private async Task WorkerLoop(WorkerState state, CancellationToken ct)
+        private Task ReportCreationLoop(WorkerState state, CancellationToken ct)
         {
             var integration = state.Integration;
-            var connection = state.Connection;
             var sw = Stopwatch.StartNew();
             var sendIntervalMs = (long)integration.sendIntervalSeconds * 1000;
             var watchesVariables = integration.variableChangeList != null && integration.variableChangeList.Count > 0;
 
+            LogInformation($"Outbound integration creation worker {integration.integrationId} ({integration.description}) running");
+
+            while (!ct.IsCancellationRequested)
+            {
+                try
+                {
+                    var remainingMs = Math.Max(0, sendIntervalMs - sw.ElapsedMilliseconds);
+
+                    var waitHandles = new WaitHandle[] { state.VariableSubscription.ChangedEvent, ct.WaitHandle };
+                    WaitHandle.WaitAny(waitHandles, (int)Math.Min(remainingMs, int.MaxValue));
+
+                    if (ct.IsCancellationRequested)
+                        break;
+
+                    bool shouldCreateReport = false;
+
+                    if (sw.ElapsedMilliseconds >= sendIntervalMs)
+                    {
+                        sw.Restart();
+                        shouldCreateReport = true;
+                    }
+
+                    var changedSet = DrainVariableChanges(state.VariableSubscription);
+                    if (!shouldCreateReport && watchesVariables)
+                    {
+                        if (changedSet.Any(id => integration.variableChangeList.Contains(id)))
+                        {
+                            sw.Restart();
+                            LogInformation($"Outbound integration {integration.integrationId}: report triggered by variable changes ({string.Join(", ", changedSet)})");
+                            shouldCreateReport = true;
+                        }
+                    }
+
+                    if (shouldCreateReport)
+                    {
+                        try
+                        {
+                            var payload = BuildPayload(integration);
+                            using var scope = scopeFactory.CreateScope();
+                            var context = scope.ServiceProvider.GetRequiredService<Cog1Context>();
+                            context.IntegrationBusiness.AddOutboundIntegrationReport(integration.integrationId, DateTime.UtcNow, payload);
+                            context.Commit();
+                            state.ReportAvailableEvent.Set();
+                            LogInformation($"Outbound integration {integration.integrationId} ({integration.description}) stored a new report");
+                        }
+                        catch (Exception ex)
+                        {
+                            LogError($"Outbound integration {integration.integrationId}: failed to store report: {ex.Message}");
+                        }
+                    }
+                }
+                catch (OperationCanceledException)
+                {
+                    break;
+                }
+                catch (Exception ex)
+                {
+                    LogError($"Error in outbound integration creation worker {integration.integrationId}: {ex.Message}");
+                    Utils.CancellableDelay(5000, ct);
+                }
+            }
+
+            LogInformation($"Outbound integration creation worker {integration.integrationId} stopped");
+            return Task.CompletedTask;
+        }
+
+        /// <summary>
+        /// Main loop for report sending.
+        ///
+        /// Sends pending reports from the database and retries
+        /// periodically when sending fails.
+        /// </summary>
+        private async Task ReportSendingLoop(WorkerState state, CancellationToken ct)
+        {
+            var integration = state.Integration;
+            var connection = state.Connection;
+
             if (connection.connectionType == IntegrationConnectionType.MQTT && connection.mqttUseTls && string.IsNullOrWhiteSpace(connection.mqttServerCertificate))
             {
-                LogWarning($"Outbound integration worker {integration.integrationId} ({integration.description}) running without server certificate validation");
+                LogWarning($"Outbound integration sender worker {integration.integrationId} ({integration.description}) running without server certificate validation");
             }
             else
             {
-                LogInformation($"Outbound integration worker {integration.integrationId} ({integration.description}) running");
+                LogInformation($"Outbound integration sender worker {integration.integrationId} ({integration.description}) running");
             }
 
-            // Create a shared HttpClient for the lifetime of this worker (only for HTTP connections)
             using var httpClient = connection.connectionType == IntegrationConnectionType.HTTPPost
                 ? CreateHttpClient(connection)
                 : null;
 
-            // Create a shared MQTT client for the lifetime of this worker (only for MQTT connections)
             IMqttClient mqttClient = null;
             MqttClientOptions mqttOptions = null;
             if (connection.connectionType == IntegrationConnectionType.MQTT)
@@ -243,41 +325,37 @@ namespace cog1.BackgroundServices
             {
                 try
                 {
-                    // Calculate how long until the next periodic send
-                    var remainingMs = Math.Max(0, sendIntervalMs - sw.ElapsedMilliseconds);
-
-                    // Wait for either: a variable change, the periodic timer, or cancellation
-                    var waitHandles = new WaitHandle[] { state.VariableSubscription.ChangedEvent, ct.WaitHandle };
-                    WaitHandle.WaitAny(waitHandles, (int)Math.Min(remainingMs, int.MaxValue));
+                    var waitHandles = new WaitHandle[] { state.ReportAvailableEvent, ct.WaitHandle };
+                    WaitHandle.WaitAny(waitHandles, SendRetryIntervalMs);
 
                     if (ct.IsCancellationRequested)
                         break;
 
-                    bool shouldSend = false;
-
-                    // Check if a periodic send is due
-                    if (sw.ElapsedMilliseconds >= sendIntervalMs)
+                    while (!ct.IsCancellationRequested)
                     {
-                        sw.Restart();
-                        shouldSend = true;
-                    }
-
-                    // Check for variable change triggers
-                    var changedSet = DrainVariableChanges(state.VariableSubscription);
-                    if (!shouldSend && watchesVariables)
-                    {
-                        if (changedSet.Any(id => integration.variableChangeList.Contains(id)))
+                        OutboundIntegrationReportDTO report;
+                        using (var scope = scopeFactory.CreateScope())
                         {
-                            sw.Restart();
-                            LogInformation($"Outbound integration {integration.integrationId}: triggered by variable changes ({string.Join(", ", changedSet)})");
-                            shouldSend = true;
+                            var context = scope.ServiceProvider.GetRequiredService<Cog1Context>();
+                            report = context.IntegrationBusiness.GetNextOutboundIntegrationReport(integration.integrationId);
                         }
-                    }
 
-                    if (shouldSend)
-                    {
-                        var payload = BuildPayload(integration);
-                        await SendPayload(integration, connection, payload, httpClient, mqttClient, mqttOptions, ct);
+                        if (report == null)
+                            break;
+
+                        var sent = await SendPayload(integration, connection, report.payload, httpClient, mqttClient, mqttOptions, ct);
+                        if (!sent)
+                            break;
+
+                        using (var scope = scopeFactory.CreateScope())
+                        {
+                            var context = scope.ServiceProvider.GetRequiredService<Cog1Context>();
+                            context.IntegrationBusiness.DeleteOutboundIntegrationReport(report.reportId);
+                            context.Commit();
+                        }
+
+                        // Small delay to avoid hammering the receiving cloud service if there are many pending reports
+                        Utils.CancellableDelay(500, ct);
                     }
                 }
                 catch (OperationCanceledException)
@@ -286,12 +364,12 @@ namespace cog1.BackgroundServices
                 }
                 catch (Exception ex)
                 {
-                    LogError($"Error in outbound integration worker {integration.integrationId}: {ex.Message}");
+                    LogError($"Error in outbound integration sender worker {integration.integrationId}: {ex.Message}");
                     Utils.CancellableDelay(5000, ct);
                 }
             }
 
-            LogInformation($"Outbound integration worker {integration.integrationId} stopped");
+            LogInformation($"Outbound integration sender worker {integration.integrationId} stopped");
         }
 
         /// <summary>
@@ -367,19 +445,17 @@ namespace cog1.BackgroundServices
         /// Sends the payload using the appropriate transport (HTTP POST or MQTT)
         /// based on the connection type.
         /// </summary>
-        private async Task SendPayload(OutboundIntegrationDTO integration, IntegrationConnectionDTO connection, string payload, HttpClient httpClient, IMqttClient mqttClient, MqttClientOptions mqttOptions, CancellationToken ct)
+        private async Task<bool> SendPayload(OutboundIntegrationDTO integration, IntegrationConnectionDTO connection, string payload, HttpClient httpClient, IMqttClient mqttClient, MqttClientOptions mqttOptions, CancellationToken ct)
         {
             switch (connection.connectionType)
             {
                 case IntegrationConnectionType.HTTPPost:
-                    await SendHttp(integration, connection, payload, httpClient, ct);
-                    break;
+                    return await SendHttp(integration, connection, payload, httpClient, ct);
                 case IntegrationConnectionType.MQTT:
-                    await SendMqtt(integration, connection, payload, mqttClient, mqttOptions, ct);
-                    break;
+                    return await SendMqtt(integration, connection, payload, mqttClient, mqttOptions, ct);
                 default:
                     LogWarning($"Outbound integration {integration.integrationId}: unknown connection type {connection.connectionType}");
-                    break;
+                    return false;
             }
         }
 
@@ -387,7 +463,7 @@ namespace cog1.BackgroundServices
         /// Sends the payload via HTTP POST, combining the connection's base URL
         /// with the integration's httpUrl (removing double slashes).
         /// </summary>
-        private async Task SendHttp(OutboundIntegrationDTO integration, IntegrationConnectionDTO connection, string payload, HttpClient client, CancellationToken ct)
+        private async Task<bool> SendHttp(OutboundIntegrationDTO integration, IntegrationConnectionDTO connection, string payload, HttpClient client, CancellationToken ct)
         {
             var url = CombinePaths(connection.httpBaseUrl, integration.httpUrl, '/');
 
@@ -398,16 +474,20 @@ namespace cog1.BackgroundServices
             {
                 var body = await response.Content.ReadAsStringAsync(ct);
                 LogWarning($"Outbound integration {integration.integrationId} HTTP POST to {url} returned {(int)response.StatusCode}: {body}");
+                return false;
             }
+
+            LogInformation($"Outbound integration {integration.integrationId} ({integration.description}) sent a report via HTTP POST");
+            return true;
         }
 
         /// <summary>
         /// Sends the payload via MQTT, combining the connection's base topic
         /// with the integration's mqttTopic (removing double slashes).
         /// </summary>
-        private async Task SendMqtt(OutboundIntegrationDTO integration, IntegrationConnectionDTO connection, string payload, IMqttClient client, MqttClientOptions mqttOptions, CancellationToken ct)
+        private async Task<bool> SendMqtt(OutboundIntegrationDTO integration, IntegrationConnectionDTO connection, string payload, IMqttClient client, MqttClientOptions mqttOptions, CancellationToken ct)
         {
-            if (client == null) return;
+            if (client == null) return false;
 
             var topic = CombinePaths(connection.mqttBaseTopic, integration.mqttTopic, '/');
 
@@ -419,7 +499,7 @@ namespace cog1.BackgroundServices
                     if (result.ResultCode != MqttClientConnectResultCode.Success)
                     {
                         LogWarning($"Outbound integration {integration.integrationId} ({integration.description}) failed to connect: {result.ResultCode}");
-                        return;
+                        return false;
                     }
                 }
 
@@ -429,11 +509,13 @@ namespace cog1.BackgroundServices
                     .WithQualityOfServiceLevel(MqttQualityOfServiceLevel.AtLeastOnce)
                     .Build();
                 await client.PublishAsync(message, ct);
-                LogInformation($"Outbound integration {integration.integrationId} ({integration.description}) succeeded to send report via MQTT");
+                LogInformation($"Outbound integration {integration.integrationId} ({integration.description}) sent a report via MQTT");
+                return true;
             }
             catch (Exception ex)
             {
                 LogWarning($"Outbound integration {integration.integrationId} ({integration.description}) failed to publish report to {topic}: {ex.Message}");
+                return false;
             }
         }
 

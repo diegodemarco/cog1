@@ -358,6 +358,29 @@ namespace Cog1.DB
                     Console.WriteLine("Done");
                 }
 
+                // Outbound integration reports table
+                try
+                {
+                    ctx.GetLong("select 1 from outbound_integration_reports");
+                }
+                catch
+                {
+                    Console.Write("Missing outbound_integration_reports table. Creating table... ");
+                    ctx.Execute(
+                        @"create table outbound_integration_reports
+                        (
+                            report_id integer not null primary key autoincrement,
+                            integration_id integer not null,
+                            created_utc text not null,
+                            payload text not null,
+
+                            FOREIGN KEY(integration_id) REFERENCES outbound_integrations(integration_id)
+                        );
+                    ");
+                    ctx.Execute("create index idx_outbound_integration_reports_integration_id_created_utc on outbound_integration_reports (integration_id, created_utc)");
+                    Console.WriteLine("Done");
+                }
+
                 // Done
                 ctx.Commit();
             }

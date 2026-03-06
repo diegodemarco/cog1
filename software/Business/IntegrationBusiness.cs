@@ -285,6 +285,21 @@ namespace cog1.Business
             NotifyOutboundIntegrationChange();
         }
 
+        public long AddOutboundIntegrationReport(int integrationId, DateTime createdUtc, string payload)
+        {
+            return Context.IntegrationDao.AddOutboundIntegrationReport(integrationId, createdUtc, payload);
+        }
+
+        public OutboundIntegrationReportDTO GetNextOutboundIntegrationReport(int integrationId)
+        {
+            return Context.IntegrationDao.GetNextOutboundIntegrationReport(integrationId);
+        }
+
+        public void DeleteOutboundIntegrationReport(long reportId)
+        {
+            Context.IntegrationDao.DeleteOutboundIntegrationReport(reportId);
+        }
+
         #endregion
     }
 }

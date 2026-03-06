@@ -5,12 +5,15 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Globalization;
 using System.Linq;
 
 namespace cog1.Dao
 {
+
     public class IntegrationDao : DaoBase
     {
+
         public IntegrationDao(Cog1Context context, ILogger logger) : base(context, logger)
         {
         }
@@ -179,6 +182,46 @@ namespace cog1.Dao
         public void DeleteOutboundIntegration(int integrationId)
         {
             Context.Db.Execute("delete from outbound_integrations where integration_id = @id", new() { { "@id", integrationId } });
+        }
+
+        public long AddOutboundIntegrationReport(int integrationId, DateTime createdUtc, string payload)
+        {
+            Context.Db.Execute(
+                "insert into outbound_integration_reports (integration_id, created_utc, payload) values (@integration_id, @created_utc, @payload)",
+                new()
+                {
+                    { "@integration_id", integrationId },
+                    { "@created_utc", createdUtc.ToString("o") },
+                    { "@payload", payload ?? string.Empty }
+                });
+
+            return Context.Db.GetLong("select last_insert_rowid()") ?? 0;
+        }
+
+        public OutboundIntegrationReportDTO GetNextOutboundIntegrationReport(int integrationId)
+        {
+            var t = Context.Db.GetDataTable(
+                "select report_id, integration_id, created_utc, payload from outbound_integration_reports where integration_id = @integration_id order by report_id asc limit 1",
+                new() { { "@integration_id", integrationId } });
+
+            if (t.Rows.Count == 0)
+                return null;
+
+            var row = t.Rows[0];
+            var createdUtc = DateTime.Parse(row.Field<string>("created_utc"), CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind);
+
+            return new OutboundIntegrationReportDTO
+            {
+                reportId = row.Field<long>("report_id"),
+                integrationId = (int)row.Field<long>("integration_id"),
+                createdUtc = createdUtc,
+                payload = row.Field<string>("payload")
+            };
+        }
+
+        public void DeleteOutboundIntegrationReport(long reportId)
+        {
+            Context.Db.Execute("delete from outbound_integration_reports where report_id = @report_id", new() { { "@report_id", reportId } });
         }
     }
 }
