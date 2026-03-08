@@ -5,5 +5,5 @@ wifi_log
 appsettings*
 cog1app
 cog1
-cog1_logo
+./cog1_logo
 data/
