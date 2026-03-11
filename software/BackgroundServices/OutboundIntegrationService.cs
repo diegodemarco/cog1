@@ -210,7 +210,8 @@ namespace cog1.BackgroundServices
 
         #region Worker loops
 
-        private const int SendRetryIntervalMs = 5000;
+        // Retry sending reports every 60s when the receiving service is unavailable or returns an error
+        private const int SendRetryIntervalMs = 60000;      
 
         /// <summary>
         /// Main loop for report creation.
@@ -267,8 +268,8 @@ namespace cog1.BackgroundServices
                             var context = scope.ServiceProvider.GetRequiredService<Cog1Context>();
                             context.IntegrationBusiness.AddOutboundIntegrationReport(integration.integrationId, DateTime.UtcNow, payload);
                             context.Commit();
-                            state.ReportAvailableEvent.Set();
                             LogInformation($"Outbound integration {integration.integrationId} ({integration.description}) stored a new report");
+                            state.ReportAvailableEvent.Set();
                         }
                         catch (Exception ex)
                         {
@@ -325,8 +326,7 @@ namespace cog1.BackgroundServices
             {
                 try
                 {
-                    var waitHandles = new WaitHandle[] { state.ReportAvailableEvent, ct.WaitHandle };
-                    WaitHandle.WaitAny(waitHandles, SendRetryIntervalMs);
+                    WaitHandle.WaitAny([state.ReportAvailableEvent, ct.WaitHandle], SendRetryIntervalMs);
 
                     if (ct.IsCancellationRequested)
                         break;
@@ -341,12 +341,17 @@ namespace cog1.BackgroundServices
                         }
 
                         if (report == null)
-                            break;
+                            break; // No more reports to send
 
                         var sent = await SendPayload(integration, connection, report.payload, httpClient, mqttClient, mqttOptions, ct);
                         if (!sent)
+                        {
+                            // An error occurred. Stop sending for a while
+                            ct.WaitHandle.WaitOne(SendRetryIntervalMs);
                             break;
+                        }
 
+                        // Delete the report that was just sent
                         using (var scope = scopeFactory.CreateScope())
                         {
                             var context = scope.ServiceProvider.GetRequiredService<Cog1Context>();
@@ -394,44 +399,40 @@ namespace cog1.BackgroundServices
         /// Builds the payload string for the given outbound integration
         /// by rendering the report template with the current variable values.
         /// 
-        /// The template can contain placeholders in the form <c>{variableId}</c>
-        /// that are replaced with the current value of the corresponding variable.
-        /// Additionally, <c>{timestamp}</c> is replaced with the current UTC time
-        /// in ISO-8601 format.
-        /// 
-        /// If the template is empty, a default JSON payload is generated containing
-        /// all variable values.
+        /// The template supports field placeholders using the <c>[FieldName]</c> syntax:
+        /// <list type="bullet">
+        ///   <item><c>[Variable.XXX]</c> – replaced with the current value of the variable with ID XXX.</item>
+        ///   <item><c>[Timestamp]</c> – current UTC time in ISO-8601 format.</item>
+        ///   <item><c>[Year]</c> – current UTC year (4 digits).</item>
+        ///   <item><c>[Month]</c> – current UTC month (2 digits, zero-padded).</item>
+        ///   <item><c>[Day]</c> – current UTC day (2 digits, zero-padded).</item>
+        ///   <item><c>[Hour]</c> – current UTC hour (2 digits, zero-padded).</item>
+        ///   <item><c>[Minute]</c> – current UTC minute (2 digits, zero-padded).</item>
+        ///   <item><c>[Second]</c> – current UTC second (2 digits, zero-padded).</item>
+        /// </list>
         /// </summary>
         private static string BuildPayload(OutboundIntegrationDTO integration)
         {
             var variableValues = IOManager.GetVariableValues();
             var template = integration.reportTemplate;
 
-            if (string.IsNullOrWhiteSpace(template))
-            {
-                // Default: send all current variable values as JSON
-                var data = variableValues
-                    .OrderBy(kv => kv.Key)
-                    .Select(kv => new
-                    {
-                        variableId = kv.Key,
-                        value = kv.Value.value,
-                        lastUpdateUtc = kv.Value.lastUpdateUtc?.ToString("o")
-                    });
-                return JsonConvert.SerializeObject(new
-                {
-                    timestamp = DateTime.UtcNow.ToString("o"),
-                    variables = data
-                }, Formatting.None);
-            }
-
-            // Render the template by replacing {variableId} placeholders
+            // Render the template by replacing [FieldName] placeholders
+            var now = DateTime.UtcNow;
             var result = template;
-            result = result.Replace("{timestamp}", DateTime.UtcNow.ToString("o"));
 
+            // Date/time fields
+            result = result.Replace("[Timestamp]", now.ToString("o"));
+            result = result.Replace("[Year]", now.ToString("yyyy"));
+            result = result.Replace("[Month]", now.ToString("MM"));
+            result = result.Replace("[Day]", now.ToString("dd"));
+            result = result.Replace("[Hour]", now.ToString("HH"));
+            result = result.Replace("[Minute]", now.ToString("mm"));
+            result = result.Replace("[Second]", now.ToString("ss"));
+
+            // Variable fields: [Variable.XXX]
             foreach (var kv in variableValues)
             {
-                result = result.Replace($"{{{kv.Key}}}", kv.Value.value?.ToString() ?? "null");
+                result = result.Replace($"[Variable.{kv.Key}]", kv.Value.value?.ToString() ?? "null");
             }
 
             return result;
