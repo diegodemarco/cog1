@@ -538,11 +538,11 @@ namespace cog1.System
             const double adc_voltage_reference = 2.56;  // 2.56V
 
             // Resistor values used at the input of the adc
-            const double series_resistor = 30000;
-            const double ground_resistor = 10000;
+            const double series_resistor = 30100;
+            const double ground_resistor = 9530;
             const double resistor_divider_factor = ground_resistor / (series_resistor + ground_resistor);
 
-            // Voltage at the input when the reads its maximum value
+            // Voltage at the input when the ADC reads its maximum value
             const double adc_full_scale_voltage = adc_voltage_reference / resistor_divider_factor;
 
             double a1, a2, a3, a4;
@@ -591,15 +591,6 @@ namespace cog1.System
                 {
                     Console.WriteLine("adc_read() failed");
                 }
-            }
-        }
-
-        private static void AnalogIOPoll()
-        {
-            for (; ; )
-            {
-                Thread.Sleep(1000);
-                AnalogRead();
             }
         }
 
