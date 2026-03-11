@@ -8,16 +8,16 @@ namespace cog1.Business
 {
     /// <summary>
     /// Business for in-memory logging. Maintains a static, thread-safe list of log entries
-    /// limited to 1000 entries per category.
+    /// limited to 500 entries in total.
     /// </summary>
     public class LoggingBusiness : BusinessBase
     {
-        private const int MaxEntriesPerCategory = 1000;
+        private const int MaxEntries = 500;
 
         /// <summary>
-        /// Per-category lists of log entries, guarded by <see cref="_lock"/>.
+        /// Combined list of all log entries regardless of category, guarded by <see cref="_lock"/>.
         /// </summary>
-        private static readonly Dictionary<DTO.LogCategory, List<LogEntryDTO>> _entries = new();
+        private static readonly List<LogEntryDTO> _entries = new();
 
         private static readonly object _lock = new();
 
@@ -90,18 +90,12 @@ namespace cog1.Business
 
             lock (_lock)
             {
-                if (!_entries.TryGetValue(category, out var list))
-                {
-                    list = new List<LogEntryDTO>();
-                    _entries[category] = list;
-                }
-
-                list.Add(entry);
+                _entries.Add(entry);
 
                 // Trim oldest entries when limit is exceeded
-                if (list.Count > MaxEntriesPerCategory)
+                if (_entries.Count > MaxEntries)
                 {
-                    list.RemoveRange(0, list.Count - MaxEntriesPerCategory);
+                    _entries.RemoveRange(0, _entries.Count - MaxEntries);
                 }
             }
         }
@@ -117,18 +111,11 @@ namespace cog1.Business
         {
             lock (_lock)
             {
-                IEnumerable<LogEntryDTO> result;
+                IEnumerable<LogEntryDTO> result = _entries;
 
                 if (category.HasValue)
                 {
-                    if (_entries.TryGetValue(category.Value, out var list))
-                        result = list;
-                    else
-                        return new List<LogEntryDTO>();
-                }
-                else
-                {
-                    result = _entries.Values.SelectMany(l => l);
+                    result = result.Where(e => e.category == category.Value);
                 }
 
                 if (level.HasValue)
