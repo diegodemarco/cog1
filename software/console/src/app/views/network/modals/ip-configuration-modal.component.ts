@@ -89,7 +89,7 @@ export class IpConfigurationModalComponent {
         this.showAlert("Invalid network mask");
         return;
       }
-      if (!Utils.validateIPaddress(this.currentConfig.gateway!)) {
+      if (this.currentConfig.gateway! != '' && !Utils.validateIPaddress(this.currentConfig.gateway!)) {
         this.showAlert("Invalid gateway");
         return;
       }
